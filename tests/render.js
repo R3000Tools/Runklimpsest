@@ -31,7 +31,7 @@ const ch=make('device',c,10,10,580,169), ctl=make('controls',c,16,230,928,170);
 let uid=null;
 for(let f=0;f<240;f++){ch.api.level(0.5);if(f%4==0)ch.api.tick();ch.api.bang();for(const o of ch.out.splice(0))if(o[1]=='uid')uid=o[2];}
 ctl.api.uid(uid);
-ch.api.meters(0.4,0.3);
+ch.api.meters(0.4,0.3);const DLr=new Function(SRC.slice(SRC.indexOf('// BEGIN GENERATED'),SRC.indexOf('// END GENERATED'))+';return LAYOUT;')();ch.api.onclick(DLr.division[0]+5,DLr.division[1]+5,1,0,0);
 // interaction test: click SYNC (toggle), click division segment 4, drag gravity up
 ctl.api.onclick(430,25);ctl.api.onclick(640,25);ctl.api.onclick(128,38);ctl.api.ondrag(128,8,1);
 window.sent=ctl.out.slice();

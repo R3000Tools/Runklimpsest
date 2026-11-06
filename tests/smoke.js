@@ -66,11 +66,16 @@ const ko = knob.out.map(o => o.slice(1)), mo = menu.out.map(o => o.slice(1));
 const DL = vm.runInContext('LAYOUT', ch); ch.out.length = 0;
 const c = (r) => [r[0] + r[2] / 2, r[1] + r[3] / 2];
 let p0 = c(DL.gravity); ch.onclick(p0[0], p0[1], 1, 0, 0); ch.ondrag(p0[0], p0[1] - 30, 1, 0, 0); ch.ondrag(p0[0], p0[1] - 30, 0, 0, 0); ch.ondblclick(p0[0], p0[1]);
-for (const k of ['sync', 'division', 'freeze', 'more', 'dose']) { const q = c(DL[k]); ch.onclick(q[0], q[1], 1, 0, 0); }
+const q0 = c(DL.sync); ch.onclick(q0[0], q0[1], 1, 0, 0);
+const qd = c(DL.division); ch.onclick(qd[0], qd[1], 1, 0, 0);                 // opens the list, no output
+const it3 = vm.runInContext('menuItemRect(3)', ch); paint(ch);                   // list drawn
+ch.onclick(it3[0] + 5, it3[1] + 5, 1, 0, 0);                                     // picks 1/32
+for (const k of ['freeze', 'more', 'dose']) { const q = c(DL[k]); ch.onclick(q[0], q[1], 1, 0, 0); }
 const dout = ch.out.map(o => o.slice(1)).filter(o => o[0] !== 'uid');
 console.log('device panel out', JSON.stringify(dout));
 const got = dout.map(o => o[0]).join(',');
 if (got !== 'gravity,gravity,sync,division,freeze,open,resetdose') throw new Error('device click outputs wrong: ' + got);
+if (dout[3][1] !== 3) throw new Error('division list did not select item 3');
 console.log('knob out', JSON.stringify(ko), 'menu out', JSON.stringify(mo));
 if (!ko.length || ko[0][0] !== 'gravity' || ko[ko.length - 1][1] !== 0.62) throw new Error('knob widget output wrong');
 if (mo.length !== 2 || mo[0][0] !== 'division') throw new Error('menu widget output wrong');

@@ -31,7 +31,7 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.1.7";
+var VERSION = "0.1.8";
 var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}};
 var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "resetdose": [376, 92, 54, 72], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
 // END GENERATED
@@ -644,6 +644,29 @@ function drawDevice(w, h, st) {
     rgba(COL.dim);
     text("IN · OUT", r[0] + r[2] / 2, r[1] + r[3] + 9, "center");
     text("v" + VERSION, r[0] + r[2] / 2, h - 2, "center");
+
+    if (menuOpen) drawDivisionMenu(dv);
+}
+
+function drawDivisionMenu(cur) {
+    var items = SPEC.division.items, first = menuItemRect(0), n = items.length, i;
+    mgraphics.rectangle_rounded(first[0] - 1, first[1] - 1, first[2] + 2, n * MENU_ITEM_H + 2, 6, 6);
+    mgraphics.set_source_rgba(0.09, 0.098, 0.118, 0.98);
+    mgraphics.fill_preserve();
+    mgraphics.set_source_rgba(1, 1, 1, 0.16);
+    mgraphics.set_line_width(1);
+    mgraphics.stroke();
+    for (i = 0; i < n; i++) {
+        var r = menuItemRect(i), on = i === cur;
+        if (on) {
+            rgba(COL.cyan, 0.18);
+            mgraphics.rectangle_rounded(r[0] + 1, r[1] + 1, r[2] - 2, r[3] - 2, 4, 4);
+            mgraphics.fill();
+        }
+        font(8, true);
+        if (on) rgba(COL.cyan); else rgba(COL.text);
+        text(items[i], r[0] + 7, r[1] + r[3] / 2 + 3);
+    }
 }
 
 function drawLarge(w, h, st) {
@@ -763,17 +786,29 @@ function doReset() {
     mgraphics.redraw();
 }
 
+// division dropdown, drawn by the device jsui itself (no native popup possible here)
+var menuOpen = false, MENU_ITEM_H = 14;
+function menuItemRect(i) {
+    var d = LAYOUT.division;
+    return [d[0], d[1] + d[3] + 2 + i * MENU_ITEM_H, d[2] + 8, MENU_ITEM_H];
+}
+
 function deviceClick(x, y, shift) {
-    var L = LAYOUT, k = deviceKnobAt(x, y);
+    var L = LAYOUT, k, i;
+    if (menuOpen) {
+        // any click closes the list; a click on an item selects it
+        menuOpen = false;
+        for (i = 0; i < SPEC.division.items.length; i++) {
+            if (inRect(x, y, menuItemRect(i))) { sendParam("division", i); delete localVal.division; break; }
+        }
+        mgraphics.redraw();
+        return;
+    }
+    k = deviceKnobAt(x, y);
     if (k) { devDrag = { name: k, y0: y, n0: toNorm(SPEC[k], valueOf(k)) }; return; }
     if (inRect(x, y, L.sync)) { sendParam("sync", P.sync ? 0 : 1); delete localVal.sync; return; }
     if (inRect(x, y, L.freeze)) { sendParam("freeze", P.freeze ? 0 : 1); delete localVal.freeze; return; }
-    if (inRect(x, y, L.division)) {
-        var cnt = SPEC.division.items.length;
-        sendParam("division", ((valueOf("division") | 0) + (shift ? cnt - 1 : 1)) % cnt);
-        delete localVal.division;
-        return;
-    }
+    if (inRect(x, y, L.division)) { menuOpen = true; mgraphics.redraw(); return; }
     if (inRect(x, y, L.more)) { outlet(0, "open"); return; }
     if (inRect(x, y, L.dose)) { doReset(); return; }
 }

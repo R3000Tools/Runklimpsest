@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8
+- Notenwert im Gerät: Klick öffnet eine Auswahlliste mit allen vier Werten (1/4, 1/8, 1/16, 1/32, aktueller Wert hervorgehoben), Klick auf einen Eintrag wählt ihn, Klick daneben schließt die Liste. Bisher schaltete jeder Klick nur zum nächsten Wert (Nutzerbefund 0.1.7: Optionen nicht sichtbar).
+- Vom Nutzer in Live bestätigt (0.1.7): Knobs und Buttons im Gerät bedienbar.
+
 ## 0.1.7
 - Fix: In 0.1.6 waren die Knobs und der Notenwert im Gerät unsichtbar (Nutzerbefund mit Screenshot): Objekte, die in Live über der großen Zeichen-jsui liegen, werden verdeckt bzw. bekommen keine Klicks (0.1.3–0.1.6 vier Varianten, alle gescheitert).
 - Neu: Das Gerät besteht aus **einer** jsui, die alles zeichnet und alle Klicks selbst auswertet (Knobs ziehen/Shift/Doppelklick, SYNC, Notenwert Klick/Shift-Klick, FREEZE, MORE, DOSE-Reset) – dasselbe Prinzip wie die Large View, die in Live funktioniert. Alle 16 Parameter liegen versteckt im Gerät.
