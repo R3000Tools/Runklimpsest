@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5
+- Fix: In 0.1.4 war die Oberfläche unsichtbar (Nutzerbefund) – die Hintergrundfläche (panel) verdeckte die Zeichen-jsui im Hintergrund-Layer. Panel entfernt (die jsui zeichnet den Hintergrund selbst), jsui nicht mehr im Hintergrund-Layer, sondern unterstes Objekt mit `ignoreclick 1`.
+- Restliche sichtbare Umrisse der transparenten Parameter (Regler-Ringe, Menürahmen) ebenfalls transparent.
+
 ## 0.1.4
 - Fix: In 0.1.3 ließ sich im Gerät nichts bedienen (Nutzerbefund). Vermutete Ursache: die ganzflächige Zeichen-jsui fing die Klicks ab. Jetzt: jsui im Hintergrund-Layer mit `ignoreclick 1`; die transparenten Parameter-Objekte haben 1 % statt 0 % Deckkraft (falls völlig transparente Objekte nicht angeklickt werden können).
 - Fix: Die Nachricht `grain <ms>` rief die gleichnamige Engine-Funktion auf, statt den Parameter zu setzen (Funktion heißt jetzt `fireGrain`). Smoke-Test prüft jetzt alle 16 Parameter-Nachrichten.

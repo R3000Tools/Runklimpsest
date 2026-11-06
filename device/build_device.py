@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.4"
+VERSION = "0.1.5"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -178,7 +178,8 @@ def control(patch, p, pres):
     if kind == "dial":
         oid = patch.add("live.dial", pres=pres, numinlets=1, numoutlets=2, outlettype=["", "float"],
                         activedialcolor=T, dialcolor=T, activeneedlecolor=T, needlecolor=T,
-                        textcolor=T, tricolor=T, focusbordercolor=T, showname=0, shownumber=0, **common)
+                        textcolor=T, tricolor=T, tribordercolor=T, panelcolor=T, bordercolor=T,
+                        focusbordercolor=T, showname=0, shownumber=0, **common)
     elif kind in ("toggle", "button"):
         oid = patch.add("live.text", pres=pres, numinlets=1, numoutlets=2, outlettype=["", ""],
                         mode=1 if kind == "toggle" else 0, text=p["text"], texton=p["text"],
@@ -188,7 +189,7 @@ def control(patch, p, pres):
     elif kind == "menu":
         oid = patch.add("live.menu", pres=pres, numinlets=1, numoutlets=3, outlettype=["", "", "float"],
                         bgcolor=T, activebgcolor=T, textcolor=T, activetextcolor=T, tricolor=T,
-                        focusbordercolor=T, **common)
+                        bordercolor=T, focusbordercolor=T, **common)
     else:  # tab
         oid = patch.add("live.tab", pres=pres, numinlets=1, numoutlets=3, outlettype=["", "", "float"],
                         num_lines_patching=1, num_lines_presentation=1, **common)
@@ -273,11 +274,12 @@ def build_window():
 
 def build_device():
     d = Patch("obj")
-    background(d, DEVICE_W, DEVICE_H)
-    # draws the whole panel and runs the engine. Background layer + ignoreclick: clicks must
-    # reach the transparent live.* parameters on top (0.1.3: nothing could be operated).
+    # The jsui draws the whole panel (incl. background) and runs the engine. It is the first,
+    # i.e. lowest object; ignoreclick lets clicks through to the transparent live.* parameters
+    # on top (0.1.3: jsui caught all clicks). No panel object and no background layer:
+    # in 0.1.4 the panel covered the background-layer jsui and nothing was visible.
     panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
-                  numinlets=1, numoutlets=1, outlettype=[""], border=0, ignoreclick=1, background=1)
+                  numinlets=1, numoutlets=1, outlettype=[""], border=0, ignoreclick=1)
 
     # parameters (the only ones) - transparent on top of the drawn panel
     orig = {}
