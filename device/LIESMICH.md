@@ -1,4 +1,4 @@
-# Runklimpsest – Oberflächen-Prototyp 0.1.2 (Max for Live)
+# Runklimpsest – Oberflächen-Prototyp 0.1.3 (Max for Live)
 
 Granular Particle Memory – **nur Oberfläche, keine Klangverarbeitung**. Das Audio läuft unverändert durch.
 Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
@@ -27,9 +27,9 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 | Element | Funktion |
 |---|---|
 | CHAMBER | Teilchen fallen, Aufprall = Grain (Ring). X-Position = Stelle im Puffer |
-| SYNC + Division | An: Teilchen warten (hohler Ring) bis zum nächsten Rasterschritt (1/4 … 1/32). Leiste oben = 16 Schritte |
+| SYNC + Division | An: Teilchen warten (hohler Ring) bis zum nächsten Rasterschritt (1/4 … 1/32, Song-Tempo). Leiste oben = 16 Schritte |
 | MORE | öffnet die Large View |
-| MEMORY | Puffer (2 Takte) mit dem echten Eingangspegel; Abnutzung färbt orange und drückt die Balken |
+| MEMORY | Puffer (2 Takte im Song-Tempo) mit dem echten Eingangspegel; Abnutzung färbt orange und drückt die Balken |
 | FREEZE | Schreibkopf stoppt, der Puffer wird nur noch abgenutzt |
 | GRAVITY, BOUNCE, SWARM | Physik: Fallgeschwindigkeit, Elastizität, Teilchenzahl |
 | EROSION | wie stark ein Aufprall die Stelle abnutzt |
@@ -37,6 +37,8 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 | MIX | Parameter vorhanden, wirkt noch nicht (keine Klangverarbeitung) |
 
 **Large View:** Zeile LINKED = dieselben Regler wie im Gerät (Spiegel). Zeile DETAIL = Grain, Heal, Dose Rate, Dose Recover, Output, Wear Type, Dose Target, Reset Dose – nur hier sichtbar, aber trotzdem automatisierbar (die Parameter liegen versteckt im Gerät).
+
+Alle Regler im Gerät sind echte Live-Parameter (unsichtbar über der Zeichnung): ziehen, Rechtsklick (Automation, Standardwert), MIDI-Mapping wie gewohnt. In der Large View: ziehen, Shift = fein, Doppelklick = Standardwert.
 
 ## Bitte testen (Feedback-Format: *Bereich / Element / Wert / Problem*)
 
@@ -52,7 +54,6 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 ## Bekannte Grenzen (Prototyp)
 
 - Keine Klangverarbeitung; MIX, OUTPUT, GRAIN, WEAR TYPE wirken nur auf die Anzeige bzw. gar nicht.
-- Takt-Länge für DOSE und Puffer ist fest auf 120 BPM gerechnet (Annahme).
 - SYNC-Raster kommt von `metro` und läuft nur bei laufendem Transport; bei Stopp ein interner Ersatztakt.
 - Ohne `runklimpsest_ui.js` daneben (und ohne Freeze) bleiben die Anzeigen leer.
 - Schrift „Ableton Sans“ wird von Live bereitgestellt; in Max allein kann eine Ersatzschrift erscheinen.

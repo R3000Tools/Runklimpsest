@@ -40,7 +40,7 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeichnet ihre Bedienelemente selbst (jsui) und schickt Änderungen an das Original; das Original meldet zurück. Ergebnis: eine Automationsspur pro Funktion, Undo und Mapping laufen über das Original.
 
 ## Oberfläche
-- Gerät 580 × 169 px: CHAMBER (SYNC, Division), MEMORY (FREEZE, EROSION), PHYSICS (GRAVITY, BOUNCE, SWARM, DOSE, MIX, MORE), IN/OUT-Meter.
+- Gerät 580 × 169 px ohne Titelzeile: CHAMBER (SYNC, Division), MEMORY (FREEZE, EROSION), PHYSICS (GRAVITY, BOUNCE, SWARM, DOSE, MIX, MORE), IN/OUT-Meter. Gezeichnet von einer jsui; die Live-Parameter liegen transparent darüber.
 - Large View 960 × 620 px: große Chamber mit Spuren und Verschleiß-Streifen, MEMORY, WEAR HISTORY (Verschleiß über die Zeit), Kennzahlen; Zeile LINKED (wie im Gerät) und DETAIL (nur hier).
 - Stil: Runkelizer FX (Verlauf #23262e → #0a0a0d, Farbe pro Bereich: Cyan Chamber/Physics, Orange Memory/Wear, Magenta Dose; LED-Buttons; Meter grün → rot). Alle Texte Englisch, keine Bereichs-Hinweise unter den Reglern (Platz).
 - GUI-Entwürfe (Iterationen 1–4): Claude-Artifact „Palimpsest M4L GUI“ (privat beim Nutzer).

@@ -6,6 +6,7 @@ let calls = 0;
 function makeCtx(mode, rect) {
   const mg = new Proxy({}, { get: (t, k) => {
     if (k === 'text_measure') return (s) => [String(s).length * 5, 8];
+    if (k === 'pattern_create_linear') return () => ({ add_color_stop_rgba() {} });
     if (k in t) return t[k];
     return () => { calls++; };
   }, set: (t, k, v) => { t[k] = v; return true; } });
@@ -21,9 +22,9 @@ function makeCtx(mode, rect) {
   vm.runInContext(src, ctx);
   return ctx;
 }
-const ch = makeCtx('chamber', [0,0,200,124]);
-const mem = makeCtx('memory', [0,0,152,74]);
-const dose = makeCtx('dose', [0,0,50,64]);
+const ch = makeCtx('device', [0,0,580,169]);
+const mem = makeCtx('controls', [0,0,928,170]);
+const dose = makeCtx('title', [0,0,200,18]);
 const large = makeCtx('large', [0,0,928,400]);
 const title = makeCtx('title', [0,0,200,18]);
 function send(ctx, name, ...args) {
@@ -36,7 +37,7 @@ for (let f = 0; f < 600; f++) {
   send(ch, 'level', f < 300 ? 0.6 : 0.0);
   if (f % 4 === 0) send(ch, 'tick');
   if (f === 100) send(ch, 'sync', 0);
-  if (f === 200) { send(ch, 'sync', 1); send(ch, 'freeze', 1); send(ch, 'swarm', 24); }
+  if (f === 200) { send(ch, 'sync', 1); send(ch, 'freeze', 1); send(ch, 'swarm', 24); send(ch, 'tempo', 90); send(ch, 'signum', 3); }
   if (f === 400) send(ch, 'resetdose', 1);
   send(ch, 'bang');
   for (const o of ch.out.splice(0)) if (o[1] === 'uid') uid = o[2];
@@ -46,4 +47,6 @@ for (let f = 0; f < 600; f++) {
 }
 const st = globals[uid].state;
 console.log('uid', uid, 'dose end', st.dose.toFixed(3), 'n', st.n, 'queued', st.queued, 'maxwear', Math.max(...st.wear).toFixed(2), 'drawcalls', calls);
-dose.onclick(10, 10); console.log('after dose click resetReq', st.resetReq);
+ch.onclick(400, 120); console.log('after dose ring click resetReq', st.resetReq);
+const L = vm.runInContext('LAYOUT', ch); if (!L.dose || !L.chamber) throw new Error('generated LAYOUT missing');
+console.log('tempo seen by engine', st.tempo, st.num + '/' + st.den);

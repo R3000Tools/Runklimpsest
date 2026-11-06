@@ -17,7 +17,7 @@ Eigenständiges Gerät, kein Clone. Inspiration (Freakshow Industries, Sinevibes
 | Pfad | Inhalt |
 |---|---|
 | `device/build_device.py` | erzeugt `Runklimpsest.maxpat` und `Runklimpsest.amxd` – **Patch nie von Hand ändern, immer über dieses Skript** |
-| `device/runklimpsest_ui.js` | jsui: Teilchen-Engine und alle Anzeigen (Modi `chamber`, `memory`, `dose`, `large`, `controls`, `title`) |
+| `device/runklimpsest_ui.js` | jsui: Teilchen-Engine und alle Anzeigen (Modi `device`, `large`, `controls`, `title`); Block `BEGIN/END GENERATED` (Parameter, Layout, Version) schreibt der Generator |
 | `device/Runklimpsest.amxd` | generiertes Gerät (ungefroren, braucht die JS-Datei daneben) |
 | `tests/smoke.js` | JS in Node mit nachgebildeter Max-API: Engine, alle Modi, DOSE-Reset |
 | `tests/render.js` | zeichnet Chamber, Dose und Large-View-Regler im Browser (Canvas-Nachbildung von mgraphics) und prüft Klick/Ziehen |
@@ -35,7 +35,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 
 ## Arbeitsregeln
 1. Vor jedem Push: Generator gelaufen, `node --check`, `smoke.js` und `render.js` ohne Fehler, Patch ohne Verbindungen ins Leere.
-2. **Parameter-Regel:** Jede Funktion genau einmal als `live.*`-Objekt mit Parameter Mode im Geräte-Patcher. Die Large View enthält **keine** Parameter: Ihre Bedienelemente zeichnet die jsui `controls`, Änderungen gehen als `<name> <wert>` → `[route]` → `[s ---<name>_c]` an das Original. Live-Spiegel ohne Parameter (`parameter_enable 0`) verlieren Namen, Einheiten und Auswahllisten (Befund 0.1.1) – nicht verwenden.
+2. **Parameter-Regel:** Jede Funktion genau einmal als `live.*`-Objekt mit Parameter Mode im Geräte-Patcher. Im Gerät sind diese Objekte vollständig transparent und liegen über der jsui `device`, die alles zeichnet (eine Regler-Ansicht für Gerät und Large View, Live-Bedienung bleibt). Die Large View enthält **keine** Parameter: Ihre Bedienelemente zeichnet die jsui `controls`, Änderungen gehen als `<name> <wert>` → `[route]` → `[s ---<name>_c]` an das Original. Live-Spiegel ohne Parameter (`parameter_enable 0`) verlieren Namen, Einheiten und Auswahllisten (Befund 0.1.1) – nicht verwenden.
 3. Parameter-Namen (`parameter_longname`) nie ändern ohne Hinweis im CHANGELOG (Automation in Projekten geht verloren).
 4. Max-JS (js/jsui) ist ES5: kein `let`/`const`, keine Pfeilfunktionen, keine Template-Strings. Funktionsnamen dürfen nicht mit Variablennamen kollidieren (Nachrichten an jsui rufen Funktionen gleichen Namens).
 5. Gerätelokale Sende-Namen immer mit `---` (`[s ---rk_param]`), sonst sprechen mehrere Instanzen miteinander.
@@ -44,8 +44,9 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 ## Bekannte Fallstricke
 - `live.text` im Button-Modus: Ausgabe kann je nach Version `bang` oder `1`/`0` sein → immer über `[t b]`, nie `[sel 1]` (MORE öffnete in 0.1.0 nicht).
 - Large View öffnet über zwei Wege: `open` → `[pcontrol]` → `[p LargeView]` und `[s ---rk_open]` → `front` → `[thispatcher]`.
-- Gemeinsamer Zustand zwischen den jsui-Instanzen über `new Global(uid)`; die Chamber-jsui erzeugt die uid und verteilt sie über `[s ---rk_uid]` (alle 2 s erneut, wegen Ladereihenfolge).
-- Tempo ist noch fest 120 BPM (Takt = 2 s) – Puffer- und DOSE-Zeiten stimmen bei anderem Tempo nicht (BACKLOG).
+- Gemeinsamer Zustand zwischen den jsui-Instanzen über `new Global(uid)` (`G.state`, `G.params`); die Geräte-jsui erzeugt die uid und verteilt sie über `[s ---rk_uid]` (alle 2 s erneut, wegen Ladereihenfolge).
+- Tempo/Taktart kommen über `live.path live_set` → `live.observer @property tempo|signature_numerator|signature_denominator` → jsui (`tempo`, `signum`, `sigden`).
+- Keine Titelzeile im Gerät (Name steht in Lives Gerätetitelzeile).
 - SYNC-Raster kommt von `[metro 16n]` (läuft nur bei laufendem Transport); bei Stopp interner Ersatztakt in der Engine.
 - Schrift „Ableton Sans“ stellt Live bereit.
 
