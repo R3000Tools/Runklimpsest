@@ -48,6 +48,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 - Tempo/Taktart kommen über `live.path live_set` → `live.observer @property tempo|signature_numerator|signature_denominator` → jsui (`tempo`, `signum`, `sigden`).
 - Keine Titelzeile im Gerät (Name steht in Lives Gerätetitelzeile).
 - **Nichts über die jsui `device` legen.** In Live scheiterten 0.1.3–0.1.6 alle Stapel-Varianten: transparente `live.*` darüber (keine Klicks bzw. jsui schluckt sie), Hintergrund-Layer + `panel` (alles unsichtbar), transparente `live.dial` (keine Klicks), `live.menu`-Popup (übernimmt transparente Textfarbe), kleine Widget-jsuis darüber (unsichtbar), `live.meter~` darüber (unsichtbar). Auch Meter, MORE und DOSE-Reset (Klick auf den Ring) macht die jsui selbst.
+- Test 0.1.11 (`OVERLAY_CONTROLS = True` im Generator): jsui `ignoreclick 1`, darüber transparente `live.numbox` (Knobs), `live.text` (Buttons) und `live.menu` mit sichtbarer Schrift – Ergebnis in Live offen. Scheitert es: `OVERLAY_CONTROLS = False` (= 0.1.10).
 - Keine jsui-Funktion darf wie ein Parameter heißen (0.1.3: `grain`); `tests/smoke.js` prüft alle Parameter-Nachrichten.
 - SYNC-Raster kommt von `[metro 16n]` (läuft nur bei laufendem Transport); bei Stopp interner Ersatztakt in der Engine.
 - Schrift „Ableton Sans“ stellt Live bereit.

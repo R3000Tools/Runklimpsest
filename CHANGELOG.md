@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.11 (Testversion)
+- Versuch: MIDI-Map per Klick (Strg+M), Rechtsklick-Menü und Makro-Zuweisung direkt an den gezeichneten Reglern, ohne sichtbare Änderung. Aufbau wie 0.1.5 (Zeichen-jsui lässt Klicks durch, `live.text` darüber funktionierte dort), aber:
+  - Knobs: transparente `live.numbox` statt `live.dial` (Ziehen hoch/runter; Doppelklick öffnet Zahleneingabe)
+  - Notenwert: `live.menu` mit sichtbarer Schrift → normale Live-Auswahlliste
+  - SYNC, FREEZE, MORE, DOSE-Reset: transparente `live.text` wie in 0.1.5
+- Generator-Schalter `OVERLAY_CONTROLS`: `False` stellt 0.1.10 wieder her (falls der Versuch scheitert).
+
 ## 0.1.10
 - Zuweisungsleiste aus 0.1.9 wieder entfernt (Nutzer: kein zusätzlicher GUI-Bereich). Gerät wieder 580 px, Oberfläche wie 0.1.8.
 - Bleibt (intern, ohne GUI): Parameter-Bänke „Main“/„Detail“ für Push und Controller mit Geräte-Steuerung. Automation aller 16 Parameter über die Automationsauswahl der Spur und Aufnahme von Regler-Bewegungen wie bisher.

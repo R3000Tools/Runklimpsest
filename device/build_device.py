@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.10"
+VERSION = "0.1.11"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -63,6 +63,13 @@ P = {p["name"]: p for p in PARAMS}
 # these rects. Parameters without a rect live hidden in the device.
 DEVICE_W, DEVICE_H = 580, 169   # drawn panel (jsui)
 
+# OVERLAY_CONTROLS (test 0.1.11): the parameters of the device controls lie transparent on
+# top of the drawn panel so Ctrl+M / right-click / macro mapping work on them directly.
+# Setup as in 0.1.5 (jsui ignoreclick, live.text worked there) but knobs as live.numbox
+# (live.dial took no clicks) and the division as live.menu with visible text (transparent
+# text made its popup unreadable). False = 0.1.10: hidden parameters, jsui handles clicks.
+OVERLAY_CONTROLS = True
+
 # Parameter banks for Push / controllers with device control (internal, no GUI).
 BANKS = [
     ("Main", ["gravity", "bounce", "swarm", "erosion", "mix", "freeze", "sync", "division"]),
@@ -100,6 +107,7 @@ def js_generated_block():
     layout.update(DEVICE_AREAS)
     return ("// BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit\n"
             f"var VERSION = {json.dumps(VERSION)};\n"
+            f"var NATIVE_MENU = {json.dumps(OVERLAY_CONTROLS)};\n"
             f"var SPEC = {json.dumps(spec)};\n"
             f"var LAYOUT = {json.dumps(layout)};\n"
             "// END GENERATED")
@@ -174,22 +182,28 @@ def valueof(p):
 
 
 def control(patch, p, pres):
-    """Creates the one live.* parameter object for p (hidden in the device: pres None).
-    Automation and Push work with hidden parameters; the drawn panel / large view follow it.
-    0.1.9 showed them in a visible mapping strip - removed again (user: no extra GUI area)."""
+    """Creates the one live.* parameter object for p. pres None = hidden (automation and
+    Push work anyway). With a rect (OVERLAY_CONTROLS) it lies transparent on the drawn
+    control; only the division menu shows its own text (needed for a readable popup)."""
     common = dict(varname=p["name"], parameter_enable=1,
                   saved_attribute_attributes={"valueof": valueof(p)})
-    if p["kind"] == "button":
+    T = TRANSPARENT
+    kind = p["kind"]
+    if kind in ("toggle", "button"):
         return patch.add("live.text", pres=pres, numinlets=1, numoutlets=2, outlettype=["", ""],
-                         mode=0, text="RESET", texton="RESET",
-                         bgcolor=BTN, activebgcolor=BTN, bgoncolor=MAGENTA, activebgoncolor=MAGENTA,
-                         textcolor=TEXT, activetextcolor=TEXT, textoncolor=BTN_ON_TXT, activetextoncolor=BTN_ON_TXT,
-                         bordercolor=hexc("ffffff", 0.15), fontsize=7.5, fontname=FONT_BOLD, rounded=3.0, **common)
-    col = {"cyan": CYAN, "orange": ORANGE, "magenta": MAGENTA}[p["colname"]]
+                         mode=1 if kind == "toggle" else 0, text=p.get("text", ""), texton=p.get("text", ""),
+                         bgcolor=T, activebgcolor=T, bgoncolor=T, activebgoncolor=T,
+                         textcolor=T, activetextcolor=T, textoncolor=T, activetextoncolor=T,
+                         bordercolor=T, focusbordercolor=T, **common)
+    if kind == "menu" and pres is not None:
+        return patch.add("live.menu", pres=pres, numinlets=1, numoutlets=3, outlettype=["", "", "float"],
+                         bgcolor=T, activebgcolor=T, textcolor=TEXT, activetextcolor=TEXT,
+                         tricolor=DIM, bordercolor=T, focusbordercolor=T,
+                         fontsize=8.0, fontname=FONT_BOLD, **common)
     return patch.add("live.numbox", pres=pres, numinlets=1, numoutlets=2, outlettype=["", "float"],
-                     bgcolor=BTN, activebgcolor=BTN, textcolor=TEXT, activetextcolor=TEXT,
-                     activeslidercolor=col, tricolor=col, bordercolor=hexc("ffffff", 0.12),
-                     fontsize=8.0, fontname=FONT_BOLD, appearance=0, **common)
+                     bgcolor=T, activebgcolor=T, textcolor=T, activetextcolor=T,
+                     activeslidercolor=T, tricolor=T, bordercolor=T, focusbordercolor=T,
+                     appearance=0, **common)
 
 
 def background(patch, w, h):
@@ -275,12 +289,16 @@ def build_device():
     # the meters: overlapping objects (transparent live.* on top, widget jsuis on top) did
     # not work in Live 0.1.3-0.1.6. No panel object / background layer (0.1.4: invisible).
     panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
-                  numinlets=1, numoutlets=1, outlettype=[""], border=0)
+                  numinlets=1, numoutlets=1, outlettype=[""], border=0,
+                  **({"ignoreclick": 1} if OVERLAY_CONTROLS else {}))
 
     # parameters (the only ones), hidden: automation lanes and Push banks work without GUI objects
     orig = {}
     for p in PARAMS:
-        orig[p["name"]] = control(d, p, None)
+        rect = DEVICE_RECT.get(p["name"]) if OVERLAY_CONTROLS else None
+        if OVERLAY_CONTROLS and p["name"] == "resetdose":
+            rect = DEVICE_AREAS["dose"]
+        orig[p["name"]] = control(d, p, rect)
     widget_route = d.obj("route " + " ".join(p["name"] for p in PARAMS), ins=1, outs=len(PARAMS) + 1,
                          outtype=[""] * (len(PARAMS) + 1))
     for i, p in enumerate(PARAMS):
@@ -359,6 +377,9 @@ def build_device():
     open_t = d.obj("t b b", outs=2, outtype=["bang", "bang"])
     s_open = d.obj("s ---rk_open", ins=1, outs=0, outtype=[])
     d.connect(route, 1, open_t, 0)
+    if OVERLAY_CONTROLS:
+        more = open_button(d, "MORE", DEVICE_AREAS["more"], visible=False)
+        d.connect(more, 0, open_t, 0)
     d.connect(open_t, 1, open_msg, 0)   # path 1: pcontrol -> open subpatcher window
     d.connect(open_t, 0, s_open, 0)     # path 2: window's own thispatcher "front"
     d.connect(open_msg, 0, pc, 0)

@@ -31,7 +31,8 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.1.10";
+var VERSION = "0.1.11";
+var NATIVE_MENU = true;
 var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}};
 var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "resetdose": [376, 92, 54, 72], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
 // END GENERATED
@@ -406,13 +407,14 @@ function drawPlainButton(r, label, size) {
     text(label, r[0] + r[2] / 2, r[1] + r[3] / 2 + (size || 8) * 0.36, "center");
 }
 
-function drawMenuBox(r, label, active) {
+function drawMenuBox(r, label, active, boxOnly) {
     mgraphics.rectangle_rounded(r[0], r[1], r[2], r[3], 6, 6);
     rgba(COL.btn);
     mgraphics.fill_preserve();
     mgraphics.set_source_rgba(1, 1, 1, 0.1);
     mgraphics.set_line_width(1);
     mgraphics.stroke();
+    if (boxOnly) return;
     font(8, true);
     if (active) rgba(COL.text); else rgba(COL.dim);
     text(label, r[0] + 6, r[1] + r[3] / 2 + 3);
@@ -609,7 +611,8 @@ function drawDevice(w, h, st) {
 
     drawLedButton(L.sync, "SYNC", !!pv.sync, COL.cyan, 7);
     var div = SPEC.division, dv = valueOf("division") | 0;
-    drawMenuBox(L.division, div.items[Math.max(0, Math.min(div.items.length - 1, dv))], !!pv.sync);
+    // NATIVE_MENU: a live.menu lies on top and draws its own text and arrow
+    drawMenuBox(L.division, NATIVE_MENU ? "" : div.items[Math.max(0, Math.min(div.items.length - 1, dv))], !!pv.sync, NATIVE_MENU);
     drawLedButton(L.freeze, "FREEZE", !!pv.freeze, COL.cyan, 8);
     drawPlainButton(L.more, "MORE", 8);
     for (i = 0; i < DEVICE_KNOBS.length; i++) {
