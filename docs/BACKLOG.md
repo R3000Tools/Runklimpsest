@@ -12,7 +12,8 @@
 - [ ] Später prüfen: `v8ui` statt `jsui` (schneller, modernes JavaScript), wenn Max 9 in Live sicher vorhanden ist
 
 - [x] Eine Regler-Ansicht für Gerät und Large View (0.1.3: jsui zeichnet, transparente Live-Parameter darüber)
-- [ ] Prüfen in Live: transparente Parameter-Objekte – Fokusrahmen, Mapping-Markierung, Rechtsklick an der richtigen Stelle?
+- [x] Prüfen in Live: transparente Parameter-Objekte (0.1.5: Buttons gehen, Dials nicht, Menü-Popup schwarz → 0.1.6 Knobs/Menü als jsui)
+- [ ] MIDI-Map-Modus: Knobs im Gerät lassen sich nicht per Klick zuweisen (versteckte Parameter) – Alternative suchen (z. B. kleines transparentes `live.numbox` als Zuweisungsfläche, oder Zuweisung über die Automationsauswahl dokumentieren)
 - [ ] Weitere Anmerkungen des Nutzers zu 0.1.2 (angekündigt)
 - [ ] Diagnose `print Runklimpsest-param` entfernen, sobald 0.1.4 bestätigt ist
 

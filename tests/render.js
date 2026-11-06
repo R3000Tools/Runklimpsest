@@ -4,7 +4,7 @@ const src=fs.readFileSync(require('path').join(__dirname,'..','device','runklimp
 const page=`<html><body style="margin:0;background:#16181d"><canvas id=c width=960 height=420></canvas><script>
 const SRC=${JSON.stringify(src)};
 const globals={};
-function make(mode,ctx,ox,oy,w,h){
+function make(mode,ctx,ox,oy,w,h,name){
   let fontSize=10,fontBold=false;
   const mg={init(){},redraw(){},
     set_source_rgba(r,g,b,a){ctx.fillStyle=ctx.strokeStyle='rgba('+r*255+','+g*255+','+b*255+','+a+')';},
@@ -20,7 +20,7 @@ function make(mode,ctx,ox,oy,w,h){
     set_source(p){ctx.fillStyle=ctx.strokeStyle=p._g;}};
   const origMove=mg.move_to;mg.move_to=(x,y)=>{ctx.__p=[x,y];origMove(x,y);};
   const out=[];
-  const env={mgraphics:mg,jsarguments:['x',mode],outlet:(...a)=>out.push(a),Math,messagename:'',box:{rect:[0,0,w,h]}};
+  const env={mgraphics:mg,jsarguments:name?['x',mode,name]:['x',mode],outlet:(...a)=>out.push(a),Math,messagename:'',box:{rect:[0,0,w,h]}};
   env.Global=function(n){if(!globals[n])globals[n]={};return globals[n];};
   const f=new Function(...Object.keys(env),SRC+';return {bang,uid,paint,anything,level,tick,onclick,ondrag,ondblclick,out:()=>out,setmsg:(m)=>{messagename=m;}};');
   const api=f(...Object.values(env));
@@ -31,10 +31,12 @@ const ch=make('device',c,10,10,580,169), ctl=make('controls',c,16,230,928,170);
 let uid=null;
 for(let f=0;f<240;f++){ch.api.level(0.5);if(f%4==0)ch.api.tick();ch.api.bang();for(const o of ch.out.splice(0))if(o[1]=='uid')uid=o[2];}
 ctl.api.uid(uid);
+const L=new Function(SRC.slice(SRC.indexOf('// BEGIN GENERATED'),SRC.indexOf('// END GENERATED'))+';return LAYOUT;')();
+const widgets=['gravity','bounce','swarm','erosion','mix','division'].map(n=>{const r=L[n];const w=make(n==='division'?'menu':'knob',c,10+r[0],10+r[1],r[2],r[3],n);w.api.uid(uid);return w;});
 // interaction test: click SYNC (toggle), click division segment 4, drag gravity up
 ctl.api.onclick(430,25);ctl.api.onclick(640,25);ctl.api.onclick(128,38);ctl.api.ondrag(128,8,1);
 window.sent=ctl.out.slice();
-ch.paint();ctl.paint();
+ch.paint();widgets.forEach(w=>w.paint());ctl.paint();
 </script></body></html>`;
 (async()=>{const b=await chromium.launch();const pg=await b.newPage({deviceScaleFactor:1});
 pg.on('pageerror',e=>console.log('PAGEERROR',e.message));

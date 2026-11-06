@@ -3,7 +3,7 @@ const fs = require('fs'), vm = require('vm');
 const src = fs.readFileSync(process.argv[2] || require('path').join(__dirname, '..', 'device', 'runklimpsest_ui.js'), 'utf8');
 const globals = {};
 let calls = 0;
-function makeCtx(mode, rect) {
+function makeCtx(mode, rect, name) {
   const mg = new Proxy({}, { get: (t, k) => {
     if (k === 'text_measure') return (s) => [String(s).length * 5, 8];
     if (k === 'pattern_create_linear') return () => ({ add_color_stop_rgba() {} });
@@ -12,7 +12,7 @@ function makeCtx(mode, rect) {
   }, set: (t, k, v) => { t[k] = v; return true; } });
   const out = [];
   const ctx = {
-    mgraphics: mg, jsarguments: ['runklimpsest_ui.js', mode], messagename: '',
+    mgraphics: mg, jsarguments: name ? ['runklimpsest_ui.js', mode, name] : ['runklimpsest_ui.js', mode], messagename: '',
     Global: function (name) { if (!globals[name]) globals[name] = {}; return globals[name]; },
     outlet: (...a) => out.push(a), post: console.log, Math,
     box: { rect: rect }, out
@@ -55,5 +55,15 @@ console.log('grain param', pg);
 const names = Object.keys(vm.runInContext('SPEC', ch));
 for (const n of names) { if (n === 'resetdose') continue; send(ch, n, 1); if (vm.runInContext('P.' + n, ch) !== 1) throw new Error('param message swallowed: ' + n); }
 console.log('all', names.length, 'parameter messages reach P');
+// device widgets: knob drag / double-click and menu click must send "<name> <value>"
+const knob = makeCtx('knob', [0,0,54,70], 'gravity'); send(knob, 'uid', uid);
+const menu = makeCtx('menu', [0,0,43,13], 'division'); send(menu, 'uid', uid);
+paint(knob); paint(menu);
+knob.onclick(27, 34, 1, 0, 0); knob.ondrag(27, 4, 1, 0, 0); knob.ondrag(27, 4, 0, 0, 0); knob.ondblclick(27, 34);
+menu.onclick(10, 6, 1, 0, 0); menu.onclick(10, 6, 1, 0, 1);
+const ko = knob.out.map(o => o.slice(1)), mo = menu.out.map(o => o.slice(1));
+console.log('knob out', JSON.stringify(ko), 'menu out', JSON.stringify(mo));
+if (!ko.length || ko[0][0] !== 'gravity' || ko[ko.length - 1][1] !== 0.62) throw new Error('knob widget output wrong');
+if (mo.length !== 2 || mo[0][0] !== 'division') throw new Error('menu widget output wrong');
 const L = vm.runInContext('LAYOUT', ch); if (!L.dose || !L.chamber) throw new Error('generated LAYOUT missing');
 console.log('tempo seen by engine', st.tempo, st.num + '/' + st.den);

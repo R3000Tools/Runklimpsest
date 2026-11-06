@@ -6,7 +6,12 @@
 //              right-click, MIDI mapping and automation stay native to Live.
 //   large    : draws chamber + memory + wear history (large view window)
 //   controls : draws the large view controls; changes go out as "<name> <value>"
+//   knob     : one device knob (arg 2 = parameter name); takes drag/double-click itself
+//   menu     : the device division selector; click = next, shift-click = previous
 //   title    : draws the device name (large view)
+// Device knobs and the division selector are jsuis that send "<name> <value>" to the
+// hidden live.* parameter (transparent live.dial / live.menu overlays did not work in
+// Live 0.1.5: dials took no clicks, the menu popup inherited the transparent text).
 // The engine state is shared through a Global keyed by a per-device id,
 // which the device jsui announces via [s ---rk_uid].
 // Max js/jsui runs an ES5 engine: no let/const/arrow functions.
@@ -20,10 +25,12 @@ mgraphics.relative_coords = 0;
 mgraphics.autofill = 0;
 
 var MODE = jsarguments.length > 1 ? String(jsarguments[1]) : "device";
+// knob / menu modes: second argument = parameter name (one small jsui per device control)
+var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.1.5";
+var VERSION = "0.1.6";
 var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}};
 var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "resetdose": [376, 92, 54, 72], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
 // END GENERATED
@@ -584,16 +591,9 @@ function drawDevice(w, h, st) {
     drawWave(L.wave[0], L.wave[1], L.wave[2], L.wave[3], st);
 
     drawLedButton(L.sync, "SYNC", !!pv.sync, COL.cyan, 7);
-    var div = SPEC.division;
-    drawMenuBox(L.division, div.items[Math.max(0, Math.min(div.items.length - 1, pv.division | 0))], !!pv.sync);
     drawLedButton(L.freeze, "FREEZE", !!pv.freeze, COL.cyan, 8);
     drawPlainButton(L.more, "MORE", 8);
-
-    for (i = 0; i < DEVICE_KNOBS.length; i++) {
-        r = L[DEVICE_KNOBS[i]];
-        drawKnobAt(SPEC[DEVICE_KNOBS[i]], pv[DEVICE_KNOBS[i]], r[0] + r[2] / 2, r[1] + 34, 13,
-                   r[1] + 8, r[1] + 63, 8, 9);
-    }
+    // knobs and the division selector: separate jsuis on top (modes "knob" / "menu")
     drawDose(L.dose[0], L.dose[1], L.dose[2], L.dose[3], st);
 
     // meter area (live.meter~ objects sit on top)
@@ -683,6 +683,7 @@ var BUTTONS = [
     { name: "target", label: "DOSE TARGET", type: "seg", rect: [596, 112, 186, 22], col: "magenta" },
     { name: "resetdose", label: "RESET DOSE", type: "action", rect: [802, 112, 110, 22], col: "magenta" }
 ];
+var DOSE_RECT = [672, 2, 56, 76];
 var drag = null, localVal = {};
 
 function knobCenter(k) { return [KNOB_X0 + k.i * KNOB_DX + 28, ROW_Y[k.row] + 38]; }
@@ -698,8 +699,32 @@ function sendParam(name, v) {
 }
 function inRect(x, y, r) { return x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3]; }
 
+var single = null; // drag state for knob mode
+
+function singleValue() {
+    if (localVal.hasOwnProperty(NAME)) return localVal[NAME];
+    var pv = params()[NAME];
+    return (pv === undefined) ? SPEC[NAME].def : pv;
+}
+
 function onclick(x, y, but, cmd, shift) {
-    if (MODE === "device") return; // device jsui ignores clicks (ignoreclick 1); live.* objects on top handle them
+    if (MODE === "device") return; // device jsui ignores clicks (ignoreclick 1)
+    if (MODE === "knob" && SPEC[NAME]) {
+        single = { y0: y, n0: toNorm(SPEC[NAME], singleValue()) };
+        return;
+    }
+    if (MODE === "menu" && SPEC[NAME]) {
+        var cnt = SPEC[NAME].items.length, cur = singleValue() | 0;
+        sendParam(NAME, (cur + (shift ? cnt - 1 : 1)) % cnt);
+        delete localVal[NAME];
+        return;
+    }
+    if (MODE === "controls" && inRect(x, y, DOSE_RECT)) {
+        outlet(0, "resetdose", 1);
+        var st3 = sharedState();
+        if (st3) st3.resetReq = true;
+        return;
+    }
     if (MODE !== "controls") return;
     var i;
     for (i = 0; i < KNOBS.length; i++) {
@@ -727,6 +752,11 @@ function onclick(x, y, but, cmd, shift) {
 }
 
 function ondrag(x, y, but, cmd, shift) {
+    if (MODE === "knob" && single) {
+        if (!but) { delete localVal[NAME]; single = null; return; }
+        sendParam(NAME, fromNorm(SPEC[NAME], single.n0 + (single.y0 - y) / (shift ? 600 : 150)));
+        return;
+    }
     if (MODE !== "controls" || !drag) return;
     if (!but) { delete localVal[drag.k.name]; drag = null; return; }
     var n = drag.n0 + (drag.y0 - y) / (shift ? 600 : 150);
@@ -734,6 +764,11 @@ function ondrag(x, y, but, cmd, shift) {
 }
 
 function ondblclick(x, y) {
+    if (MODE === "knob" && SPEC[NAME]) {
+        sendParam(NAME, SPEC[NAME].def);
+        delete localVal[NAME];
+        return;
+    }
     if (MODE !== "controls") return;
     for (var i = 0; i < KNOBS.length; i++) {
         var c = knobCenter(KNOBS[i]);
@@ -778,9 +813,11 @@ function drawControls(w, h) {
         if (b.type === "seg") drawSeg(b.rect, SPEC[b.name].items, pv[b.name] | 0, col, b.label);
         else drawLedButton(b.rect, b.label, b.type === "toggle" && !!pv[b.name], col, 8);
     }
+    var st = sharedState();
+    if (st) drawDose(DOSE_RECT[0], DOSE_RECT[1], DOSE_RECT[2], DOSE_RECT[3], st);
     font(8, false);
     rgba(COL.dim);
-    text("drag = change · shift = fine · double-click = default", w - 10, 72, "right");
+    text("drag = change \u00b7 shift = fine \u00b7 double-click = default \u00b7 click DOSE = reset", w - 10, 168, "right");
 }
 
 function drawTitle(w, h) {
@@ -799,6 +836,15 @@ function paint() {
     var sz = boxSize.call(this), w = sz[0], h = sz[1];
     if (MODE === "title") { drawTitle(w, h); return; }
     if (MODE === "controls") { drawControls(w, h); return; }
+    if (MODE === "knob" && SPEC[NAME]) {
+        drawKnobAt(SPEC[NAME], singleValue(), w / 2, 34, 13, 8, 63, 8, 9);
+        return;
+    }
+    if (MODE === "menu" && SPEC[NAME]) {
+        var it = SPEC[NAME].items, pvm = params();
+        drawMenuBox([0.5, 0.5, w - 1, h - 1], it[Math.max(0, Math.min(it.length - 1, singleValue() | 0))], !!pvm.sync);
+        return;
+    }
     var st = sharedState();
     if (!st) {
         font(8, false);

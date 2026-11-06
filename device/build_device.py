@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.5"
+VERSION = "0.1.6"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -281,10 +281,29 @@ def build_device():
     panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
                   numinlets=1, numoutlets=1, outlettype=[""], border=0, ignoreclick=1)
 
-    # parameters (the only ones) - transparent on top of the drawn panel
+    # parameters (the only ones). Buttons (live.text) lie transparent on top of the drawn panel
+    # and work in Live. Dials and the menu stay hidden: transparent live.dial took no clicks and
+    # the live.menu popup inherited the transparent text (0.1.5). Their place is taken by
+    # small jsuis (modes "knob" / "menu") that send "<name> <value>" to the hidden parameter.
     orig = {}
     for p in PARAMS:
-        orig[p["name"]] = control(d, p, DEVICE_RECT.get(p["name"]))
+        pres = DEVICE_RECT.get(p["name"]) if p["kind"] in ("toggle", "button") else None
+        orig[p["name"]] = control(d, p, pres)
+    widget_route = d.obj("route " + " ".join(p["name"] for p in PARAMS), ins=1, outs=len(PARAMS) + 1,
+                         outtype=[""] * (len(PARAMS) + 1))
+    for i, p in enumerate(PARAMS):
+        s_c = d.obj(f"s ---{p['name']}_c", ins=1, outs=0, outtype=[])
+        d.connect(widget_route, i, s_c, 0)
+    r_uid_w = d.obj("r ---rk_uid", ins=0, outs=1)
+    r_draw_w = d.obj("r ---rk_draw", ins=0, outs=1)
+    for p in PARAMS:
+        if p["name"] in DEVICE_RECT and p["kind"] in ("dial", "menu"):
+            mode = "knob" if p["kind"] == "dial" else "menu"
+            wid = d.add("jsui", pres=DEVICE_RECT[p["name"]], filename=JS, jsarguments=[mode, p["name"]],
+                        numinlets=1, numoutlets=1, outlettype=[""], border=0)
+            d.connect(r_uid_w, 0, wid, 0)
+            d.connect(r_draw_w, 0, wid, 0)
+            d.connect(wid, 0, widget_route, 0)
     more = open_button(d, "MORE", DEVICE_AREAS["more"], visible=False)
 
     # parameters -> engine, -> large view (set), large view -> parameters

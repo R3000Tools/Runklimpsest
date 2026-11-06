@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6
+- Fix: Knobs im Gerät ließen sich nicht bedienen (0.1.5, Nutzerbefund: transparente `live.dial` nehmen in Live keine Klicks an). Jeder Geräte-Knob ist jetzt eine eigene kleine jsui (Modus `knob`), die Ziehen (Shift = fein) und Doppelklick (Standardwert) selbst annimmt und den Wert an den versteckten Parameter schickt – wie in der Large View.
+- Fix: Notenwert-Auswahl im Gerät zeigte im Popup nur den aktuellen Eintrag (übrige schwarz, weil das Popup die transparente Textfarbe übernahm). Jetzt jsui (Modus `menu`): Klick = nächster Wert, Shift-Klick = vorheriger.
+- SYNC, FREEZE, MORE und DOSE-Reset bleiben transparente Live-Buttons (funktionieren in Live).
+- Large View: DOSE-Ring in der Zeile LINKED (Anzeige, Klick = Reset).
+
 ## 0.1.5
 - Fix: In 0.1.4 war die Oberfläche unsichtbar (Nutzerbefund) – die Hintergrundfläche (panel) verdeckte die Zeichen-jsui im Hintergrund-Layer. Panel entfernt (die jsui zeichnet den Hintergrund selbst), jsui nicht mehr im Hintergrund-Layer, sondern unterstes Objekt mit `ignoreclick 1`.
 - Restliche sichtbare Umrisse der transparenten Parameter (Regler-Ringe, Menürahmen) ebenfalls transparent.
