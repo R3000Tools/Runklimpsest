@@ -1,4 +1,4 @@
-# Runklimpsest – Oberflächen-Prototyp 0.1.3 (Max for Live)
+# Runklimpsest – Oberflächen-Prototyp 0.1.4 (Max for Live)
 
 Granular Particle Memory – **nur Oberfläche, keine Klangverarbeitung**. Das Audio läuft unverändert durch.
 Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).

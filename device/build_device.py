@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.3"
+VERSION = "0.1.4"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -67,6 +67,7 @@ DEVICE_RECT = {
     "freeze": [214, 92, 76, 22],
     "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70],
     "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70],
+    "resetdose": [376, 92, 54, 72],
 }
 DEVICE_AREAS = {
     "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72],
@@ -75,7 +76,7 @@ DEVICE_AREAS = {
 # large view (960 x 620)
 WIN_W, WIN_H = 960, 620
 
-TRANSPARENT = [0.0, 0.0, 0.0, 0.0]
+TRANSPARENT = [0.0, 0.0, 0.0, 0.01]
 
 
 def js_generated_block():
@@ -273,7 +274,10 @@ def build_window():
 def build_device():
     d = Patch("obj")
     background(d, DEVICE_W, DEVICE_H)
-    panel = d.jsui("device", [0, 0, DEVICE_W, DEVICE_H])   # draws the whole panel, runs the engine
+    # draws the whole panel and runs the engine. Background layer + ignoreclick: clicks must
+    # reach the transparent live.* parameters on top (0.1.3: nothing could be operated).
+    panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
+                  numinlets=1, numoutlets=1, outlettype=[""], border=0, ignoreclick=1, background=1)
 
     # parameters (the only ones) - transparent on top of the drawn panel
     orig = {}
@@ -284,6 +288,8 @@ def build_device():
     # parameters -> engine, -> large view (set), large view -> parameters
     rparam = d.obj("r ---rk_param", ins=0, outs=1)
     d.connect(rparam, 0, panel, 0)
+    dbg = d.obj("print Runklimpsest-param", ins=1, outs=0, outtype=[])
+    d.connect(rparam, 0, dbg, 0)
     refresh_r = d.obj("r ---rk_refresh", ins=0, outs=1)
     for p in PARAMS:
         o = orig[p["name"]]

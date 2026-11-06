@@ -47,6 +47,9 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 - Gemeinsamer Zustand zwischen den jsui-Instanzen über `new Global(uid)` (`G.state`, `G.params`); die Geräte-jsui erzeugt die uid und verteilt sie über `[s ---rk_uid]` (alle 2 s erneut, wegen Ladereihenfolge).
 - Tempo/Taktart kommen über `live.path live_set` → `live.observer @property tempo|signature_numerator|signature_denominator` → jsui (`tempo`, `signum`, `sigden`).
 - Keine Titelzeile im Gerät (Name steht in Lives Gerätetitelzeile).
+- Die ganzflächige jsui `device` muss `ignoreclick 1` und `background 1` haben, sonst lässt sich nichts bedienen (0.1.3). Klicks der jsui selbst gibt es im Gerät nicht mehr; DOSE-Reset ist ein transparenter Parameter-Button über dem Ring.
+- Transparente Parameter-Objekte: Farben mit 1 % Deckkraft (`TRANSPARENT`), nicht 0 %.
+- Keine jsui-Funktion darf wie ein Parameter heißen (0.1.3: `grain`); `tests/smoke.js` prüft alle Parameter-Nachrichten.
 - SYNC-Raster kommt von `[metro 16n]` (läuft nur bei laufendem Transport); bei Stopp interner Ersatztakt in der Engine.
 - Schrift „Ableton Sans“ stellt Live bereit.
 

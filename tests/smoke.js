@@ -47,6 +47,13 @@ for (let f = 0; f < 600; f++) {
 }
 const st = globals[uid].state;
 console.log('uid', uid, 'dose end', st.dose.toFixed(3), 'n', st.n, 'queued', st.queued, 'maxwear', Math.max(...st.wear).toFixed(2), 'drawcalls', calls);
-ch.onclick(400, 120); console.log('after dose ring click resetReq', st.resetReq);
+send(ch, 'resetdose', 1); console.log('after resetdose 1 resetReq', st.resetReq);
+send(ch, 'grain', 120); const pg = vm.runInContext('P.grain', ch);
+if (pg !== 120) throw new Error('message "grain" did not reach P.grain (name clash?)');
+console.log('grain param', pg);
+// every parameter name must reach P (no function with the same name may swallow it)
+const names = Object.keys(vm.runInContext('SPEC', ch));
+for (const n of names) { if (n === 'resetdose') continue; send(ch, n, 1); if (vm.runInContext('P.' + n, ch) !== 1) throw new Error('param message swallowed: ' + n); }
+console.log('all', names.length, 'parameter messages reach P');
 const L = vm.runInContext('LAYOUT', ch); if (!L.dose || !L.chamber) throw new Error('generated LAYOUT missing');
 console.log('tempo seen by engine', st.tempo, st.num + '/' + st.den);

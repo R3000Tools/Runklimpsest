@@ -14,6 +14,7 @@
 - [x] Eine Regler-Ansicht für Gerät und Large View (0.1.3: jsui zeichnet, transparente Live-Parameter darüber)
 - [ ] Prüfen in Live: transparente Parameter-Objekte – Fokusrahmen, Mapping-Markierung, Rechtsklick an der richtigen Stelle?
 - [ ] Weitere Anmerkungen des Nutzers zu 0.1.2 (angekündigt)
+- [ ] Diagnose `print Runklimpsest-param` entfernen, sobald 0.1.4 bestätigt ist
 
 ## Klang (0.2.0 ff.)
 - [ ] Klang-Zielbilder vorab festlegen (wie klingen Gravity, Bounce, Erosion 30 %/80 %, Dose hoch) – Maßstab für jede Klangänderung

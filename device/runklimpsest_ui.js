@@ -23,9 +23,9 @@ var MODE = jsarguments.length > 1 ? String(jsarguments[1]) : "device";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.1.3";
+var VERSION = "0.1.4";
 var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}};
-var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
+var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "resetdose": [376, 92, 54, 72], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
 // END GENERATED
 
 // virtual chamber size used by the physics (rendering scales it)
@@ -130,7 +130,7 @@ function params() {
     return P;
 }
 
-function grain(p) {
+function fireGrain(p) {
     var flashLen = Math.round(4 + Math.min(1, P.grain / 300) * 10);
     p.flash = flashLen;
     p.flashLen = flashLen;
@@ -186,7 +186,7 @@ function stepEngine() {
             var impact = Math.abs(p.vy);
             p.vy = -impact * rest;
             if (impact > 1.5) {
-                if (P.sync) p.q = true; else grain(p);
+                if (P.sync) p.q = true; else fireGrain(p);
             }
             if (impact < 2.2) {
                 p.vy = -(7 + Math.random() * 7) * kick;
@@ -196,7 +196,7 @@ function stepEngine() {
         if (p.flash > 0) p.flash--;
     }
     if (P.sync && onTick) {
-        for (i = 0; i < n; i++) if (S.ps[i].q) grain(S.ps[i]);
+        for (i = 0; i < n; i++) if (S.ps[i].q) fireGrain(S.ps[i]);
     }
     for (i = 0; i < n; i++) {
         if (S.ps[i].q) queued++;
@@ -699,11 +699,7 @@ function sendParam(name, v) {
 function inRect(x, y, r) { return x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3]; }
 
 function onclick(x, y, but, cmd, shift) {
-    if (MODE === "device") {
-        // only the dose ring is handled here; all other controls are live.* objects on top
-        if (LAYOUT.dose && inRect(x, y, LAYOUT.dose) && S) { S.resetReq = true; mgraphics.redraw(); }
-        return;
-    }
+    if (MODE === "device") return; // device jsui ignores clicks (ignoreclick 1); live.* objects on top handle them
     if (MODE !== "controls") return;
     var i;
     for (i = 0; i < KNOBS.length; i++) {
