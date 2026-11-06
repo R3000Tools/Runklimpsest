@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.12
+- Zurück zum Verhalten von 0.1.10: die gezeichnete Oberfläche wertet alle Klicks selbst aus (Knobs mit Doppelklick = Standardwert, eigene Division-Liste), alle 16 Parameter versteckt. Automation und Push-Bänke wie gehabt.
+- Ergebnis des Tests 0.1.11 (Nutzer): Buttons und Division-Menü als Live-Objekte bedienbar, aber Knobs (`live.numbox`) nicht ziehbar, Division-Schrift unsichtbar, Strg+M auch an SYNC/FREEZE/Division nicht möglich. Befund: In Live wird die jsui über allen anderen Objekten gezeichnet (unabhängig von der Reihenfolge im Patch) und lässt mit `ignoreclick` nur Klicks durch, kein Ziehen. MIDI-Map per Klick an der gezeichneten Oberfläche ist damit ohne sichtbare Live-Objekte nicht machbar.
+
 ## 0.1.11 (Testversion)
 - Versuch: MIDI-Map per Klick (Strg+M), Rechtsklick-Menü und Makro-Zuweisung direkt an den gezeichneten Reglern, ohne sichtbare Änderung. Aufbau wie 0.1.5 (Zeichen-jsui lässt Klicks durch, `live.text` darüber funktionierte dort), aber:
   - Knobs: transparente `live.numbox` statt `live.dial` (Ziehen hoch/runter; Doppelklick öffnet Zahleneingabe)

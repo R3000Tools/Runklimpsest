@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.11"
+VERSION = "0.1.12"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -68,7 +68,7 @@ DEVICE_W, DEVICE_H = 580, 169   # drawn panel (jsui)
 # Setup as in 0.1.5 (jsui ignoreclick, live.text worked there) but knobs as live.numbox
 # (live.dial took no clicks) and the division as live.menu with visible text (transparent
 # text made its popup unreadable). False = 0.1.10: hidden parameters, jsui handles clicks.
-OVERLAY_CONTROLS = True
+OVERLAY_CONTROLS = False   # 0.1.11 test failed in Live (knobs not draggable, Ctrl+M not possible)
 
 # Parameter banks for Push / controllers with device control (internal, no GUI).
 BANKS = [
