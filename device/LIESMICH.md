@@ -1,4 +1,4 @@
-# Runklimpsest – Oberflächen-Prototyp 0.1.12 (Max for Live)
+# Runklimpsest – Oberflächen-Prototyp 0.1.13 (Max for Live)
 
 Granular Particle Memory – **nur Oberfläche, keine Klangverarbeitung**. Das Audio läuft unverändert durch.
 Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
@@ -28,7 +28,7 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 |---|---|
 | CHAMBER | Teilchen fallen, Aufprall = Grain (Ring). X-Position = Stelle im Puffer |
 | SYNC + Division | An: Teilchen warten (hohler Ring) bis zum nächsten Rasterschritt (1/4 … 1/32, Song-Tempo). Leiste oben = 16 Schritte |
-| MORE | öffnet die Large View |
+| LARGE VIEW | öffnet die Large View (schließen: Fenster-X) |
 | MEMORY | Puffer (2 Takte im Song-Tempo) mit dem echten Eingangspegel; Abnutzung färbt orange und drückt die Balken |
 | FREEZE | Schreibkopf stoppt, der Puffer wird nur noch abgenutzt |
 | GRAVITY, BOUNCE, SWARM | Physik: Fallgeschwindigkeit, Elastizität, Teilchenzahl |
@@ -36,10 +36,10 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 | DOSE (Ring) | steigt bei Signal, sinkt in Stille. **Klick auf den Ring = Reset** |
 | MIX | Parameter vorhanden, wirkt noch nicht (keine Klangverarbeitung) |
 
-**Large View:** Zeile LINKED = dieselben Regler wie im Gerät (Spiegel). Zeile DETAIL = Grain, Heal, Dose Rate, Dose Recover, Output, Wear Type, Dose Target, Reset Dose – nur hier sichtbar, aber trotzdem automatisierbar (die Parameter liegen versteckt im Gerät).
+**Large View:** vier Karten nach Funktion – PHYSICS, MEMORY, DOSE, OUTPUT (inkl. STEREO | MONO). Ein cyan Punkt am Namen heißt: gibt es auch im Gerät. Alle Parameter sind automatisierbar.
 
 Knobs (Gerät und Large View): ziehen = ändern, Shift = fein, Doppelklick = Standardwert. Notenwert im Gerät: Klick öffnet die Liste, Klick auf einen Eintrag wählt ihn.
-Automation: alle 16 Parameter über die Automationsauswahl der Spur; Regler-Bewegungen bei Aufnahme werden aufgezeichnet. Push/Controller mit Geräte-Steuerung: Bänke „Main“ und „Detail“. MIDI-Map per Klick auf die Regler (Strg+M) ist bei dieser Oberfläche nicht möglich.
+Automation: alle 16 Parameter über die Automationsauswahl der Spur; Regler-Bewegungen bei Aufnahme werden aufgezeichnet. Push/Controller mit Geräte-Steuerung: Bänke „Main“, „Detail“ und „Reset“. MIDI-Map per Klick auf die Regler (Strg+M) ist bei dieser Oberfläche nicht möglich.
 DOSE ist kein Regler, sondern eine Anzeige: steigt nur bei laufendem Audio-Signal (Geschwindigkeit über RATE), fällt in Stille (RECOVER), Klick auf den Ring = Reset auf 0 % (Ring blinkt kurz).
 
 ## Bitte testen (Feedback-Format: *Bereich / Element / Wert / Problem*)

@@ -1,7 +1,7 @@
 // Usage: node tests/render.js [out.png]. Renders jsui modes with a Canvas2D-backed mgraphics mock (approximation of Max drawing).
 const fs=require('fs');const {chromium}=require('playwright');
 const src=fs.readFileSync(require('path').join(__dirname,'..','device','runklimpsest_ui.js'),'utf8');
-const page=`<html><body style="margin:0;background:#16181d"><canvas id=c width=960 height=420></canvas><script>
+const page=`<html><body style="margin:0;background:#16181d"><canvas id=c width=960 height=820></canvas><script>
 const SRC=${JSON.stringify(src)};
 const globals={};
 function make(mode,ctx,ox,oy,w,h,name){
@@ -27,17 +27,17 @@ function make(mode,ctx,ox,oy,w,h,name){
   return {api,paint(){ctx.save();ctx.translate(ox,oy);ctx.beginPath();api.paint.call({box:{rect:[0,0,w,h]}});ctx.restore();},out};
 }
 const c=document.getElementById('c').getContext('2d');
-const ch=make('device',c,10,10,580,169), ctl=make('controls',c,16,230,928,170);
+const ch=make('device',c,10,10,580,169), lg=make('large',c,20,200,920,430), ctl=make('controls',c,20,644,920,160);
 let uid=null;
 for(let f=0;f<240;f++){ch.api.level(0.5);if(f%4==0)ch.api.tick();ch.api.bang();for(const o of ch.out.splice(0))if(o[1]=='uid')uid=o[2];}
-ctl.api.uid(uid);
+ctl.api.uid(uid);lg.api.uid(uid);
 ch.api.meters(0.4,0.3);const DLr=new Function(SRC.slice(SRC.indexOf('// BEGIN GENERATED'),SRC.indexOf('// END GENERATED'))+';return LAYOUT;')();ch.api.onclick(DLr.division[0]+5,DLr.division[1]+5,1,0,0);
 // interaction test: click SYNC (toggle), click division segment 4, drag gravity up
-ctl.api.onclick(430,25);ctl.api.onclick(640,25);ctl.api.onclick(128,38);ctl.api.ondrag(128,8,1);
+ctl.api.onclick(40,130);ctl.api.onclick(246,130);ctl.api.onclick(41,64);ctl.api.ondrag(41,34,1);
 window.sent=ctl.out.slice();
-ch.paint();ctl.paint();
+ch.paint();lg.paint();ctl.paint();
 </script></body></html>`;
-(async()=>{const b=await chromium.launch();const pg=await b.newPage({deviceScaleFactor:1});
+(async()=>{const b=await chromium.launch();const pg=await b.newPage({deviceScaleFactor:1,viewport:{width:960,height:820}});
 pg.on('pageerror',e=>console.log('PAGEERROR',e.message));
 await pg.setContent(page);await pg.waitForTimeout(300);
 console.log('sent:',JSON.stringify(await pg.evaluate(()=>window.sent)));

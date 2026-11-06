@@ -31,10 +31,10 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.1.12";
+var VERSION = "0.1.13";
 var NATIVE_MENU = false;
-var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}};
-var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "resetdose": [376, 92, 54, 72], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
+var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
+var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120], "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120]};
 // END GENERATED
 
 // virtual chamber size used by the physics (rendering scales it)
@@ -528,12 +528,6 @@ function drawChamber(x0, y0, w, h, st, big) {
         }
     }
 
-    if (!big) {
-        // count text top right, below the step bar (not covered by particles on the floor)
-        font(7, false);
-        rgba(COL.dim);
-        text(st.n + " particles · " + (st.sync ? st.queued + " queued" : st.flashing + " grains"), x0 + w - 6, y0 + 15, "right");
-    }
 }
 
 function drawWave(x0, y0, w, h, st) {
@@ -594,37 +588,53 @@ function drawDose(x0, y0, w, h, st) {
 
 var DEVICE_KNOBS = ["gravity", "bounce", "swarm", "erosion", "mix"];
 
+// layout 0.1.13: 3 columns (CHAMBER | MEMORY | CONTROLS 3x2) + meters, one header row,
+// one button row; knob cells 54 x 60
+function drawDeviceKnob(name) {
+    var r = LAYOUT[name];
+    drawKnobAt(SPEC[name], valueOf(name), r[0] + r[2] / 2, r[1] + 31, 12, r[1] + 9, r[1] + 57, 8, 8.5);
+}
+
 function drawDevice(w, h, st) {
     var L = LAYOUT, pv = P, i, r;
     background(w, h);
 
+    // header row
     font(9, true);
-    rgba(COL.cyan); text("CHAMBER", L.chamber[0], 12);
-    rgba(COL.orange); text("MEMORY", L.wave[0], 12);
-    rgba(COL.blue); text("PHYSICS", L.gravity[0] + 2, 12);
-    font(8, false);
+    rgba(COL.cyan); text("CHAMBER", L.chamber[0], 13);
+    rgba(COL.orange); text("MEMORY", L.wave[0], 13);
+    rgba(COL.dim); text("CONTROLS", L.controls[0], 13);
+    font(7.5, false);
+    rgba(COL.dim);
+    text(st.n + " particles \u00b7 " + (st.sync ? st.queued + " queued" : st.flashing + " grains"),
+         L.chamber[0] + L.chamber[2], 13, "right");
     if (st.frozen) rgba(COL.cyan); else rgba(COL.dim);
-    text(memStatus(st), L.wave[0] + L.wave[2], 12, "right");
+    text(memStatus(st), L.wave[0] + L.wave[2], 13, "right");
 
     drawChamber(L.chamber[0], L.chamber[1], L.chamber[2], L.chamber[3], st, false);
     drawWave(L.wave[0], L.wave[1], L.wave[2], L.wave[3], st);
 
-    drawLedButton(L.sync, "SYNC", !!pv.sync, COL.cyan, 7);
-    var div = SPEC.division, dv = valueOf("division") | 0;
-    // NATIVE_MENU: a live.menu lies on top and draws its own text and arrow
-    drawMenuBox(L.division, NATIVE_MENU ? "" : div.items[Math.max(0, Math.min(div.items.length - 1, dv))], !!pv.sync, NATIVE_MENU);
-    drawLedButton(L.freeze, "FREEZE", !!pv.freeze, COL.cyan, 8);
-    drawPlainButton(L.more, "MORE", 8);
-    for (i = 0; i < DEVICE_KNOBS.length; i++) {
-        r = L[DEVICE_KNOBS[i]];
-        drawKnobAt(SPEC[DEVICE_KNOBS[i]], valueOf(DEVICE_KNOBS[i]), r[0] + r[2] / 2, r[1] + 34, 13,
-                   r[1] + 8, r[1] + 63, 8, 9);
-    }
+    // controls block (3 x 2)
+    r = L.controls;
+    mgraphics.rectangle_rounded(r[0], r[1], r[2], r[3], 10, 10);
+    mgraphics.set_source_rgba(0, 0, 0, 0.22);
+    mgraphics.fill_preserve();
+    mgraphics.set_source_rgba(1, 1, 1, 0.05);
+    mgraphics.set_line_width(1);
+    mgraphics.stroke();
+    for (i = 0; i < DEVICE_KNOBS.length; i++) drawDeviceKnob(DEVICE_KNOBS[i]);
     drawDose(L.dose[0], L.dose[1], L.dose[2], L.dose[3], st);
+
+    // button row
+    var div = SPEC.division, dv = valueOf("division") | 0;
+    drawLedButton(L.sync, "SYNC", !!pv.sync, COL.cyan, 8);
+    drawMenuBox(L.division, div.items[Math.max(0, Math.min(div.items.length - 1, dv))], !!pv.sync);
+    drawLedButton(L.freeze, "FREEZE", !!pv.freeze, COL.cyan, 8);
+    drawPlainButton(L.more, "LARGE VIEW  \u203a", 8);
 
     // meters: IN L/R, OUT L/R
     r = L.meters;
-    var mv = [meterL, meterR, meterL, meterR], mxs = [1, 7, 16, 22];
+    var mv = [meterL, meterR, meterL, meterR], mxs = [0, 6, 13, 19];
     for (i = 0; i < 4; i++) {
         var mx = r[0] + mxs[i], mh = r[3];
         mgraphics.set_source_rgba(0.114, 0.125, 0.153, 1);
@@ -645,8 +655,8 @@ function drawDevice(w, h, st) {
     }
     font(6.5, false);
     rgba(COL.dim);
-    text("IN · OUT", r[0] + r[2] / 2, r[1] + r[3] + 9, "center");
-    text("v" + VERSION, r[0] + r[2] / 2, h - 2, "center");
+    text("IN \u00b7 OUT", r[0] + r[2] / 2, 13, "center");
+    text("v" + VERSION, r[0] + r[2] / 2, L.more[1] + L.more[3] - 4, "center");
 
     if (menuOpen) drawDivisionMenu(dv);
 }
@@ -672,30 +682,46 @@ function drawDivisionMenu(cur) {
     }
 }
 
-function drawLarge(w, h, st) {
-    var leftW = Math.round(w * 0.66), gap = 16, rightX = leftW + gap, rightW = w - rightX, i, j;
-    font(11, true);
+function drawLegendDot(x, y) {
     rgba(COL.cyan);
-    text("CHAMBER", 2, 12);
-    font(9, false);
-    rgba(COL.dim);
-    text("X = BUFFER POSITION · IMPACT = GRAIN", leftW, 12, "right");
-    drawChamber(0, 20, leftW, h - 20, st, true);
+    mgraphics.ellipse(x - 2.5, y - 2.5, 5, 5);
+    mgraphics.fill();
+}
 
-    font(11, true);
+function drawLarge(w, h, st) {
+    var leftW = 600, rightX = 616, rightW = w - rightX, i, j;
+    // header: logo left, legend + tempo right
+    drawTitleAt(0, 8, 22);
+    font(8.5, false);
+    rgba(COL.dim);
+    var tt = tempoText(st);
+    text(tt, w, 24, "right");
+    var lx = w - mgraphics.text_measure(tt)[0] - 22;
+    text("ALSO ON DEVICE", lx, 24, "right");
+    drawLegendDot(lx - mgraphics.text_measure("ALSO ON DEVICE")[0] - 8, 21);
+
+    font(10, true);
+    rgba(COL.cyan);
+    text("CHAMBER", 0, 58);
+    font(8.5, false);
+    rgba(COL.dim);
+    text("X = BUFFER POSITION \u00b7 IMPACT = GRAIN", leftW, 58, "right");
+    drawChamber(0, 66, leftW, h - 66, st, true);
+
+    font(10, true);
     rgba(COL.orange);
-    text("MEMORY", rightX, 12);
-    font(9, false);
+    text("MEMORY", rightX, 58);
+    font(8.5, false);
     if (st.frozen) rgba(COL.cyan); else rgba(COL.dim);
-    text(memStatus(st) + " · " + tempoText(st), w, 12, "right");
-    drawWave(rightX, 20, rightW, 120, st);
+    text(memStatus(st), w, 58, "right");
+    drawWave(rightX, 66, rightW, 120, st);
 
-    font(9, true);
+    font(8.5, true);
     rgba(COL.dim);
-    text("WEAR HISTORY", rightX, 160);
+    text("WEAR HISTORY", rightX, 208);
     font(8, false);
-    text("NEWEST ON TOP", w, 160, "right");
-    var hy = 166, hh = 150;
+    text("NEWEST ON TOP", w, 208, "right");
+    var hy = 214, hh = 160;
     roundBox(rightX, hy, rightW, hh, 5, COL.box, 0.08);
     var cw = (rightW - 12) / HIST_COLS, rh = (hh - 12) / HIST_ROWS;
     for (i = 0; i < HIST_ROWS; i++) {
@@ -705,30 +731,20 @@ function drawLarge(w, h, st) {
             mgraphics.fill();
         }
     }
-    var ly = hy + hh + 12;
-    font(8, false);
-    rgba(COL.dim);
-    text("FRESH", rightX, ly + 4);
-    text("WORN", w, ly + 4, "right");
-    for (i = 0; i < 40; i++) {
-        rgba(heat(i / 39));
-        mgraphics.rectangle(rightX + 40 + i * (rightW - 80) / 40, ly - 2, (rightW - 80) / 40 + 0.5, 5);
-        mgraphics.fill();
-    }
     var maxW = 0, maxI = 0, sum = 0;
     for (i = 0; i < CELLS; i++) { sum += st.wear[i]; if (st.wear[i] > maxW) { maxW = st.wear[i]; maxI = i; } }
-    var sy = ly + 14, sw = (rightW - 8) / 2;
-    roundBox(rightX, sy, sw, 38, 4, [0.07, 0.075, 0.09], 0.06);
-    roundBox(rightX + sw + 8, sy, sw, 38, 4, [0.07, 0.075, 0.09], 0.06);
-    font(8, true);
+    var sy = 384, sw = (rightW - 8) / 2;
+    roundBox(rightX, sy, sw, h - sy, 6, [0.07, 0.075, 0.09], 0.06);
+    roundBox(rightX + sw + 8, sy, sw, h - sy, 6, [0.07, 0.075, 0.09], 0.06);
+    font(7.5, true);
     rgba(COL.dim);
-    text("MOST WORN", rightX + 8, sy + 13);
-    text("AVG WEAR", rightX + sw + 16, sy + 13);
+    text("MOST WORN", rightX + 10, sy + 14);
+    text("AVG WEAR", rightX + sw + 18, sy + 14);
     font(12, true);
     rgba(COL.orange);
-    text(Math.round(maxW * 100) + "% @ " + (maxI / CELLS * 2).toFixed(2) + " bars", rightX + 8, sy + 30);
+    text(Math.round(maxW * 100) + "% @ " + (maxI / CELLS * 2).toFixed(2) + " bars", rightX + 10, sy + 32);
     rgba(COL.text);
-    text(Math.round(sum / CELLS * 100) + "%", rightX + sw + 16, sy + 30);
+    text(Math.round(sum / CELLS * 100) + "%", rightX + sw + 18, sy + 32);
 }
 
 // ---------------------------------------------------------------- large view controls
@@ -736,25 +752,34 @@ function drawLarge(w, h, st) {
 // name, units and item lists. Every change is sent out as "<name> <value>" and
 // reaches the one real parameter in the device via [route] -> [s ---<name>_c].
 
+// layout 0.1.13: four cards by function, knobs row + buttons row, contents centred
+var CARDS = [
+    { label: "PHYSICS", col: "cyan", rect: [0, 0, 280, 160] },
+    { label: "MEMORY", col: "orange", rect: [289, 0, 228, 160] },
+    { label: "DOSE", col: "magenta", rect: [526, 0, 250, 160] },
+    { label: "OUTPUT", col: "cyan", rect: [785, 0, 135, 160] }
+];
+var KNOB_CY = 64, KNOB_R = 15, KNOB_LABEL_Y = 36, KNOB_VALUE_Y = 99;
 var KNOBS = [
-    { name: "gravity", row: 0, i: 0 }, { name: "bounce", row: 0, i: 1 }, { name: "swarm", row: 0, i: 2 },
-    { name: "erosion", row: 0, i: 3 }, { name: "mix", row: 0, i: 4 },
-    { name: "grain", row: 1, i: 0 }, { name: "heal", row: 1, i: 1 }, { name: "rate", row: 1, i: 2 },
-    { name: "recover", row: 1, i: 3 }, { name: "output", row: 1, i: 4 }
+    { name: "gravity", x: 10, dev: true }, { name: "bounce", x: 76, dev: true },
+    { name: "swarm", x: 142, dev: true }, { name: "grain", x: 208 },
+    { name: "erosion", x: 339, dev: true }, { name: "heal", x: 405 },
+    { name: "rate", x: 620 }, { name: "recover", x: 686 },
+    { name: "mix", x: 788, dev: true }, { name: "output", x: 854 }
 ];
-var ROW_Y = [0, 90], KNOB_X0 = 100, KNOB_DX = 62, KNOB_R = 15;
 var BUTTONS = [
-    { name: "sync", label: "SYNC", type: "toggle", rect: [420, 18, 60, 22], col: "cyan" },
-    { name: "division", type: "seg", rect: [488, 18, 168, 22], col: "cyan" },
-    { name: "freeze", label: "FREEZE", type: "toggle", rect: [420, 48, 236, 22], col: "cyan" },
-    { name: "weartype", label: "WEAR TYPE", type: "seg", rect: [420, 112, 156, 22], col: "orange" },
-    { name: "target", label: "DOSE TARGET", type: "seg", rect: [596, 112, 186, 22], col: "magenta" },
-    { name: "resetdose", label: "RESET DOSE", type: "action", rect: [802, 112, 110, 22], col: "magenta" }
+    { name: "sync", label: "SYNC", type: "toggle", rect: [12, 118, 72, 26], col: "cyan", dev: true },
+    { name: "division", type: "seg", rect: [90, 118, 182, 26], col: "cyan", dev: true },
+    { name: "freeze", label: "FREEZE", type: "toggle", rect: [296, 118, 84, 26], col: "cyan", dev: true },
+    { name: "weartype", type: "seg", rect: [386, 118, 124, 26], col: "orange" },
+    { name: "target", type: "seg", rect: [536, 118, 160, 26], col: "magenta" },
+    { name: "resetdose", label: "RESET", type: "action", rect: [702, 118, 64, 26], col: "magenta" },
+    { name: "stereo", type: "seg", rect: [795, 118, 114, 26], col: "cyan" }
 ];
-var DOSE_RECT = [672, 2, 56, 76];
+var DOSE_RECT = [554, 26, 62, 80];
 var drag = null, localVal = {};
 
-function knobCenter(k) { return [KNOB_X0 + k.i * KNOB_DX + 28, ROW_Y[k.row] + 38]; }
+function knobCenter(k) { return [k.x + 31, KNOB_CY]; }
 function knobValue(k) {
     if (localVal.hasOwnProperty(k.name)) return localVal[k.name];
     var pv = params()[k.name];
@@ -792,8 +817,9 @@ function doReset() {
 // division dropdown, drawn by the device jsui itself (no native popup possible here)
 var menuOpen = false, MENU_ITEM_H = 14;
 function menuItemRect(i) {
-    var d = LAYOUT.division;
-    return [d[0], d[1] + d[3] + 2 + i * MENU_ITEM_H, d[2] + 8, MENU_ITEM_H];
+    // opens upward: the division field sits in the bottom button row
+    var d = LAYOUT.division, n = SPEC.division.items.length;
+    return [d[0], d[1] - 3 - (n - i) * MENU_ITEM_H, d[2], MENU_ITEM_H];
 }
 
 function deviceClick(x, y, shift) {
@@ -899,52 +925,49 @@ function ondblclick(x, y) {
 }
 
 function drawControls(w, h) {
-    var pv = params(), i;
-    font(10, true);
-    rgba(COL.cyan);
-    text("LINKED", 0, 22);
-    rgba(COL.text);
-    text("DETAIL", 0, ROW_Y[1] + 22);
-    font(8, false);
-    rgba(COL.dim);
-    text("same controls", 0, 36);
-    text("as on the device", 0, 47);
-    text("only in this", 0, ROW_Y[1] + 36);
-    text("window", 0, ROW_Y[1] + 47);
-    mgraphics.rectangle_rounded(88, 0, w - 88, 80, 12, 12);
-    mgraphics.set_source_rgba(0, 0, 0, 0.25);
-    mgraphics.fill_preserve();
-    rgba(COL.cyan, 0.2);
-    mgraphics.set_line_width(1);
-    mgraphics.stroke();
-    mgraphics.rectangle_rounded(88, ROW_Y[1], w - 88, 80, 12, 12);
-    mgraphics.set_source_rgba(0, 0, 0, 0.25);
-    mgraphics.fill_preserve();
-    mgraphics.set_source_rgba(1, 1, 1, 0.06);
-    mgraphics.stroke();
+    var pv = params(), i, r;
+    for (i = 0; i < CARDS.length; i++) {
+        r = CARDS[i].rect;
+        mgraphics.rectangle_rounded(r[0], r[1], r[2], r[3], 12, 12);
+        mgraphics.set_source_rgba(0, 0, 0, 0.25);
+        mgraphics.fill_preserve();
+        mgraphics.set_source_rgba(1, 1, 1, 0.06);
+        mgraphics.set_line_width(1);
+        mgraphics.stroke();
+        font(9, true);
+        rgba(COL[CARDS[i].col]);
+        text(CARDS[i].label, r[0] + 12, r[1] + 17);
+    }
     for (i = 0; i < KNOBS.length; i++) {
-        var k = KNOBS[i], c = knobCenter(k);
-        drawKnobAt(SPEC[k.name], knobValue(k), c[0], c[1], KNOB_R, ROW_Y[k.row] + 12, ROW_Y[k.row] + 72, 8, 9);
+        var k = KNOBS[i], c = knobCenter(k), sp = SPEC[k.name];
+        drawKnobAt(sp, knobValue(k), c[0], c[1], KNOB_R, KNOB_LABEL_Y, KNOB_VALUE_Y, 8, 9);
+        if (k.dev) {
+            font(8, true);
+            drawLegendDot(c[0] - mgraphics.text_measure(sp.label)[0] / 2 - 6, KNOB_LABEL_Y - 3);
+        }
+    }
+    var st = sharedState();
+    if (st) {
+        drawDose(DOSE_RECT[0], DOSE_RECT[1], DOSE_RECT[2], DOSE_RECT[3], st);
+        font(8, true);
+        drawLegendDot(DOSE_RECT[0] + DOSE_RECT[2] / 2 - mgraphics.text_measure("DOSE")[0] / 2 - 6, DOSE_RECT[1] + 6);
     }
     for (i = 0; i < BUTTONS.length; i++) {
         var b = BUTTONS[i], col = COL[b.col];
-        if (b.type === "seg") drawSeg(b.rect, SPEC[b.name].items, pv[b.name] | 0, col, b.label);
+        if (b.type === "seg") drawSeg(b.rect, SPEC[b.name].items, pv[b.name] | 0, col, null);
         else drawLedButton(b.rect, b.label, (b.type === "toggle" && !!pv[b.name]) || (b.type === "action" && resetFlashing()), col, 8);
     }
-    var st = sharedState();
-    if (st) drawDose(DOSE_RECT[0], DOSE_RECT[1], DOSE_RECT[2], DOSE_RECT[3], st);
-    font(8, false);
-    rgba(COL.dim);
-    text("drag = change \u00b7 shift = fine \u00b7 double-click = default \u00b7 click DOSE = reset", w - 10, 168, "right");
 }
 
-function drawTitle(w, h) {
-    var letters = "RUNKLIMPSEST", x = 0, i, size = Math.round(h * 0.62);
+function drawTitle(w, h) { drawTitleAt(0, 0, h); }
+
+function drawTitleAt(x0, y0, h) {
+    var letters = "RUNKLIMPSEST", x = x0, i, size = Math.round(h * 0.62);
     font(size, false);
     for (i = 0; i < letters.length; i++) {
         var ch = letters.charAt(i);
         if (i === 0) rgba(COL.orange); else if (i === 1) rgba(COL.beige); else if (i === 2) rgba(COL.cyan); else rgba(COL.text);
-        mgraphics.move_to(x, h * 0.78);
+        mgraphics.move_to(x, y0 + h * 0.78);
         mgraphics.show_text(ch);
         x += mgraphics.text_measure(ch)[0] + size * 0.45;
     }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.13
+- Neues Layout (GUI-Iteration 8, vom Nutzer freigegeben):
+  - Gerät: Raster aus 3 Spalten (CHAMBER | MEMORY | CONTROLS) plus Meter, eine Kopfzeile, eine Button-Zeile unten. Die 6 Regler als 3×2-Block (GRAVITY, BOUNCE, SWARM / EROSION, DOSE, MIX). SYNC + Division unter der Chamber, FREEZE unter Memory, LARGE VIEW (bisher MORE) unter den Reglern. Division-Liste öffnet nach oben.
+  - Large View: ohne „LARGE VIEW“-Beschriftung und CLOSE (Fenstertitel und Windows-X), Kopfzeile mit Logo, Legende „ALSO ON DEVICE“ und Tempo. Unten vier Karten nach Funktion (PHYSICS, MEMORY, DOSE, OUTPUT) statt LINKED/DETAIL, Inhalte mittig; cyan Punkt am Namen = auch im Gerät.
+- Neuer Parameter „Stereo“ (STEREO | MONO, Standard STEREO), nur in der Large View (OUTPUT). Wirkt ab der Klangverarbeitung: STEREO verteilt Grains nach ihrer X-Position (Startwert ±70 %, −3 dB).
+- Push-Bänke: „Main“ (8), „Detail“ (Grain, Heal, Dose Rate, Dose Recover, Output, Wear Type, Dose Target, Stereo), „Reset“ (Dose Reset).
+
 ## 0.1.12
 - Zurück zum Verhalten von 0.1.10: die gezeichnete Oberfläche wertet alle Klicks selbst aus (Knobs mit Doppelklick = Standardwert, eigene Division-Liste), alle 16 Parameter versteckt. Automation und Push-Bänke wie gehabt.
 - Ergebnis des Tests 0.1.11 (Nutzer): Buttons und Division-Menü als Live-Objekte bedienbar, aber Knobs (`live.numbox`) nicht ziehbar, Division-Schrift unsichtbar, Strg+M auch an SYNC/FREEZE/Division nicht möglich. Befund: In Live wird die jsui über allen anderen Objekten gezeichnet (unabhängig von der Reihenfolge im Patch) und lässt mit `ignoreclick` nur Klicks durch, kein Ziehen. MIDI-Map per Klick an der gezeichneten Oberfläche ist damit ohne sichtbare Live-Objekte nicht machbar.

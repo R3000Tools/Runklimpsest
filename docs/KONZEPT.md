@@ -33,6 +33,9 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 | Wear Type | SAT, TAPE, BIT | SAT | nur Large View |
 | Dose Target | ALL, SWARM, WEAR | ALL | nur Large View |
 | Dose Reset | Taster | – | DOSE-Ring (Klick), Large View |
+| Stereo | STEREO, MONO | STEREO | nur Large View (OUTPUT) |
+
+**Stereo (Startwert):** STEREO verteilt jedes Grain nach seiner X-Position in der Chamber im Panorama, links = links. Abbildung auf **±70 %** (nicht volle Breite: Grains an den Wänden würden sonst hart außen landen), Pan-Gesetz **−3 dB** (Constant Power). MONO: alle Grains in der Mitte. Prüfen im Hörtest (BACKLOG).
 
 „Nur Large View“ heißt: Der Parameter liegt unsichtbar im Gerät (automatisierbar, wird gespeichert), bedienbar ist er im großen Fenster.
 
@@ -40,7 +43,7 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeichnet ihre Bedienelemente selbst (jsui) und schickt Änderungen an das Original; das Original meldet zurück. Ergebnis: eine Automationsspur pro Funktion, Undo und Mapping laufen über das Original.
 
 ## Oberfläche
-- Gerät 580 × 169 px ohne Titelzeile: CHAMBER (SYNC, Division), MEMORY (FREEZE, EROSION), PHYSICS (GRAVITY, BOUNCE, SWARM, DOSE, MIX, MORE), IN/OUT-Meter. Gezeichnet von einer jsui; die Live-Parameter liegen transparent darüber.
-- Large View 960 × 620 px: große Chamber mit Spuren und Verschleiß-Streifen, MEMORY, WEAR HISTORY (Verschleiß über die Zeit), Kennzahlen; Zeile LINKED (wie im Gerät) und DETAIL (nur hier).
+- Gerät 580 × 169 px ohne Titelzeile, Raster (0.1.13): 3 Spalten CHAMBER | MEMORY | CONTROLS (3×2: GRAVITY, BOUNCE, SWARM / EROSION, DOSE, MIX) plus IN/OUT-Meter; eine Kopfzeile, eine Button-Zeile (SYNC + Division, FREEZE, LARGE VIEW). Gezeichnet und bedient von einer jsui; Parameter versteckt.
+- Large View 960 × 620 px: Kopfzeile (Logo, Legende, Tempo), große Chamber, MEMORY, WEAR HISTORY, Kennzahlen; unten vier Karten nach Funktion (PHYSICS, MEMORY, DOSE, OUTPUT), Inhalte mittig, cyan Punkt = auch im Gerät. Kein CLOSE (Fenster-X).
 - Stil: Runkelizer FX (Verlauf #23262e → #0a0a0d, Farbe pro Bereich: Cyan Chamber/Physics, Orange Memory/Wear, Magenta Dose; LED-Buttons; Meter grün → rot). Alle Texte Englisch, keine Bereichs-Hinweise unter den Reglern (Platz).
-- GUI-Entwürfe (Iterationen 1–4): Claude-Artifact „Palimpsest M4L GUI“ (privat beim Nutzer).
+- GUI-Entwürfe (Iterationen 1–8): Claude-Artifact „Palimpsest M4L GUI“ (privat beim Nutzer).

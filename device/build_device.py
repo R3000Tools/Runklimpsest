@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.12"
+VERSION = "0.1.13"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -53,6 +53,8 @@ PARAMS = [
     dict(name="weartype", label="Wear Type", short="WEAR TYPE", kind="tab", items=["SAT", "TAPE", "BIT"], init=0, colname="orange"),
     dict(name="target", label="Dose Target", short="DOSE TARGET", kind="tab", items=["ALL", "SWARM", "WEAR"], init=0, colname="magenta"),
     dict(name="resetdose", label="Dose Reset", short="DOSE RESET", kind="button", text="RESET DOSE", init=0, colname="magenta"),
+    # 0.1.13: grains panned by their X position (+-70 %, -3 dB pan law) or all centred
+    dict(name="stereo", label="Stereo", short="STEREO", kind="tab", items=["STEREO", "MONO"], init=0, colname="cyan"),
 ]
 for _p in PARAMS:
     _p.setdefault("short", _p["label"].upper())
@@ -73,18 +75,19 @@ OVERLAY_CONTROLS = False   # 0.1.11 test failed in Live (knobs not draggable, Ct
 # Parameter banks for Push / controllers with device control (internal, no GUI).
 BANKS = [
     ("Main", ["gravity", "bounce", "swarm", "erosion", "mix", "freeze", "sync", "division"]),
-    ("Detail", ["grain", "heal", "rate", "recover", "output", "weartype", "target", "resetdose"]),
+    ("Detail", ["grain", "heal", "rate", "recover", "output", "weartype", "target", "stereo"]),
+    ("Reset", ["resetdose"]),
 ]
+# layout 0.1.13: 3 columns (CHAMBER | MEMORY | CONTROLS 3x2) + meters, header row y 4-15,
+# content y 18-138, button row y 144-162
 DEVICE_RECT = {
-    "sync": [118, 3, 42, 13], "division": [163, 3, 43, 13],
-    "freeze": [214, 92, 76, 22],
-    "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70],
-    "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70],
-    "resetdose": [376, 92, 54, 72],
+    "gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60],
+    "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60],
+    "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18],
 }
 DEVICE_AREAS = {
-    "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72],
-    "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128],
+    "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120],
+    "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120],
 }
 # large view (960 x 620)
 WIN_W, WIN_H = 960, 620
@@ -226,17 +229,16 @@ def open_button(patch, text, pres, visible=True):
 def build_window():
     w = Patch("win")
     background(w, WIN_W, WIN_H)
-    w.add("jsui", pres=[16, 10, 230, 22], filename=JS, jsarguments=["title"], numinlets=1, numoutlets=1,
-          outlettype=[""], border=0)
-    w.comment("LARGE VIEW", [252, 14, 100, 14], DIM, 9)
-    large = w.jsui("large", [16, 40, 928, 396])
+    # layout 0.1.13: the large jsui draws logo, legend and tempo itself (no overlapping objects;
+    # no LARGE VIEW label / CLOSE button - window title and the OS close button do that)
+    large = w.jsui("large", [20, 0, 920, 430])
     for name in ("rk_draw", "rk_uid"):
         r = w.obj(f"r ---{name}", ins=0, outs=1)
         w.connect(r, 0, large, 0)
 
     # Controls are drawn by a jsui (live.* mirrors without a parameter lose names,
     # units and item lists). Output "<name> <value>" -> [route] -> original parameter.
-    controls = w.jsui("controls", [16, 444, 928, 170])
+    controls = w.jsui("controls", [20, 444, 920, 160])
     for name in ("rk_draw", "rk_uid"):
         r = w.obj(f"r ---{name}", ins=0, outs=1)
         w.connect(r, 0, controls, 0)
@@ -248,14 +250,7 @@ def build_window():
         s = w.obj(f"s ---{name}_c", ins=1, outs=0, outtype=[])
         w.connect(route, i, s, 0)
 
-    close = open_button(w, "CLOSE", [868, 12, 76, 20])
-    # live.text in button mode may send a bang or 1/0 depending on version: accept anything
-    tb = w.obj("t b", outs=1, outtype=["bang"])
-    wc = w.msg("wclose")
     tp = w.obj("thispatcher", ins=1, outs=2, outtype=["", ""])
-    w.connect(close, 0, tb, 0)
-    w.connect(tb, 0, wc, 0)
-    w.connect(wc, 0, tp, 0)
     # second opening path: the device sends ---rk_open, the window brings itself to front
     r_open = w.obj("r ---rk_open", ins=0, outs=1)
     front = w.msg("front")
