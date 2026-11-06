@@ -22,7 +22,7 @@ function make(mode,ctx,ox,oy,w,h,name){
   const out=[];
   const env={mgraphics:mg,jsarguments:name?['x',mode,name]:['x',mode],outlet:(...a)=>out.push(a),Math,messagename:'',box:{rect:[0,0,w,h]}};
   env.Global=function(n){if(!globals[n])globals[n]={};return globals[n];};
-  const f=new Function(...Object.keys(env),SRC+';return {bang,uid,paint,anything,level,tick,onclick,ondrag,ondblclick,out:()=>out,setmsg:(m)=>{messagename=m;}};');
+  const f=new Function(...Object.keys(env),SRC+';return {bang,uid,paint,meters,anything,level,tick,onclick,ondrag,ondblclick,out:()=>out,setmsg:(m)=>{messagename=m;}};');
   const api=f(...Object.values(env));
   return {api,paint(){ctx.save();ctx.translate(ox,oy);ctx.beginPath();api.paint.call({box:{rect:[0,0,w,h]}});ctx.restore();},out};
 }
@@ -31,12 +31,11 @@ const ch=make('device',c,10,10,580,169), ctl=make('controls',c,16,230,928,170);
 let uid=null;
 for(let f=0;f<240;f++){ch.api.level(0.5);if(f%4==0)ch.api.tick();ch.api.bang();for(const o of ch.out.splice(0))if(o[1]=='uid')uid=o[2];}
 ctl.api.uid(uid);
-const L=new Function(SRC.slice(SRC.indexOf('// BEGIN GENERATED'),SRC.indexOf('// END GENERATED'))+';return LAYOUT;')();
-const widgets=['gravity','bounce','swarm','erosion','mix','division'].map(n=>{const r=L[n];const w=make(n==='division'?'menu':'knob',c,10+r[0],10+r[1],r[2],r[3],n);w.api.uid(uid);return w;});
+ch.api.meters(0.4,0.3);
 // interaction test: click SYNC (toggle), click division segment 4, drag gravity up
 ctl.api.onclick(430,25);ctl.api.onclick(640,25);ctl.api.onclick(128,38);ctl.api.ondrag(128,8,1);
 window.sent=ctl.out.slice();
-ch.paint();widgets.forEach(w=>w.paint());ctl.paint();
+ch.paint();ctl.paint();
 </script></body></html>`;
 (async()=>{const b=await chromium.launch();const pg=await b.newPage({deviceScaleFactor:1});
 pg.on('pageerror',e=>console.log('PAGEERROR',e.message));

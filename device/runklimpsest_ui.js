@@ -1,9 +1,10 @@
 // Runklimpsest - UI prototype (no audio processing)
 // One file, jsui modes (first jsui argument):
-//   device   : runs the particle engine and draws the whole device panel
-//              (chamber, memory, knobs, buttons, dose ring). The real live.*
-//              parameters sit on top of it, fully transparent, so dragging,
-//              right-click, MIDI mapping and automation stay native to Live.
+//   device   : runs the particle engine, draws the whole device panel and handles
+//              all its clicks (knobs, SYNC, division, FREEZE, MORE, DOSE reset).
+//              Values go out as "<name> <value>" to the hidden live.* parameters.
+//              Overlapping objects did not work in Live (0.1.3-0.1.6), so the
+//              device has no objects on top of this jsui except the meters.
 //   large    : draws chamber + memory + wear history (large view window)
 //   controls : draws the large view controls; changes go out as "<name> <value>"
 //   knob     : one device knob (arg 2 = parameter name); takes drag/double-click itself
@@ -30,7 +31,7 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.1.6";
+var VERSION = "0.1.7";
 var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}};
 var LAYOUT = {"sync": [118, 3, 42, 13], "division": [163, 3, 43, 13], "freeze": [214, 92, 76, 22], "gravity": [376, 18, 54, 70], "bounce": [430, 18, 54, 70], "swarm": [484, 18, 54, 70], "erosion": [306, 92, 60, 70], "mix": [430, 92, 54, 70], "resetdose": [376, 92, 54, 72], "chamber": [6, 18, 200, 145], "wave": [214, 18, 152, 66], "dose": [376, 92, 54, 72], "more": [488, 124, 46, 18], "meters": [546, 18, 28, 128]};
 // END GENERATED
@@ -108,6 +109,13 @@ function tick() {
 }
 
 function level(v) { inLevel = v; }
+
+// input peaks L/R for the drawn meters (audio passes through, so IN = OUT for now)
+var meterL = 0, meterR = 0;
+function meters(l, r) {
+    meterL = Math.max(l || 0, meterL * 0.85);
+    meterR = Math.max(r || 0, meterR * 0.85);
+}
 
 // song tempo and time signature from [live.observer]
 function tempo(v) { if (v > 0) songTempo = v; }
@@ -547,8 +555,17 @@ function tempoText(st) {
     return (st.tempo || 120).toFixed(1) + " BPM · " + (st.num || 4) + "/" + (st.den || 4);
 }
 
+var resetFlashUntil = 0;
+function flashReset() { resetFlashUntil = new Date().getTime() + 350; }
+function resetFlashing() { return new Date().getTime() < resetFlashUntil; }
+
 function drawDose(x0, y0, w, h, st) {
     var cx = x0 + w / 2, r = Math.min(w, h - 26) / 2 - 4, cy = y0 + 12 + r + 3;
+    if (resetFlashing()) {
+        rgba(COL.magenta, 0.35);
+        mgraphics.ellipse(cx - r - 6, cy - r - 6, (r + 6) * 2, (r + 6) * 2);
+        mgraphics.fill();
+    }
     font(8, true);
     rgba(COL.magenta);
     text("DOSE", cx, y0 + 9, "center");
@@ -591,13 +608,38 @@ function drawDevice(w, h, st) {
     drawWave(L.wave[0], L.wave[1], L.wave[2], L.wave[3], st);
 
     drawLedButton(L.sync, "SYNC", !!pv.sync, COL.cyan, 7);
+    var div = SPEC.division, dv = valueOf("division") | 0;
+    drawMenuBox(L.division, div.items[Math.max(0, Math.min(div.items.length - 1, dv))], !!pv.sync);
     drawLedButton(L.freeze, "FREEZE", !!pv.freeze, COL.cyan, 8);
     drawPlainButton(L.more, "MORE", 8);
-    // knobs and the division selector: separate jsuis on top (modes "knob" / "menu")
+    for (i = 0; i < DEVICE_KNOBS.length; i++) {
+        r = L[DEVICE_KNOBS[i]];
+        drawKnobAt(SPEC[DEVICE_KNOBS[i]], valueOf(DEVICE_KNOBS[i]), r[0] + r[2] / 2, r[1] + 34, 13,
+                   r[1] + 8, r[1] + 63, 8, 9);
+    }
     drawDose(L.dose[0], L.dose[1], L.dose[2], L.dose[3], st);
 
-    // meter area (live.meter~ objects sit on top)
+    // meters: IN L/R, OUT L/R
     r = L.meters;
+    var mv = [meterL, meterR, meterL, meterR], mxs = [1, 7, 16, 22];
+    for (i = 0; i < 4; i++) {
+        var mx = r[0] + mxs[i], mh = r[3];
+        mgraphics.set_source_rgba(0.114, 0.125, 0.153, 1);
+        mgraphics.rectangle_rounded(mx, r[1], 5, mh, 3, 3);
+        mgraphics.fill();
+        var db = mv[i] > 0.00001 ? 20 * Math.log(mv[i]) / Math.LN10 : -90;
+        var nrm = Math.max(0, Math.min(1, (db + 60) / 60)), fh = nrm * mh;
+        if (fh > 0.5) {
+            var pat = mgraphics.pattern_create_linear(0, r[1] + mh, 0, r[1]);
+            pat.add_color_stop_rgba(0, 0.231, 0.878, 0.561, 1);
+            pat.add_color_stop_rgba(0.75, 0.231, 0.878, 0.561, 1);
+            pat.add_color_stop_rgba(0.9, 1.0, 0.847, 0.290, 1);
+            pat.add_color_stop_rgba(1, 1.0, 0.353, 0.239, 1);
+            mgraphics.set_source(pat);
+            mgraphics.rectangle_rounded(mx, r[1] + mh - fh, 5, fh, 3, 3);
+            mgraphics.fill();
+        }
+    }
     font(6.5, false);
     rgba(COL.dim);
     text("IN · OUT", r[0] + r[2] / 2, r[1] + r[3] + 9, "center");
@@ -700,6 +742,41 @@ function sendParam(name, v) {
 function inRect(x, y, r) { return x >= r[0] && x <= r[0] + r[2] && y >= r[1] && y <= r[1] + r[3]; }
 
 var single = null; // drag state for knob mode
+var devDrag = null; // drag state for device knobs
+
+function valueOf(name) {
+    if (localVal.hasOwnProperty(name)) return localVal[name];
+    var pv = params()[name];
+    return (pv === undefined) ? SPEC[name].def : pv;
+}
+
+function deviceKnobAt(x, y) {
+    for (var i = 0; i < DEVICE_KNOBS.length; i++) if (inRect(x, y, LAYOUT[DEVICE_KNOBS[i]])) return DEVICE_KNOBS[i];
+    return null;
+}
+
+function doReset() {
+    outlet(0, "resetdose", 1);
+    var st = sharedState();
+    if (st) st.resetReq = true;
+    flashReset();
+    mgraphics.redraw();
+}
+
+function deviceClick(x, y, shift) {
+    var L = LAYOUT, k = deviceKnobAt(x, y);
+    if (k) { devDrag = { name: k, y0: y, n0: toNorm(SPEC[k], valueOf(k)) }; return; }
+    if (inRect(x, y, L.sync)) { sendParam("sync", P.sync ? 0 : 1); delete localVal.sync; return; }
+    if (inRect(x, y, L.freeze)) { sendParam("freeze", P.freeze ? 0 : 1); delete localVal.freeze; return; }
+    if (inRect(x, y, L.division)) {
+        var cnt = SPEC.division.items.length;
+        sendParam("division", ((valueOf("division") | 0) + (shift ? cnt - 1 : 1)) % cnt);
+        delete localVal.division;
+        return;
+    }
+    if (inRect(x, y, L.more)) { outlet(0, "open"); return; }
+    if (inRect(x, y, L.dose)) { doReset(); return; }
+}
 
 function singleValue() {
     if (localVal.hasOwnProperty(NAME)) return localVal[NAME];
@@ -708,7 +785,7 @@ function singleValue() {
 }
 
 function onclick(x, y, but, cmd, shift) {
-    if (MODE === "device") return; // device jsui ignores clicks (ignoreclick 1)
+    if (MODE === "device") { deviceClick(x, y, shift); return; }
     if (MODE === "knob" && SPEC[NAME]) {
         single = { y0: y, n0: toNorm(SPEC[NAME], singleValue()) };
         return;
@@ -719,12 +796,7 @@ function onclick(x, y, but, cmd, shift) {
         delete localVal[NAME];
         return;
     }
-    if (MODE === "controls" && inRect(x, y, DOSE_RECT)) {
-        outlet(0, "resetdose", 1);
-        var st3 = sharedState();
-        if (st3) st3.resetReq = true;
-        return;
-    }
+    if (MODE === "controls" && inRect(x, y, DOSE_RECT)) { doReset(); return; }
     if (MODE !== "controls") return;
     var i;
     for (i = 0; i < KNOBS.length; i++) {
@@ -743,15 +815,18 @@ function onclick(x, y, but, cmd, shift) {
             var items = SPEC[b.name].items;
             sendParam(b.name, Math.min(items.length - 1, Math.floor((x - r[0]) / (r[2] / items.length))));
         } else if (b.type === "action") {
-            outlet(0, b.name, 1);
-            var st2 = sharedState();
-            if (st2) st2.resetReq = true;
+            doReset();
         }
         return;
     }
 }
 
 function ondrag(x, y, but, cmd, shift) {
+    if (MODE === "device" && devDrag) {
+        if (!but) { delete localVal[devDrag.name]; devDrag = null; return; }
+        sendParam(devDrag.name, fromNorm(SPEC[devDrag.name], devDrag.n0 + (devDrag.y0 - y) / (shift ? 600 : 150)));
+        return;
+    }
     if (MODE === "knob" && single) {
         if (!but) { delete localVal[NAME]; single = null; return; }
         sendParam(NAME, fromNorm(SPEC[NAME], single.n0 + (single.y0 - y) / (shift ? 600 : 150)));
@@ -764,6 +839,11 @@ function ondrag(x, y, but, cmd, shift) {
 }
 
 function ondblclick(x, y) {
+    if (MODE === "device") {
+        var k = deviceKnobAt(x, y);
+        if (k) { sendParam(k, SPEC[k].def); delete localVal[k]; }
+        return;
+    }
     if (MODE === "knob" && SPEC[NAME]) {
         sendParam(NAME, SPEC[NAME].def);
         delete localVal[NAME];
@@ -811,7 +891,7 @@ function drawControls(w, h) {
     for (i = 0; i < BUTTONS.length; i++) {
         var b = BUTTONS[i], col = COL[b.col];
         if (b.type === "seg") drawSeg(b.rect, SPEC[b.name].items, pv[b.name] | 0, col, b.label);
-        else drawLedButton(b.rect, b.label, b.type === "toggle" && !!pv[b.name], col, 8);
+        else drawLedButton(b.rect, b.label, (b.type === "toggle" && !!pv[b.name]) || (b.type === "action" && resetFlashing()), col, 8);
     }
     var st = sharedState();
     if (st) drawDose(DOSE_RECT[0], DOSE_RECT[1], DOSE_RECT[2], DOSE_RECT[3], st);

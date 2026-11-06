@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -274,37 +274,22 @@ def build_window():
 
 def build_device():
     d = Patch("obj")
-    # The jsui draws the whole panel (incl. background) and runs the engine. It is the first,
-    # i.e. lowest object; ignoreclick lets clicks through to the transparent live.* parameters
-    # on top (0.1.3: jsui caught all clicks). No panel object and no background layer:
-    # in 0.1.4 the panel covered the background-layer jsui and nothing was visible.
+    # One jsui draws the whole panel, runs the engine and handles every click; it sends
+    # "<name> <value>" to the hidden live.* parameters. No other object overlaps it except
+    # the meters: overlapping objects (transparent live.* on top, widget jsuis on top) did
+    # not work in Live 0.1.3-0.1.6. No panel object / background layer (0.1.4: invisible).
     panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
-                  numinlets=1, numoutlets=1, outlettype=[""], border=0, ignoreclick=1)
+                  numinlets=1, numoutlets=1, outlettype=[""], border=0)
 
-    # parameters (the only ones). Buttons (live.text) lie transparent on top of the drawn panel
-    # and work in Live. Dials and the menu stay hidden: transparent live.dial took no clicks and
-    # the live.menu popup inherited the transparent text (0.1.5). Their place is taken by
-    # small jsuis (modes "knob" / "menu") that send "<name> <value>" to the hidden parameter.
+    # parameters (the only ones), all hidden (not in presentation)
     orig = {}
     for p in PARAMS:
-        pres = DEVICE_RECT.get(p["name"]) if p["kind"] in ("toggle", "button") else None
-        orig[p["name"]] = control(d, p, pres)
+        orig[p["name"]] = control(d, p, None)
     widget_route = d.obj("route " + " ".join(p["name"] for p in PARAMS), ins=1, outs=len(PARAMS) + 1,
                          outtype=[""] * (len(PARAMS) + 1))
     for i, p in enumerate(PARAMS):
         s_c = d.obj(f"s ---{p['name']}_c", ins=1, outs=0, outtype=[])
         d.connect(widget_route, i, s_c, 0)
-    r_uid_w = d.obj("r ---rk_uid", ins=0, outs=1)
-    r_draw_w = d.obj("r ---rk_draw", ins=0, outs=1)
-    for p in PARAMS:
-        if p["name"] in DEVICE_RECT and p["kind"] in ("dial", "menu"):
-            mode = "knob" if p["kind"] == "dial" else "menu"
-            wid = d.add("jsui", pres=DEVICE_RECT[p["name"]], filename=JS, jsarguments=[mode, p["name"]],
-                        numinlets=1, numoutlets=1, outlettype=[""], border=0)
-            d.connect(r_uid_w, 0, wid, 0)
-            d.connect(r_draw_w, 0, wid, 0)
-            d.connect(wid, 0, widget_route, 0)
-    more = open_button(d, "MORE", DEVICE_AREAS["more"], visible=False)
 
     # parameters -> engine, -> large view (set), large view -> parameters
     rparam = d.obj("r ---rk_param", ins=0, outs=1)
@@ -369,6 +354,7 @@ def build_device():
     d.connect(panel, 0, route, 0)
     d.connect(route, 0, pre_uid, 0)
     d.connect(pre_uid, 0, s_uid, 0)
+    d.connect(route, 2, widget_route, 0)   # everything else from the panel: parameter changes
 
     open_msg = d.msg("open")
     pc = d.obj("pcontrol", ins=1, outs=1)
@@ -376,7 +362,6 @@ def build_device():
     # live.text (button mode) output differs between versions (bang or 1/0): accept anything
     open_t = d.obj("t b b", outs=2, outtype=["bang", "bang"])
     s_open = d.obj("s ---rk_open", ins=1, outs=0, outtype=[])
-    d.connect(more, 0, open_t, 0)
     d.connect(route, 1, open_t, 0)
     d.connect(open_t, 1, open_msg, 0)   # path 1: pcontrol -> open subpatcher window
     d.connect(open_t, 0, s_open, 0)     # path 2: window's own thispatcher "front"
@@ -396,12 +381,15 @@ def build_device():
     d.connect(add, 0, peak, 0)
     d.connect(peak, 0, pre_lvl, 0)
     d.connect(pre_lvl, 0, panel, 0)
-    mx, my, mw, mh = DEVICE_AREAS["meters"]
-    for i, x in enumerate([mx + 1, mx + 7, mx + 16, mx + 22]):
-        m = d.add("live.meter~", pres=[x, my, 5, mh], numinlets=1, numoutlets=1, outlettype=["list"],
-                  coldcolor=hexc("3be08f"), warmcolor=hexc("ffd84a"), hotcolor=hexc("ff8a2a"),
-                  overloadcolor=hexc("ff5a3d"), bgcolor=hexc("1d2027"), interval=33)
-        d.connect(pin, i % 2, m, 0)
+    # meters are drawn by the panel jsui (live.meter~ on top of it was hidden in Live 0.1.6)
+    pk = d.obj("pak f f", ins=2, outs=1)
+    pre_m = d.obj("prepend meters")
+    for ch in (0, 1):
+        pa = d.obj("peakamp~ 33", ins=2, outs=1, outtype=["float"])
+        d.connect(pin, ch, pa, 0)
+        d.connect(pa, 0, pk, ch)
+    d.connect(pk, 0, pre_m, 0)
+    d.connect(pre_m, 0, panel, 0)
 
     params = {}
     for b in d.boxes:

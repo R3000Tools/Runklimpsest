@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7
+- Fix: In 0.1.6 waren die Knobs und der Notenwert im Gerät unsichtbar (Nutzerbefund mit Screenshot): Objekte, die in Live über der großen Zeichen-jsui liegen, werden verdeckt bzw. bekommen keine Klicks (0.1.3–0.1.6 vier Varianten, alle gescheitert).
+- Neu: Das Gerät besteht aus **einer** jsui, die alles zeichnet und alle Klicks selbst auswertet (Knobs ziehen/Shift/Doppelklick, SYNC, Notenwert Klick/Shift-Klick, FREEZE, MORE, DOSE-Reset) – dasselbe Prinzip wie die Large View, die in Live funktioniert. Alle 16 Parameter liegen versteckt im Gerät.
+- Pegelanzeigen IN/OUT zeichnet die jsui selbst (live.meter~ war verdeckt).
+- DOSE-Reset (Ring in Gerät und Large View, Button RESET DOSE) blinkt kurz als Rückmeldung.
+- Einschränkung: Im MIDI-Map-Modus lassen sich die Regler des Geräts nicht per Klick zuweisen (versteckte Parameter).
+
 ## 0.1.6
 - Fix: Knobs im Gerät ließen sich nicht bedienen (0.1.5, Nutzerbefund: transparente `live.dial` nehmen in Live keine Klicks an). Jeder Geräte-Knob ist jetzt eine eigene kleine jsui (Modus `knob`), die Ziehen (Shift = fein) und Doppelklick (Standardwert) selbst annimmt und den Wert an den versteckten Parameter schickt – wie in der Large View.
 - Fix: Notenwert-Auswahl im Gerät zeigte im Popup nur den aktuellen Eintrag (übrige schwarz, weil das Popup die transparente Textfarbe übernahm). Jetzt jsui (Modus `menu`): Klick = nächster Wert, Shift-Klick = vorheriger.

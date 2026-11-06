@@ -34,7 +34,7 @@ function send(ctx, name, ...args) {
 const paint = (c) => vm.runInContext('paint.call({box: box})', c);
 let uid = null;
 for (let f = 0; f < 600; f++) {
-  send(ch, 'level', f < 300 ? 0.6 : 0.0);
+  send(ch, 'level', f < 300 ? 0.6 : 0.0); send(ch, 'meters', f < 300 ? 0.3 : 0, f < 300 ? 0.25 : 0);
   if (f % 4 === 0) send(ch, 'tick');
   if (f === 100) send(ch, 'sync', 0);
   if (f === 200) { send(ch, 'sync', 1); send(ch, 'freeze', 1); send(ch, 'swarm', 24); send(ch, 'tempo', 90); send(ch, 'signum', 3); }
@@ -62,6 +62,15 @@ paint(knob); paint(menu);
 knob.onclick(27, 34, 1, 0, 0); knob.ondrag(27, 4, 1, 0, 0); knob.ondrag(27, 4, 0, 0, 0); knob.ondblclick(27, 34);
 menu.onclick(10, 6, 1, 0, 0); menu.onclick(10, 6, 1, 0, 1);
 const ko = knob.out.map(o => o.slice(1)), mo = menu.out.map(o => o.slice(1));
+// device panel clicks: knob drag, sync, division, freeze, more, dose
+const DL = vm.runInContext('LAYOUT', ch); ch.out.length = 0;
+const c = (r) => [r[0] + r[2] / 2, r[1] + r[3] / 2];
+let p0 = c(DL.gravity); ch.onclick(p0[0], p0[1], 1, 0, 0); ch.ondrag(p0[0], p0[1] - 30, 1, 0, 0); ch.ondrag(p0[0], p0[1] - 30, 0, 0, 0); ch.ondblclick(p0[0], p0[1]);
+for (const k of ['sync', 'division', 'freeze', 'more', 'dose']) { const q = c(DL[k]); ch.onclick(q[0], q[1], 1, 0, 0); }
+const dout = ch.out.map(o => o.slice(1)).filter(o => o[0] !== 'uid');
+console.log('device panel out', JSON.stringify(dout));
+const got = dout.map(o => o[0]).join(',');
+if (got !== 'gravity,gravity,sync,division,freeze,open,resetdose') throw new Error('device click outputs wrong: ' + got);
 console.log('knob out', JSON.stringify(ko), 'menu out', JSON.stringify(mo));
 if (!ko.length || ko[0][0] !== 'gravity' || ko[ko.length - 1][1] !== 0.62) throw new Error('knob widget output wrong');
 if (mo.length !== 2 || mo[0][0] !== 'division') throw new Error('menu widget output wrong');
