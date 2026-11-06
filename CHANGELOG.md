@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.10
+- Zuweisungsleiste aus 0.1.9 wieder entfernt (Nutzer: kein zusätzlicher GUI-Bereich). Gerät wieder 580 px, Oberfläche wie 0.1.8.
+- Bleibt (intern, ohne GUI): Parameter-Bänke „Main“/„Detail“ für Push und Controller mit Geräte-Steuerung. Automation aller 16 Parameter über die Automationsauswahl der Spur und Aufnahme von Regler-Bewegungen wie bisher.
+- Offen: MIDI-Map per Klick auf die gezeichneten Regler (Strg+M) – geht nur mit Live-Objekten an der Klickstelle (siehe BACKLOG).
+
 ## 0.1.9
 - Zuweisung per MIDI-Map und Push: Neue Zuweisungsleiste rechts neben der gezeichneten Oberfläche (keine Überlappung). Alle 16 Parameter sind dort als kleine sichtbare Live-Felder (`live.numbox`, Reset als Button) – sie *sind* die Parameter: Strg+M bzw. Makro-Zuweisung per Klick, Automation, Rechtsklick-Menü. Gerät und Large View folgen ihnen.
 - Parameter-Bänke für Push und andere Controller: Bank 1 „Main“ (Gravity, Bounce, Swarm, Erosion, Mix, Freeze, Sync, Division), Bank 2 „Detail“ (Grain, Heal, Dose Rate, Dose Recover, Output, Wear Type, Dose Target, Dose Reset). Die Leiste ist genauso in zwei Spalten geordnet.

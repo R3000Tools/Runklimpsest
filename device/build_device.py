@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.9"
+VERSION = "0.1.10"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -63,28 +63,11 @@ P = {p["name"]: p for p in PARAMS}
 # these rects. Parameters without a rect live hidden in the device.
 DEVICE_W, DEVICE_H = 580, 169   # drawn panel (jsui)
 
-# Mapping strip right of the panel (no overlap!): every parameter as a small visible
-# live.numbox (RESET: live.text) so MIDI Map mode and macro mapping can click it.
-# Two columns = the two Push banks.
+# Parameter banks for Push / controllers with device control (internal, no GUI).
 BANKS = [
     ("Main", ["gravity", "bounce", "swarm", "erosion", "mix", "freeze", "sync", "division"]),
     ("Detail", ["grain", "heal", "rate", "recover", "output", "weartype", "target", "resetdose"]),
 ]
-STRIP_X0, STRIP_ROW, STRIP_LABEL_W, STRIP_BOX_W, STRIP_COL_GAP = DEVICE_W + 8, 20, 48, 46, 8
-STRIP_W = len(BANKS) * (STRIP_LABEL_W + STRIP_BOX_W) + (len(BANKS) - 1) * STRIP_COL_GAP
-TOTAL_W = STRIP_X0 + STRIP_W + 6
-STRIP_LABEL = {"weartype": "WEAR", "target": "TARGET", "resetdose": "DOSE"}  # short labels that fit
-
-
-def strip_rects(name):
-    """(label rect, control rect) of a parameter in the mapping strip."""
-    for col, (_bank, names) in enumerate(BANKS):
-        if name in names:
-            row = names.index(name)
-            x = STRIP_X0 + col * (STRIP_LABEL_W + STRIP_BOX_W + STRIP_COL_GAP)
-            y = 4 + row * STRIP_ROW
-            return [x, y + 2, STRIP_LABEL_W, 13], [x + STRIP_LABEL_W, y, STRIP_BOX_W, 16]
-    raise KeyError(name)
 DEVICE_RECT = {
     "sync": [118, 3, 42, 13], "division": [163, 3, 43, 13],
     "freeze": [214, 92, 76, 22],
@@ -191,9 +174,9 @@ def valueof(p):
 
 
 def control(patch, p, pres):
-    """Creates the one live.* parameter object for p: a small visible live.numbox in the
-    mapping strip (live.text for the reset button). It is the real parameter - mapping,
-    automation, Push - and the drawn panel / large view follow it."""
+    """Creates the one live.* parameter object for p (hidden in the device: pres None).
+    Automation and Push work with hidden parameters; the drawn panel / large view follow it.
+    0.1.9 showed them in a visible mapping strip - removed again (user: no extra GUI area)."""
     common = dict(varname=p["name"], parameter_enable=1,
                   saved_attribute_attributes={"valueof": valueof(p)})
     if p["kind"] == "button":
@@ -294,12 +277,10 @@ def build_device():
     panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
                   numinlets=1, numoutlets=1, outlettype=[""], border=0)
 
-    # parameters (the only ones), visible in the mapping strip right of the panel
+    # parameters (the only ones), hidden: automation lanes and Push banks work without GUI objects
     orig = {}
     for p in PARAMS:
-        lab, box = strip_rects(p["name"])
-        d.comment(STRIP_LABEL.get(p["name"], p["short"]), lab, DIM, 7.5, bold=True)
-        orig[p["name"]] = control(d, p, box)
+        orig[p["name"]] = control(d, p, None)
     widget_route = d.obj("route " + " ".join(p["name"] for p in PARAMS), ins=1, outs=len(PARAMS) + 1,
                          outtype=[""] * (len(PARAMS) + 1))
     for i, p in enumerate(PARAMS):
@@ -418,9 +399,9 @@ def build_device():
         "appversion": {"major": 8, "minor": 6, "revision": 0, "architecture": "x64", "modernui": 1},
         "classnamespace": "box",
         "rect": [80.0, 80.0, 1200.0, 820.0],
-        "openrect": [0.0, 0.0, float(TOTAL_W), float(DEVICE_H)],
+        "openrect": [0.0, 0.0, float(DEVICE_W), float(DEVICE_H)],
         "openinpresentation": 1,
-        "devicewidth": float(TOTAL_W),
+        "devicewidth": float(DEVICE_W),
         "description": "Runklimpsest UI prototype - granular particle memory (no audio processing yet)",
         "boxes": d.boxes,
         "lines": d.lines,

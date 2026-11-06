@@ -13,11 +13,10 @@
 
 - [x] Eine Regler-Ansicht für Gerät und Large View (0.1.3: jsui zeichnet, transparente Live-Parameter darüber)
 - [x] Prüfen in Live: transparente Parameter-Objekte (0.1.5: Buttons gehen, Dials nicht, Menü-Popup schwarz → 0.1.6 Knobs/Menü als jsui)
-- [x] MIDI-Map-Modus (0.1.9: Zuweisungsleiste neben der jsui, Push-Bänke) – vorher: Regler im Gerät ließen sich nicht per Klick zuweisen (alle Parameter versteckt, Stapeln von Objekten geht in Live nicht, 0.1.3–0.1.6). Mögliche Lösung: kleine sichtbare `live.*`-Felder neben (nicht über) der jsui, z. B. eine Zuweisungsleiste, oder Mapping per Push/Macro dokumentieren
+- [ ] MIDI-Map per Klick auf die gezeichneten Regler (Strg+M) – ohne zusätzlichen GUI-Bereich (0.1.9-Leiste vom Nutzer abgelehnt). Einziger offener Versuch: Konfiguration wie 0.1.5 (jsui `ignoreclick`, transparente Live-Objekte darüber – live.text ging dort), aber Knobs als transparente `live.numbox` statt `live.dial`, Notenwert als `live.menu` mit sichtbarer Schrift (alle Parameter versteckt, Stapeln von Objekten geht in Live nicht, 0.1.3–0.1.6). Mögliche Lösung: kleine sichtbare `live.*`-Felder neben (nicht über) der jsui, z. B. eine Zuweisungsleiste, oder Mapping per Push/Macro dokumentieren
 - [ ] Weitere Anmerkungen des Nutzers zu 0.1.2 (angekündigt)
 - [ ] Diagnose `print Runklimpsest-param` entfernen, sobald 0.1.4 bestätigt ist
 
-- [ ] Zuweisungsleiste: Hintergrund folgt Lives Theme (nicht dem dunklen Verlauf) – prüfen, ob störend
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
 ## Klang (0.2.0 ff.)

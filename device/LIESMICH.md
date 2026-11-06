@@ -1,4 +1,4 @@
-# Runklimpsest – Oberflächen-Prototyp 0.1.9 (Max for Live)
+# Runklimpsest – Oberflächen-Prototyp 0.1.10 (Max for Live)
 
 Granular Particle Memory – **nur Oberfläche, keine Klangverarbeitung**. Das Audio läuft unverändert durch.
 Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
@@ -39,7 +39,7 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 **Large View:** Zeile LINKED = dieselben Regler wie im Gerät (Spiegel). Zeile DETAIL = Grain, Heal, Dose Rate, Dose Recover, Output, Wear Type, Dose Target, Reset Dose – nur hier sichtbar, aber trotzdem automatisierbar (die Parameter liegen versteckt im Gerät).
 
 Knobs (Gerät und Large View): ziehen = ändern, Shift = fein, Doppelklick = Standardwert. Notenwert im Gerät: Klick öffnet die Liste, Klick auf einen Eintrag wählt ihn.
-Zuweisung (MIDI-Map, Makros, Push): über die Leiste rechts im Gerät – jedes Feld dort ist ein Parameter. Strg+M, Feld anklicken, Controller bewegen. Auf Push erscheinen zwei Bänke: „Main“ (linke Spalte) und „Detail“ (rechte Spalte). Die Felder lassen sich auch direkt ziehen.
+Automation: alle 16 Parameter über die Automationsauswahl der Spur; Regler-Bewegungen bei Aufnahme werden aufgezeichnet. Push/Controller mit Geräte-Steuerung: Bänke „Main“ und „Detail“. MIDI-Map per Klick auf die Regler (Strg+M) geht in dieser Version nicht.
 DOSE ist kein Regler, sondern eine Anzeige: steigt nur bei laufendem Audio-Signal (Geschwindigkeit über RATE), fällt in Stille (RECOVER), Klick auf den Ring = Reset auf 0 % (Ring blinkt kurz).
 
 ## Bitte testen (Feedback-Format: *Bereich / Element / Wert / Problem*)
