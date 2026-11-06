@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.9
+- Zuweisung per MIDI-Map und Push: Neue Zuweisungsleiste rechts neben der gezeichneten Oberfläche (keine Überlappung). Alle 16 Parameter sind dort als kleine sichtbare Live-Felder (`live.numbox`, Reset als Button) – sie *sind* die Parameter: Strg+M bzw. Makro-Zuweisung per Klick, Automation, Rechtsklick-Menü. Gerät und Large View folgen ihnen.
+- Parameter-Bänke für Push und andere Controller: Bank 1 „Main“ (Gravity, Bounce, Swarm, Erosion, Mix, Freeze, Sync, Division), Bank 2 „Detail“ (Grain, Heal, Dose Rate, Dose Recover, Output, Wear Type, Dose Target, Dose Reset). Die Leiste ist genauso in zwei Spalten geordnet.
+- Gerät 790 statt 580 px breit.
+- Parameter-Objekte sind jetzt `live.numbox` statt versteckter `live.dial`/`live.text`/`live.menu`/`live.tab`; Langnamen unverändert.
+
 ## 0.1.8
 - Notenwert im Gerät: Klick öffnet eine Auswahlliste mit allen vier Werten (1/4, 1/8, 1/16, 1/32, aktueller Wert hervorgehoben), Klick auf einen Eintrag wählt ihn, Klick daneben schließt die Liste. Bisher schaltete jeder Klick nur zum nächsten Wert (Nutzerbefund 0.1.7: Optionen nicht sichtbar).
 - Vom Nutzer in Live bestätigt (0.1.7): Knobs und Buttons im Gerät bedienbar.

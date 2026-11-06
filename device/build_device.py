@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.8"
+VERSION = "0.1.9"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 
@@ -61,7 +61,30 @@ P = {p["name"]: p for p in PARAMS}
 # device (1x, 580 x 169, no title row - Live shows the device name in its title bar).
 # The jsui "device" draws everything; live.* parameters sit transparent on top of
 # these rects. Parameters without a rect live hidden in the device.
-DEVICE_W, DEVICE_H = 580, 169
+DEVICE_W, DEVICE_H = 580, 169   # drawn panel (jsui)
+
+# Mapping strip right of the panel (no overlap!): every parameter as a small visible
+# live.numbox (RESET: live.text) so MIDI Map mode and macro mapping can click it.
+# Two columns = the two Push banks.
+BANKS = [
+    ("Main", ["gravity", "bounce", "swarm", "erosion", "mix", "freeze", "sync", "division"]),
+    ("Detail", ["grain", "heal", "rate", "recover", "output", "weartype", "target", "resetdose"]),
+]
+STRIP_X0, STRIP_ROW, STRIP_LABEL_W, STRIP_BOX_W, STRIP_COL_GAP = DEVICE_W + 8, 20, 48, 46, 8
+STRIP_W = len(BANKS) * (STRIP_LABEL_W + STRIP_BOX_W) + (len(BANKS) - 1) * STRIP_COL_GAP
+TOTAL_W = STRIP_X0 + STRIP_W + 6
+STRIP_LABEL = {"weartype": "WEAR", "target": "TARGET", "resetdose": "DOSE"}  # short labels that fit
+
+
+def strip_rects(name):
+    """(label rect, control rect) of a parameter in the mapping strip."""
+    for col, (_bank, names) in enumerate(BANKS):
+        if name in names:
+            row = names.index(name)
+            x = STRIP_X0 + col * (STRIP_LABEL_W + STRIP_BOX_W + STRIP_COL_GAP)
+            y = 4 + row * STRIP_ROW
+            return [x, y + 2, STRIP_LABEL_W, 13], [x + STRIP_LABEL_W, y, STRIP_BOX_W, 16]
+    raise KeyError(name)
 DEVICE_RECT = {
     "sync": [118, 3, 42, 13], "division": [163, 3, 43, 13],
     "freeze": [214, 92, 76, 22],
@@ -168,32 +191,22 @@ def valueof(p):
 
 
 def control(patch, p, pres):
-    """Creates the one live.* parameter object for p. In the device it is fully
-    transparent: the jsui underneath draws it, Live keeps dragging, right-click,
-    MIDI/key mapping and automation."""
-    T = TRANSPARENT
+    """Creates the one live.* parameter object for p: a small visible live.numbox in the
+    mapping strip (live.text for the reset button). It is the real parameter - mapping,
+    automation, Push - and the drawn panel / large view follow it."""
     common = dict(varname=p["name"], parameter_enable=1,
                   saved_attribute_attributes={"valueof": valueof(p)})
-    kind = p["kind"]
-    if kind == "dial":
-        oid = patch.add("live.dial", pres=pres, numinlets=1, numoutlets=2, outlettype=["", "float"],
-                        activedialcolor=T, dialcolor=T, activeneedlecolor=T, needlecolor=T,
-                        textcolor=T, tricolor=T, tribordercolor=T, panelcolor=T, bordercolor=T,
-                        focusbordercolor=T, showname=0, shownumber=0, **common)
-    elif kind in ("toggle", "button"):
-        oid = patch.add("live.text", pres=pres, numinlets=1, numoutlets=2, outlettype=["", ""],
-                        mode=1 if kind == "toggle" else 0, text=p["text"], texton=p["text"],
-                        bgcolor=T, activebgcolor=T, bgoncolor=T, activebgoncolor=T,
-                        textcolor=T, activetextcolor=T, textoncolor=T, activetextoncolor=T,
-                        bordercolor=T, focusbordercolor=T, **common)
-    elif kind == "menu":
-        oid = patch.add("live.menu", pres=pres, numinlets=1, numoutlets=3, outlettype=["", "", "float"],
-                        bgcolor=T, activebgcolor=T, textcolor=T, activetextcolor=T, tricolor=T,
-                        bordercolor=T, focusbordercolor=T, **common)
-    else:  # tab
-        oid = patch.add("live.tab", pres=pres, numinlets=1, numoutlets=3, outlettype=["", "", "float"],
-                        num_lines_patching=1, num_lines_presentation=1, **common)
-    return oid
+    if p["kind"] == "button":
+        return patch.add("live.text", pres=pres, numinlets=1, numoutlets=2, outlettype=["", ""],
+                         mode=0, text="RESET", texton="RESET",
+                         bgcolor=BTN, activebgcolor=BTN, bgoncolor=MAGENTA, activebgoncolor=MAGENTA,
+                         textcolor=TEXT, activetextcolor=TEXT, textoncolor=BTN_ON_TXT, activetextoncolor=BTN_ON_TXT,
+                         bordercolor=hexc("ffffff", 0.15), fontsize=7.5, fontname=FONT_BOLD, rounded=3.0, **common)
+    col = {"cyan": CYAN, "orange": ORANGE, "magenta": MAGENTA}[p["colname"]]
+    return patch.add("live.numbox", pres=pres, numinlets=1, numoutlets=2, outlettype=["", "float"],
+                     bgcolor=BTN, activebgcolor=BTN, textcolor=TEXT, activetextcolor=TEXT,
+                     activeslidercolor=col, tricolor=col, bordercolor=hexc("ffffff", 0.12),
+                     fontsize=8.0, fontname=FONT_BOLD, appearance=0, **common)
 
 
 def background(patch, w, h):
@@ -281,10 +294,12 @@ def build_device():
     panel = d.add("jsui", pres=[0, 0, DEVICE_W, DEVICE_H], filename=JS, jsarguments=["device"],
                   numinlets=1, numoutlets=1, outlettype=[""], border=0)
 
-    # parameters (the only ones), all hidden (not in presentation)
+    # parameters (the only ones), visible in the mapping strip right of the panel
     orig = {}
     for p in PARAMS:
-        orig[p["name"]] = control(d, p, None)
+        lab, box = strip_rects(p["name"])
+        d.comment(STRIP_LABEL.get(p["name"], p["short"]), lab, DIM, 7.5, bold=True)
+        orig[p["name"]] = control(d, p, box)
     widget_route = d.obj("route " + " ".join(p["name"] for p in PARAMS), ins=1, outs=len(PARAMS) + 1,
                          outtype=[""] * (len(PARAMS) + 1))
     for i, p in enumerate(PARAMS):
@@ -403,13 +418,15 @@ def build_device():
         "appversion": {"major": 8, "minor": 6, "revision": 0, "architecture": "x64", "modernui": 1},
         "classnamespace": "box",
         "rect": [80.0, 80.0, 1200.0, 820.0],
-        "openrect": [0.0, 0.0, float(DEVICE_W), float(DEVICE_H)],
+        "openrect": [0.0, 0.0, float(TOTAL_W), float(DEVICE_H)],
         "openinpresentation": 1,
-        "devicewidth": float(DEVICE_W),
+        "devicewidth": float(TOTAL_W),
         "description": "Runklimpsest UI prototype - granular particle memory (no audio processing yet)",
         "boxes": d.boxes,
         "lines": d.lines,
-        "parameters": dict(params, inherited_shortname=1),
+        "parameters": dict(params, inherited_shortname=1, parameterbanks={
+            str(i): {"index": i, "name": bank, "parameters": [P[n]["label"] for n in names]}
+            for i, (bank, names) in enumerate(BANKS)}),
         "dependency_cache": [{"name": JS, "bootpath": ".", "type": "TEXT", "implicit": 1}],
         "latency": 0,
         "is_mpe": 0,
@@ -436,4 +453,4 @@ if __name__ == "__main__":
     write_amxd(patch, HERE / "Runklimpsest.amxd")
     inject_js()
     print("boxes:", len(patch["patcher"]["boxes"]), "lines:", len(patch["patcher"]["lines"]),
-          "parameters:", len(patch["patcher"]["parameters"]) - 1)
+          "parameters:", sum(1 for k in patch["patcher"]["parameters"] if k.startswith("obj-")))
