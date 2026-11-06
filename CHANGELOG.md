@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.0 – Meilenstein „UI complete“
+Festgehaltener Stand vor Beginn der Klangverarbeitung (ab 0.3.0). Funktion identisch mit 0.1.13, vom Nutzer in Live getestet.
+- Gerät (580 × 169 px): Chamber mit Teilchen-Physik und SYNC-Raster (Song-Tempo), Memory mit Abnutzungsanzeige und FREEZE, 3×2-Regler-Block (Gravity, Bounce, Swarm, Erosion, Dose, Mix), Button-Zeile (SYNC, Division-Liste, FREEZE, LARGE VIEW), IN/OUT-Meter. Eine jsui zeichnet und bedient alles.
+- Large View: große Chamber, Memory, Wear History, Kennzahlen; vier Karten PHYSICS, MEMORY, DOSE, OUTPUT (inkl. STEREO | MONO).
+- 17 Parameter, alle automatisierbar; Push-Bänke „Main“, „Detail“, „Reset“. MIDI-Map per Klick auf die gezeichneten Regler ist bauartbedingt nicht möglich (Befund 0.1.11).
+- Noch keine Klangverarbeitung: Audio läuft unverändert durch; DOSE und Pufferanzeige reagieren auf den Eingangspegel.
+
 ## 0.1.13
 - Neues Layout (GUI-Iteration 8, vom Nutzer freigegeben):
   - Gerät: Raster aus 3 Spalten (CHAMBER | MEMORY | CONTROLS) plus Meter, eine Kopfzeile, eine Button-Zeile unten. Die 6 Regler als 3×2-Block (GRAVITY, BOUNCE, SWARM / EROSION, DOSE, MIX). SYNC + Division unter der Chamber, FREEZE unter Memory, LARGE VIEW (bisher MORE) unter den Reglern. Division-Liste öffnet nach oben.

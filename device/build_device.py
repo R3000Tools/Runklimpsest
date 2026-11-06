@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.1.13"
+VERSION = "0.2.0"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 

@@ -19,7 +19,7 @@
 
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
-## Klang (0.2.0 ff.)
+## Klang (0.3.0 ff.)
 - [ ] Hörtest STEREO: Startwert ±70 % und Pan-Gesetz −3 dB auf Kopfhörern und Lautsprechern prüfen, Mono-Summe prüfen; danach entscheiden, ob STEREO | MONO zu einem WIDTH-Regler (0–100 %, Standard 70 %) wird
 - [ ] Klang-Zielbilder vorab festlegen (wie klingen Gravity, Bounce, Erosion 30 %/80 %, Dose hoch) – Maßstab für jede Klangänderung
 - [ ] Echter Puffer (2 Takte), Schreibkopf, FREEZE

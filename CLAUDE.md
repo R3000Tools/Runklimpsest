@@ -59,6 +59,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 - Jede Version: Nummer erhöhen, Abschnitt `## x.y.z` oben in `CHANGELOG.md`.
 - Auslieferung an den Nutzer als ZIP im Chat (`Runklimpsest-vX.Y.Z-UI-Prototyp.zip` mit Inhalt von `device/`); kein CI.
 - Arbeitsbranch: `claude/runklimpsest-v0.1`.
+- Meilensteine als Git-Tag `vX.Y.Z` auf den Versions-Commit (0.2.0 = „UI complete“). Ein GitHub Release legt der Nutzer im Browser an (Tag wählen, ZIP anhängen, CHANGELOG-Text). Klangverarbeitung ab 0.3.0.
 
 ## Feedback-Format des Nutzers
 *Bereich / Element / Wert / Problem*, z. B. „Large View / Gravity / – / bewegt Gerät nicht mit“.
