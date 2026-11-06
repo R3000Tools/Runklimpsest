@@ -16,9 +16,15 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
+DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
+
+# live.* parameter -> gen~ param (audio engine). Dose and bar length come from the jsui.
+GEN_PARAM = {"mix": "p_mix", "output": "p_out", "grain": "p_grain", "erosion": "p_erosion",
+             "weartype": "p_weartype", "heal": "p_heal", "freeze": "p_freeze", "stereo": "p_stereo",
+             "target": "p_target"}
 
 # ------------------------------------------------------------------ colours
 
@@ -41,7 +47,7 @@ PARAMS = [
     dict(name="bounce", label="Bounce", kind="dial", lo=0.0, hi=100.0, init=80.0, style=5, fmt="pct", colname="cyan"),
     dict(name="swarm", label="Swarm", kind="dial", lo=1, hi=24, init=12, style=0, ptype=1, fmt="int", colname="cyan"),
     dict(name="erosion", label="Erosion", kind="dial", lo=0.0, hi=100.0, init=55.0, style=5, fmt="pct", colname="orange"),
-    dict(name="mix", label="Mix", kind="dial", lo=0.0, hi=100.0, init=100.0, style=5, fmt="pct", colname="cyan"),
+    dict(name="mix", label="Mix", kind="dial", lo=0.0, hi=100.0, init=50.0, style=5, fmt="pct", colname="cyan"),
     dict(name="grain", label="Grain", kind="dial", lo=5.0, hi=500.0, init=80.0, style=2, exponent=2.0, fmt="ms", colname="cyan"),
     dict(name="heal", label="Heal", kind="dial", lo=0.5, hi=60.0, init=8.0, style=9, units="%.1f s", exponent=2.0, fmt="s", colname="orange"),
     dict(name="rate", label="Dose Rate", short="RATE", kind="dial", lo=1.0, hi=32.0, init=4.0, style=9, units="%.0f bars", fmt="bars", colname="magenta"),
@@ -275,6 +281,33 @@ def build_window():
         "lines": w.lines,
     }
 
+# ------------------------------------------------------------------ audio engine (gen~)
+
+def build_gen(d):
+    code = (HERE / DSP).read_text(encoding="utf-8")
+    g = Patch("gen")
+    i1 = g.add("newobj", rect=[20, 20, 30, 22], text="in 1", numinlets=0, numoutlets=1, outlettype=[""])
+    i2 = g.add("newobj", rect=[200, 20, 30, 22], text="in 2", numinlets=0, numoutlets=1, outlettype=[""])
+    cb = g.add("codebox", rect=[20, 60, 760, 640], code=code, fontface=0, fontname="<Monospaced>", fontsize=12.0,
+               numinlets=2, numoutlets=2, outlettype=["", ""])
+    o1 = g.add("newobj", rect=[20, 720, 35, 22], text="out 1", numinlets=1, numoutlets=0)
+    o2 = g.add("newobj", rect=[200, 720, 35, 22], text="out 2", numinlets=1, numoutlets=0)
+    g.connect(i1, 0, cb, 0)
+    g.connect(i2, 0, cb, 1)
+    g.connect(cb, 0, o1, 0)
+    g.connect(cb, 1, o2, 0)
+    gen_patcher = {
+        "fileversion": 1,
+        "appversion": {"major": 8, "minor": 6, "revision": 0, "architecture": "x64", "modernui": 1},
+        "classnamespace": "dsp.gen",
+        "rect": [100.0, 100.0, 820.0, 780.0],
+        "boxes": g.boxes,
+        "lines": g.lines,
+    }
+    return d.add("newobj", text="gen~ @ev ---rkev", numinlets=2, numoutlets=2, outlettype=["signal", "signal"],
+                 patcher=gen_patcher)
+
+
 # ------------------------------------------------------------------ device
 
 def build_device():
@@ -303,8 +336,6 @@ def build_device():
     # parameters -> engine, -> large view (set), large view -> parameters
     rparam = d.obj("r ---rk_param", ins=0, outs=1)
     d.connect(rparam, 0, panel, 0)
-    dbg = d.obj("print Runklimpsest-param", ins=1, outs=0, outtype=[])
-    d.connect(rparam, 0, dbg, 0)
     refresh_r = d.obj("r ---rk_refresh", ins=0, outs=1)
     for p in PARAMS:
         o = orig[p["name"]]
@@ -356,14 +387,28 @@ def build_device():
         d.connect(sel, i, m, 0)
         d.connect(m, 0, tick_metro, 0)
 
-    # uid distribution + window opening
-    route = d.obj("route uid open", ins=1, outs=3, outtype=["", "", ""])
+    # audio engine: gen~ with the codebox; "ev" is the Buffer of grain events, mapped to the
+    # device-unique buffer~ by the @ev attribute (object-box --- substitution is reliable)
+    genx = build_gen(d)
+    evbuf = d.obj("buffer~ ---rkev 50 1", ins=1, outs=2, outtype=["float", "bang"])
+    _ = evbuf
+    evpoke = d.obj("peek~ ---rkev", ins=3, outs=1, outtype=["float"])
+    for p in PARAMS:
+        if p["name"] in GEN_PARAM:
+            pg = d.obj(f"prepend {GEN_PARAM[p['name']]}")
+            d.connect(orig[p["name"]], 0, pg, 0)
+            d.connect(pg, 0, genx, 0)
+
+    # panel output: uid, open, evw (event ring writes), gen (engine params), else parameter changes
+    route = d.obj("route uid open evw gen", ins=1, outs=5, outtype=["", "", "", "", ""])
+    d.connect(route, 2, evpoke, 0)
+    d.connect(route, 3, genx, 0)
     pre_uid = d.obj("prepend uid")
     s_uid = d.obj("s ---rk_uid", ins=1, outs=0, outtype=[])
     d.connect(panel, 0, route, 0)
     d.connect(route, 0, pre_uid, 0)
     d.connect(pre_uid, 0, s_uid, 0)
-    d.connect(route, 2, widget_route, 0)   # everything else from the panel: parameter changes
+    d.connect(route, 4, widget_route, 0)   # everything else from the panel: parameter changes
 
     open_msg = d.msg("open")
     pc = d.obj("pcontrol", ins=1, outs=1)
@@ -380,25 +425,27 @@ def build_device():
     d.connect(open_msg, 0, pc, 0)
     d.connect(pc, 0, win, 0)
 
-    # audio: pass-through (no processing yet) + level for DOSE + meters
+    # audio: plugin~ -> gen~ -> plugout~ (latency 0), input level for DOSE, meters
     pin = d.obj("plugin~", ins=2, outs=2, outtype=["signal", "signal"])
     pout = d.obj("plugout~", ins=2, outs=2, outtype=["signal", "signal"])
     add = d.obj("+~", ins=2, outs=1, outtype=["signal"])
     peak = d.obj("peakamp~ 33", ins=2, outs=1, outtype=["float"])
     pre_lvl = d.obj("prepend level")
-    d.connect(pin, 0, pout, 0)
-    d.connect(pin, 1, pout, 1)
+    d.connect(pin, 0, genx, 0)
+    d.connect(pin, 1, genx, 1)
+    d.connect(genx, 0, pout, 0)
+    d.connect(genx, 1, pout, 1)
     d.connect(pin, 0, add, 0)
     d.connect(pin, 1, add, 1)
     d.connect(add, 0, peak, 0)
     d.connect(peak, 0, pre_lvl, 0)
     d.connect(pre_lvl, 0, panel, 0)
     # meters are drawn by the panel jsui (live.meter~ on top of it was hidden in Live 0.1.6)
-    pk = d.obj("pak f f", ins=2, outs=1)
+    pk = d.obj("pak f f f f", ins=4, outs=1)
     pre_m = d.obj("prepend meters")
-    for ch in (0, 1):
+    for ch, (src, so) in enumerate(((pin, 0), (pin, 1), (genx, 0), (genx, 1))):
         pa = d.obj("peakamp~ 33", ins=2, outs=1, outtype=["float"])
-        d.connect(pin, ch, pa, 0)
+        d.connect(src, so, pa, 0)
         d.connect(pa, 0, pk, ch)
     d.connect(pk, 0, pre_m, 0)
     d.connect(pre_m, 0, panel, 0)

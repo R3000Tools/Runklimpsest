@@ -21,7 +21,7 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 | Bounce | 0–100 % | 80 % | Gerät + Large View |
 | Swarm | 1–24 | 12 | Gerät + Large View |
 | Erosion | 0–100 % | 55 % | Gerät + Large View |
-| Mix | 0–100 % | 100 % | Gerät + Large View |
+| Mix | 0–100 % | 50 % | Gerät + Large View |
 | Freeze | aus/an | aus | Gerät + Large View |
 | Sync | aus/an | an | Gerät + Large View |
 | Division | 1/4, 1/8, 1/16, 1/32 | 1/16 | Gerät + Large View |
@@ -47,3 +47,8 @@ Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeic
 - Large View 960 × 620 px: Kopfzeile (Logo, Legende, Tempo), große Chamber, MEMORY, WEAR HISTORY, Kennzahlen; unten vier Karten nach Funktion (PHYSICS, MEMORY, DOSE, OUTPUT), Inhalte mittig, cyan Punkt = auch im Gerät. Kein CLOSE (Fenster-X).
 - Stil: Runkelizer FX (Verlauf #23262e → #0a0a0d, Farbe pro Bereich: Cyan Chamber/Physics, Orange Memory/Wear, Magenta Dose; LED-Buttons; Meter grün → rot). Alle Texte Englisch, keine Bereichs-Hinweise unter den Reglern (Platz).
 - GUI-Entwürfe (Iterationen 1–8): Claude-Artifact „Palimpsest M4L GUI“ (privat beim Nutzer).
+
+## Klangverarbeitung (0.2.1)
+- gen~-Codebox `device/runklimpsest_dsp.genexpr`, Latenz 0, 32 Grain-Stimmen, Puffer „fresh“ + „worn“ (je stereo, max. 800 000 Samples).
+- Aufprall → Ereignis (Position, Stärke, Panorama, Zeitversatz) → Stimme. Lesen aus „worn“, Rückschreiben einer abgenutzten Fassung (Palimpsest); HEAL zieht „worn“ zu „fresh“.
+- Effektanteil: Mono-Summe je Grain, Pan aus X (±70 %, −3 dB) oder mittig; Dichte-Normalisierung, Pegelangleich an den Eingang, Begrenzer mit Vorlauf, DC-Filter; MIX mit gleicher Leistung; OUTPUT; Schutzbegrenzer.

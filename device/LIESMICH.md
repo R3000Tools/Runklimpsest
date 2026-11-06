@@ -1,13 +1,14 @@
-# Runklimpsest – Oberflächen-Prototyp 0.2.0 („UI complete“) (Max for Live)
+# Runklimpsest – 0.2.1 (erste Version mit Klangverarbeitung) (Max for Live)
 
-Granular Particle Memory – **nur Oberfläche, keine Klangverarbeitung**. Das Audio läuft unverändert durch.
-Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
+Granular Particle Memory: Teilchen fallen in der Chamber, jeder Aufprall spielt ein Grain aus den letzten 2 Takten. Jedes Abspielen nutzt die gespielte Stelle ab (Palimpsest).
+Latenz: 0 Samples.
 
 ## Dateien
 
 | Datei | Zweck |
 |---|---|
 | `Runklimpsest.amxd` | das Gerät (Audio-Effekt) |
+| `runklimpsest_dsp.genexpr` | Quelltext der Klangverarbeitung (ist im Gerät eingebettet, nur zur Information) |
 | `runklimpsest_ui.js` | Zeichnen und Teilchen-Engine – **muss im selben Ordner wie die `.amxd` liegen** |
 | `Runklimpsest.maxpat` | derselbe Patch als Max-Datei (Notlösung, siehe unten) |
 | `build_device.py` | erzeugt `.amxd` und `.maxpat` neu (`python3 build_device.py`) |
@@ -34,7 +35,11 @@ Die Anzeigen reagieren aber auf das Eingangssignal (DOSE, Pufferanzeige, Meter).
 | GRAVITY, BOUNCE, SWARM | Physik: Fallgeschwindigkeit, Elastizität, Teilchenzahl |
 | EROSION | wie stark ein Aufprall die Stelle abnutzt |
 | DOSE (Ring) | steigt bei Signal, sinkt in Stille. **Klick auf den Ring = Reset** |
-| MIX | Parameter vorhanden, wirkt noch nicht (keine Klangverarbeitung) |
+| MIX | Original ↔ Grains (gleiche Leistung), Standard 50 % |
+| GRAIN (Large View) | Grain-Länge 5–500 ms: kurz = Körnung/Klicks, lang = Fetzen/Flächen |
+| EROSION / WEAR TYPE | wie stark und wie jedes Abspielen die Stelle abnutzt: SAT (Sättigung), TAPE (dumpf, Rauschen), BIT (körnig) |
+| HEAL (Large View) | wie schnell sich der Puffer erholt |
+| STEREO / MONO (Large View) | Grains nach X-Position verteilt (±70 %) oder mittig |
 
 **Large View:** vier Karten nach Funktion – PHYSICS, MEMORY, DOSE, OUTPUT (inkl. STEREO | MONO). Ein cyan Punkt am Namen heißt: gibt es auch im Gerät. Alle Parameter sind automatisierbar.
 
@@ -55,7 +60,7 @@ DOSE ist kein Regler, sondern eine Anzeige: steigt nur bei laufendem Audio-Signa
 
 ## Bekannte Grenzen (Prototyp)
 
-- Keine Klangverarbeitung; MIX, OUTPUT, GRAIN, WEAR TYPE wirken nur auf die Anzeige bzw. gar nicht.
+- Klang nur per Simulation geprüft, Hörtest in Live steht aus.
 - SYNC-Raster kommt von `metro` und läuft nur bei laufendem Transport; bei Stopp ein interner Ersatztakt.
 - Ohne `runklimpsest_ui.js` daneben (und ohne Freeze) bleiben die Anzeigen leer.
 - Schrift „Ableton Sans“ wird von Live bereitgestellt; in Max allein kann eine Ersatzschrift erscheinen.

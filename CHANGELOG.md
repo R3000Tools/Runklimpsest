@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.1 – Klangverarbeitung
+Erste Version mit Audio. DSP als gen~-Codebox (`device/runklimpsest_dsp.genexpr`), Latenz 0 Samples.
+- **Grains aus Teilchen:** Jeder Aufprall in der Chamber startet ein Grain (bis 32 Stimmen). X-Position = Lesestelle im Puffer (2 Takte im Song-Tempo), Aufprallstärke = Lautstärke (0,25–1, Ballsprung-Abklingen hörbar). Zeitpunkt innerhalb des 30-fps-Bildes wird mitgegeben (samplegenau statt 33-ms-Raster). SYNC: wartende Grains feuern direkt beim Raster-Tick (vorher bis 33 ms zu spät).
+- **GRAIN:** Länge 5–500 ms (±8 % Zufall gegen Kammfilter), Tukey-Fenster (25 % Flanken): kurze Grains klicken nicht, lange behalten ihren Körper.
+- **Palimpsest (EROSION, WEAR TYPE):** Jedes Lesen schreibt eine abgenutzte Fassung zurück in den Puffer – die Quelle verändert sich durch Benutzung. Stärke pro Lesedurchgang = EROSION² × 0,18, DOSE erhöht bis +150 % (TARGET ALL/WEAR). SAT = Sättigung (tanh, leise Signale unverändert), TAPE = Generationsverlust (Tiefpass 4,5 kHz, Sättigung, leises Rauschen), BIT = Sample-and-Hold /3 + 6 Bit.
+- **HEAL:** zieht den abgenutzten Puffer mit der eingestellten Zeitkonstante zum Original zurück. **FREEZE:** Schreibkopf stoppt, Abnutzung wirkt weiter.
+- **STEREO | MONO:** Grains nach X-Position im Panorama (±70 %, −3 dB Constant Power) bzw. mittig.
+- **Pegel:** Effektanteil automatisch auf die Lautheit des Eingangs (±12 dB, bei FREEZE/Stille gehalten), Dichte-Normalisierung, Begrenzer mit 1,3 ms Vorlauf auf dem Effektanteil (−2 dBFS), DC-Filter. MIX mit gleicher Leistung (equal power), Standard jetzt 50 %. OUTPUT −24…+12 dB. Schutzbegrenzer ab −0,9 dBFS.
+- Meter OUT zeigen jetzt den echten Ausgang.
+- Tests: `tests/genexpr.js` übersetzt die ausgelieferte Codebox nach JavaScript, `tests/audio_sim.js` rendert echte Teilchen-Engine + echte DSP (Messwerte, Hörbeispiele).
+- Simulation (synthetisches Material, −3 dBFS): Lautheit ±1 dB zum Original (sehr kurze Grains −3 dB), Spitzen ≤ −1,4 dBFS, keine Klicks über Eingangsniveau, Abnutzung nach 12 s eingefrorenem Loop bei EROSION 80 %: SAT 41 %, TAPE 20 %, BIT 16 %.
+
 ## 0.2.0 – Meilenstein „UI complete“
 Festgehaltener Stand vor Beginn der Klangverarbeitung (ab 0.3.0). Funktion identisch mit 0.1.13, vom Nutzer in Live getestet.
 - Gerät (580 × 169 px): Chamber mit Teilchen-Physik und SYNC-Raster (Song-Tempo), Memory mit Abnutzungsanzeige und FREEZE, 3×2-Regler-Block (Gravity, Bounce, Swarm, Erosion, Dose, Mix), Button-Zeile (SYNC, Division-Liste, FREEZE, LARGE VIEW), IN/OUT-Meter. Eine jsui zeichnet und bedient alles.

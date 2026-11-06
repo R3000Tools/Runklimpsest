@@ -1,0 +1,305 @@
+// Runklimpsest audio engine - gen~ codebox (GenExpr).
+// build_device.py embeds this file into [gen~ @ev ---rkev]; tests/audio_sim.js transpiles
+// the same file to JavaScript and renders it, so the shipped code is the tested code.
+// Keep to the subset the transpiler understands: one declaration per line, C-style
+// statements, no user functions, locals assigned before use, loops "v += 1".
+//
+// Signal flow
+//   input -> record (2 bars, "fresh" + "worn" copies) unless FREEZE
+//   grain events (from the particle engine via buffer~ ---rkev) -> 32 voices
+//   each voice reads "worn", outputs the grain and writes a degraded copy back
+//   (palimpsest: reading wears the source), HEAL sweeps worn back toward fresh
+//   grains: mono sum, constant-power pan from X (+-70 %) or centre (MONO)
+//   wet: density normalisation, DC blocker -> equal-power MIX -> OUTPUT -> soft clip
+// Latency: 0 samples (grains read from the past, dry is not delayed).
+
+Param p_mix(50);
+Param p_out(0);
+Param p_grain(80);
+Param p_erosion(55);
+Param p_weartype(0);
+Param p_heal(8);
+Param p_freeze(0);
+Param p_stereo(0);
+Param p_dose(0);
+Param p_target(0);
+Param p_barsec(2);
+Param p_evhead(0);
+Buffer ev("rkev");
+Data fresh(800000, 2);
+Data worn(800000, 2);
+Data vs(32, 13);
+Data wdl(64, 2);
+History wpos(0);
+History healpos(0);
+History lasthead(0);
+History smix(0.5);
+History sout(1);
+History sload(1);
+History dryms(0);
+History wetms(0);
+History agc(1);
+History wdi(0);
+History lenv(0);
+History lgain(1);
+History dcxl(0);
+History dcyl(0);
+History dcxr(0);
+History dcyr(0);
+
+// ---------------------------------------------------------------- constants
+cap = 800000;
+blen = clamp(floor(p_barsec * 2 * samplerate), 4096, cap);
+evslots = 64;
+maxv = 32;
+
+// ---------------------------------------------------------------- record
+if (p_freeze < 0.5) {
+	wi = wpos;
+	if (wi >= blen) {
+		wi = 0;
+	}
+	poke(fresh, in1, wi, 0);
+	poke(fresh, in2, wi, 1);
+	poke(worn, in1, wi, 0);
+	poke(worn, in2, wi, 1);
+	wpos = wi + 1;
+}
+
+// ---------------------------------------------------------------- heal sweep
+// one buffer position per sample; a full sweep takes blen samples, so the per-sweep
+// pull toward "fresh" is 1 - exp(-sweep / HEAL) -> time constant = HEAL seconds
+hi = healpos;
+if (hi >= blen) {
+	hi = 0;
+}
+hk = 1 - exp(-(blen / samplerate) / max(0.1, p_heal));
+hfl = peek(fresh, hi, 0);
+hfr = peek(fresh, hi, 1);
+hwl = peek(worn, hi, 0);
+hwr = peek(worn, hi, 1);
+poke(worn, hwl + (hfl - hwl) * hk, hi, 0);
+poke(worn, hwr + (hfr - hwr) * hk, hi, 1);
+healpos = hi + 1;
+
+// ---------------------------------------------------------------- grain events
+// slot k (1..63, 0) holds pos, amp, pan x, delay ms at k*4 .. k*4+3
+head = floor(p_evhead);
+if (head != lasthead) {
+	ek = lasthead;
+	for (j = 0; j < evslots; j += 1) {
+		if (ek != head) {
+			ek = ek + 1;
+			if (ek >= evslots) {
+				ek = 0;
+			}
+			eb = ek * 4;
+			epos = peek(ev, eb, 0);
+			eamp = peek(ev, eb + 1, 0);
+			ex = peek(ev, eb + 2, 0);
+			edel = peek(ev, eb + 3, 0);
+			// free voice first, else steal the one closest to its end
+			best = 0;
+			bestscore = -1;
+			for (v = 0; v < maxv; v += 1) {
+				vact = peek(vs, v, 0);
+				vscore = 2;
+				if (vact > 0.5) {
+					vscore = peek(vs, v, 2) / max(1, peek(vs, v, 3));
+				}
+				if (vscore > bestscore) {
+					bestscore = vscore;
+					best = v;
+				}
+			}
+			glen = max(48, floor(mstosamps(p_grain * (1 + 0.08 * noise()))));
+			gstart = floor(clamp(epos, 0, 1) * (blen - 1));
+			// never read across the write head (newest meets oldest audio = click):
+			// such grains start right behind the head instead
+			if (p_freeze < 0.5) {
+				gdist = wpos - gstart;
+				if (gdist < 0) {
+					gdist = gdist + blen;
+				}
+				if (gdist < glen + 64) {
+					gstart = wpos - glen - 64;
+					if (gstart < 0) {
+						gstart = gstart + blen;
+					}
+				}
+			}
+			gpan = 0;
+			if (p_stereo < 0.5) {
+				gpan = (clamp(ex, 0, 1) * 2 - 1) * 0.7;
+			}
+			gth = (gpan + 1) * pi * 0.25;
+			poke(vs, 1, best, 0);
+			poke(vs, floor(mstosamps(max(0, edel))), best, 1);
+			poke(vs, 0, best, 2);
+			poke(vs, glen, best, 3);
+			poke(vs, gstart, best, 4);
+			poke(vs, clamp(eamp, 0, 1), best, 5);
+			poke(vs, cos(gth), best, 6);
+			poke(vs, sin(gth), best, 7);
+			poke(vs, 0, best, 8);
+			poke(vs, 0, best, 9);
+			poke(vs, 0, best, 10);
+			poke(vs, 0, best, 11);
+			poke(vs, 0, best, 12);
+		}
+	}
+	lasthead = head;
+}
+
+// ---------------------------------------------------------------- voices
+// erosion per read pass: (EROSION)^2 * 0.18, DOSE adds up to +150 % (TARGET ALL / WEAR)
+er = p_erosion * 0.01;
+dosek = 0;
+if (p_target != 1) {
+	dosek = 1.5;
+}
+perread = er * er * 0.18 * (1 + p_dose * dosek);
+tapea = 1 - exp(-2 * pi * 4500 / samplerate);
+wetl = 0;
+wetr = 0;
+nact = 0;
+for (v = 0; v < maxv; v += 1) {
+	if (peek(vs, v, 0) > 0.5) {
+		vwait = peek(vs, v, 1);
+		if (vwait > 0) {
+			poke(vs, vwait - 1, v, 1);
+		} else {
+			vph = peek(vs, v, 2);
+			vlen = peek(vs, v, 3);
+			vidx = peek(vs, v, 4) + vph;
+			if (vidx >= blen) {
+				vidx = vidx - blen;
+			}
+			xl = peek(worn, vidx, 0);
+			xr = peek(worn, vidx, 1);
+			// Tukey window (25 % cosine flanks): smooth edges, full body for long grains
+			tt = vph / vlen;
+			win = 1;
+			if (tt < 0.25) {
+				win = 0.5 - 0.5 * cos(pi * tt * 4);
+			}
+			if (tt > 0.75) {
+				win = 0.5 - 0.5 * cos(pi * (1 - tt) * 4);
+			}
+			vg = peek(vs, v, 5) * win;
+			mono = (xl + xr) * 0.5 * vg;
+			wetl = wetl + mono * peek(vs, v, 6);
+			wetr = wetr + mono * peek(vs, v, 7);
+			nact = nact + 1;
+			// palimpsest write-back: move the read samples toward a degraded version
+			if (perread > 0) {
+				dl = xl;
+				dr = xr;
+				if (p_weartype < 0.5) {
+					// SAT: unity gain for very small signals, everything above ~-20 dBFS squashed
+					// -> warm compression + odd harmonics also on quiet material
+					dl = tanh(xl * 6) / 6;
+					dr = tanh(xr * 6) / 6;
+				} else {
+					if (p_weartype < 1.5) {
+						// TAPE: generation loss - lowpass ~4.5 kHz, soft saturation, faint hiss
+						lpl = peek(vs, v, 8) + (xl - peek(vs, v, 8)) * tapea;
+						lpr = peek(vs, v, 9) + (xr - peek(vs, v, 9)) * tapea;
+						poke(vs, lpl, v, 8);
+						poke(vs, lpr, v, 9);
+						dl = tanh(lpl * 1.6) * 0.625 + noise() * 0.002;
+						dr = tanh(lpr * 1.6) * 0.625 + noise() * 0.002;
+					} else {
+						// BIT: sample-and-hold (/3) + 6-bit quantisation -> grit and aliasing
+						hc = peek(vs, v, 12);
+						if (hc <= 0) {
+							poke(vs, floor(xl * 32 + 0.5) / 32, v, 10);
+							poke(vs, floor(xr * 32 + 0.5) / 32, v, 11);
+							hc = 3;
+						}
+						poke(vs, hc - 1, v, 12);
+						dl = peek(vs, v, 10);
+						dr = peek(vs, v, 11);
+					}
+				}
+				wk = perread * win;
+				poke(worn, xl + (dl - xl) * wk, vidx, 0);
+				poke(worn, xr + (dr - xr) * wk, vidx, 1);
+			}
+			vph = vph + 1;
+			poke(vs, vph, v, 2);
+			if (vph >= vlen) {
+				poke(vs, 0, v, 0);
+			}
+		}
+	}
+}
+
+// ---------------------------------------------------------------- wet bus
+// density normalisation: overlapping grains add up; scale by 1/sqrt(mean active voices),
+// sqrt(2) undoes the -3 dB centre of the constant-power pan
+sload = sload + (max(1, nact) - sload) * 0.0005;
+wnorm = 1.4142 / sqrt(sload);
+wetl = wetl * wnorm;
+wetr = wetr * wnorm;
+// automatic wet level: match the loudness of the input (mean square, ~0.4 s), gain limited
+// to -12 .. +12 dB and smoothed (~0.3 s). Held during FREEZE and when the input is silent,
+// so a frozen loop keeps its level.
+msc = 1 - exp(-1 / (0.4 * samplerate));
+dryms = dryms + ((in1 * in1 + in2 * in2) * 0.5 - dryms) * msc;
+wetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;
+if (p_freeze < 0.5 && dryms > 0.000001 && wetms > 0.0000001) {
+	agct = clamp(sqrt(dryms / wetms), 0.25, 4);
+	agc = agc + (agct - agc) * (1 - exp(-1 / (0.3 * samplerate)));
+}
+wetl = wetl * agc;
+wetr = wetr * agc;
+// wet peak limiter, ceiling -2 dBFS, 64-sample lookahead (1.3 ms; the wet path is not
+// time-aligned to the dry signal anyway, so this adds no latency to the device)
+lpk = max(abs(wetl), abs(wetr));
+if (lpk > lenv) {
+	lenv = lpk;
+} else {
+	lenv = lenv + (lpk - lenv) * (1 - exp(-1 / (0.08 * samplerate)));
+}
+lgt = min(1, 0.79 / max(lenv, 0.000001));
+if (lgt < lgain) {
+	lgain = lgain + (lgt - lgain) * 0.06;
+} else {
+	lgain = lgain + (lgt - lgain) * (1 - exp(-1 / (0.08 * samplerate)));
+}
+wdo = wdi + 1;
+if (wdo >= 64) {
+	wdo = 0;
+}
+poke(wdl, wetl, wdi, 0);
+poke(wdl, wetr, wdi, 1);
+wetl = peek(wdl, wdo, 0) * lgain;
+wetr = peek(wdl, wdo, 1) * lgain;
+wdi = wdo;
+// DC blocker (~10 Hz): repeated asymmetric wear must not leave an offset
+dcol = wetl - dcxl + 0.9987 * dcyl;
+dcxl = wetl;
+dcyl = dcol;
+dcor = wetr - dcxr + 0.9987 * dcyr;
+dcxr = wetr;
+dcyr = dcor;
+
+// ---------------------------------------------------------------- mix, output
+smix = smix + (clamp(p_mix * 0.01, 0, 1) - smix) * 0.0008;
+sout = sout + (pow(10, clamp(p_out, -24, 12) / 20) - sout) * 0.0008;
+dryg = cos(smix * pi * 0.5);
+wetg = sin(smix * pi * 0.5);
+ol = (in1 * dryg + dcol * wetg) * sout;
+orr = (in2 * dryg + dcor * wetg) * sout;
+// transparent below -0.9 dBFS, soft knee above (protection, not a sound feature)
+al = abs(ol);
+if (al > 0.9) {
+	ol = sign(ol) * (0.9 + 0.1 * tanh((al - 0.9) * 10));
+}
+ar = abs(orr);
+if (ar > 0.9) {
+	orr = sign(orr) * (0.9 + 0.1 * tanh((ar - 0.9) * 10));
+}
+out1 = ol;
+out2 = orr;

@@ -31,9 +31,9 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.2.0";
+var VERSION = "0.2.1";
 var NATIVE_MENU = false;
-var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 100.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
+var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
 var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120], "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120]};
 // END GENERATED
 
@@ -104,18 +104,29 @@ function uid(v) {
     G = new Global(uidStr);
 }
 
+// SYNC grid tick from [metro] (transport-locked): queued grains fire right now, not at the
+// next 30 fps frame (0.1.x released them up to 33 ms late)
 function tick() {
-    pendingTick = true;
     lastTick = frame;
+    if (!S) return;
+    syncTick();
+}
+
+function syncTick() {
+    S.step = (S.step + 1) % 16;
+    if (!P.sync) return;
+    for (var i = 0; i < S.n; i++) if (S.ps[i].q) fireGrain(S.ps[i], 0);
 }
 
 function level(v) { inLevel = v; }
 
-// input peaks L/R for the drawn meters (audio passes through, so IN = OUT for now)
-var meterL = 0, meterR = 0;
-function meters(l, r) {
+// peaks IN L/R, OUT L/R for the drawn meters
+var meterL = 0, meterR = 0, meterOL = 0, meterOR = 0;
+function meters(l, r, ol, or) {
     meterL = Math.max(l || 0, meterL * 0.85);
     meterR = Math.max(r || 0, meterR * 0.85);
+    meterOL = Math.max(ol === undefined ? (l || 0) : ol, meterOL * 0.85);
+    meterOR = Math.max(or === undefined ? (r || 0) : or, meterOR * 0.85);
 }
 
 // song tempo and time signature from [live.observer]
@@ -146,7 +157,30 @@ function params() {
     return P;
 }
 
-function fireGrain(p) {
+// ---------------------------------------------------------------- grain events -> gen~
+// Every grain is written into the event ring buffer~ ---rkev (slot k: pos, amp, pan x,
+// delay ms at k*4 .. k*4+3) via [peek~], then the head index goes to gen~ (p_evhead).
+var EV_SLOTS = 64, evCount = 0, sentDose = -1, sentBar = -1;
+
+function emitGrain(pos, amp, x, delayMs) {
+    evCount = (evCount + 1) % EV_SLOTS;
+    var b = evCount * 4;
+    outlet(0, "evw", b, pos);
+    outlet(0, "evw", b + 1, amp);
+    outlet(0, "evw", b + 2, x);
+    outlet(0, "evw", b + 3, delayMs);
+    outlet(0, "gen", "p_evhead", evCount);
+}
+
+// impact speed (px/frame, ~1.5 .. 20) -> grain level 0.25 .. 1 (bounce decay audible)
+function impactAmp(imp) {
+    var a = Math.max(0, Math.min(1, (imp - 1.5) / 12));
+    return 0.25 + 0.75 * Math.sqrt(a);
+}
+
+function fireGrain(p, delayMs) {
+    emitGrain(Math.max(0, Math.min(1, p.x / CW)), impactAmp(p.imp || 4), Math.max(0, Math.min(1, p.x / CW)),
+              delayMs || 0);
     var flashLen = Math.round(4 + Math.min(1, P.grain / 300) * 10);
     p.flash = flashLen;
     p.flashLen = flashLen;
@@ -179,30 +213,36 @@ function stepEngine() {
     var rest = 0.45 + 0.5 * (P.bounce / 100);
     var kick = Math.sqrt(g / 0.55);
 
-    // tempo ticks from [metro]; fallback when the transport is stopped
-    var onTick = false;
-    if (pendingTick) { onTick = true; pendingTick = false; }
-    else if (P.sync && frame - lastTick > FPS) {
+    // parameters only the audio engine needs (sent when changed)
+    if (Math.abs(S.dose - sentDose) > 0.004) { sentDose = S.dose; outlet(0, "gen", "p_dose", S.dose); }
+    if (Math.abs(bar - sentBar) > 0.0005) { sentBar = bar; outlet(0, "gen", "p_barsec", bar); }
+
+    // fallback grid when the transport is stopped (no [metro] ticks for 1 s)
+    var fallbackTick = false;
+    if (P.sync && frame - lastTick > FPS) {
         var stepSec = bar / sigNum / [1, 2, 4, 8][Math.max(0, Math.min(3, P.division | 0))] * (sigDen / 4);
         var per = Math.max(1, Math.round(stepSec * FPS));
-        if (frame % per === 0) onTick = true;
+        if (frame % per === 0) fallbackTick = true;
     }
-    if (onTick) S.step = (S.step + 1) % 16;
 
     var queued = 0, flashing = 0;
     for (i = 0; i < n; i++) {
         p = S.ps[i];
         p.tr.unshift([p.x, p.y]);
         if (p.tr.length > 5) p.tr.pop();
+        var y0 = p.y;
         p.vy += g; p.x += p.vx; p.y += p.vy;
         if (p.x < 5) { p.x = 5; p.vx = -p.vx; }
         if (p.x > CW - 10) { p.x = CW - 10; p.vx = -p.vx; }
         if (p.y > CH - 18) {
+            // fraction of this frame at which the floor was crossed -> sample-accurate timing
+            var frac = (p.vy > 0) ? Math.max(0, Math.min(1, (CH - 18 - y0) / p.vy)) : 0;
             p.y = CH - 18;
             var impact = Math.abs(p.vy);
             p.vy = -impact * rest;
             if (impact > 1.5) {
-                if (P.sync) p.q = true; else fireGrain(p);
+                p.imp = impact;
+                if (P.sync) p.q = true; else fireGrain(p, frac * 1000 / FPS);
             }
             if (impact < 2.2) {
                 p.vy = -(7 + Math.random() * 7) * kick;
@@ -211,9 +251,7 @@ function stepEngine() {
         }
         if (p.flash > 0) p.flash--;
     }
-    if (P.sync && onTick) {
-        for (i = 0; i < n; i++) if (S.ps[i].q) fireGrain(S.ps[i]);
-    }
+    if (fallbackTick) syncTick();
     for (i = 0; i < n; i++) {
         if (S.ps[i].q) queued++;
         if (S.ps[i].flash > 0) flashing++;
@@ -634,7 +672,7 @@ function drawDevice(w, h, st) {
 
     // meters: IN L/R, OUT L/R
     r = L.meters;
-    var mv = [meterL, meterR, meterL, meterR], mxs = [0, 6, 13, 19];
+    var mv = [meterL, meterR, meterOL, meterOR], mxs = [0, 6, 13, 19];
     for (i = 0; i < 4; i++) {
         var mx = r[0] + mxs[i], mh = r[3];
         mgraphics.set_source_rgba(0.114, 0.125, 0.153, 1);

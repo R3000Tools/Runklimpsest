@@ -19,15 +19,20 @@
 
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
-## Klang (0.3.0 ff.)
+## Klang (seit 0.2.1)
 - [ ] Hörtest STEREO: Startwert ±70 % und Pan-Gesetz −3 dB auf Kopfhörern und Lautsprechern prüfen, Mono-Summe prüfen; danach entscheiden, ob STEREO | MONO zu einem WIDTH-Regler (0–100 %, Standard 70 %) wird
 - [ ] Klang-Zielbilder vorab festlegen (wie klingen Gravity, Bounce, Erosion 30 %/80 %, Dose hoch) – Maßstab für jede Klangänderung
-- [ ] Echter Puffer (2 Takte), Schreibkopf, FREEZE
-- [ ] Grain-Wiedergabe beim Aufprall: Lesestelle = X, Lautstärke/Tonhöhe aus Aufprallgeschwindigkeit, Länge = GRAIN
-- [ ] Abnutzung (Palimpsest): Lesen verändert die gelesene Stelle – SAT, TAPE, BIT; HEAL
-- [ ] MIX, OUTPUT wirksam
-- [ ] DOSE moduliert SWARM/WEAR (TARGET)
-- [ ] Entscheidung: Puffer-Inhalt im Set speichern oder beim Laden leer?
+- [x] Echter Puffer (2 Takte), Schreibkopf, FREEZE
+- [x] Grain-Wiedergabe beim Aufprall: Lesestelle = X, Lautstärke/Tonhöhe aus Aufprallgeschwindigkeit, Länge = GRAIN
+- [x] Abnutzung (Palimpsest): Lesen verändert die gelesene Stelle – SAT, TAPE, BIT; HEAL
+- [x] MIX, OUTPUT wirksam
+- [x] DOSE moduliert SWARM/WEAR (TARGET)
+- [ ] Entscheidung: Puffer-Inhalt im Set speichern oder beim Laden leer? (0.2.1: beim Laden leer)
+- [ ] Hörtest 0.2.1 in Live: Pegel MIX 50/100 %, GRAIN kurz/lang, SAT/TAPE/BIT bei FREEZE, SYNC-Timing, STEREO/MONO
+- [ ] CPU in Live messen (1 und 4 Instanzen), Ziel < 3 % je Instanz
+- [ ] Prüfen: gen~ Buffer-Zuordnung `@ev ---rkev` – falls keine Grains hörbar sind, ist das die erste Verdachtsstelle
+- [ ] Optional: Tonhöhe pro Aufprall (z. B. ±Halbton aus Aufprallstärke), Rückwärts-Grains, Puffer-Inhalt im Set speichern
+- [ ] Anzeige der Abnutzung aus der echten DSP (Puffer-Differenz) statt aus dem JS-Modell
 
 ## Später
 - [ ] Euklidische Muster als Alternative zum festen Raster (Brücke zu Runklidian)

@@ -71,7 +71,7 @@ const qd = c(DL.division); ch.onclick(qd[0], qd[1], 1, 0, 0);                 //
 const it3 = vm.runInContext('menuItemRect(3)', ch); paint(ch);                   // list drawn
 ch.onclick(it3[0] + 5, it3[1] + 5, 1, 0, 0);                                     // picks 1/32
 for (const k of ['freeze', 'more', 'dose']) { const q = c(DL[k]); ch.onclick(q[0], q[1], 1, 0, 0); }
-const dout = ch.out.map(o => o.slice(1)).filter(o => o[0] !== 'uid');
+const dout = ch.out.map(o => o.slice(1)).filter(o => o[0] !== 'uid' && o[0] !== 'evw' && o[0] !== 'gen');
 console.log('device panel out', JSON.stringify(dout));
 const got = dout.map(o => o[0]).join(',');
 if (got !== 'gravity,gravity,sync,division,freeze,open,resetdose') throw new Error('device click outputs wrong: ' + got);
