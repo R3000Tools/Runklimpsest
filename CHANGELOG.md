@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.2.5
+- Fix: Standardwerte beim Laden – SYNC kam aus, FREEZE an (Nutzerbefund 0.2.4). Ursache: Die Abfrage aller Parameter beim Laden schickt „bang“, und ein `live.text`-Umschalter versteht „bang“ als Klick. SYNC und FREEZE sind jetzt (unsichtbare) `live.numbox` mit off/on, die auf „bang“ nur ihren Wert melden. Langnamen unverändert, Automation bleibt. Der Generator bricht ab, falls je wieder ein Umschalter den Lade-„bang“ bekommt.
+
 ## 0.2.4
 - **Chamber nutzt die Höhe:** Die Schwerkraft in Pixeln wird so gewählt, dass der längste Wurf ca. 80 % der Kammer erreicht; GRAVITY bestimmt nur noch die Flugzeiten (Tempo/Dichte). Messung (6 Teilchen, 120 BPM): höchster Wurf 50–57 % der Kammer bei allen GRAVITY-Werten (0.2.3: 11–23 % bei wenig BOUNCE).
 - **BOUNCE wirkt hörbar:** Grain- und Ruhe-Schwelle relativ zur Wurfgeschwindigkeit, Elastizität 0,3–0,9 (vorher 0,45–0,95 mit festen Schwellen). Wenig BOUNCE = Einzelschläge, viel BOUNCE = lange, beschleunigende Nachsprung-Ketten (bis ca. 12 Grains pro Wurf). Nachsprünge werden leiser (√ Aufprall/Wurf), höhere Würfe lauter. Fix während der Entwicklung: liegende Teilchen hüpften bei hoher Schwerkraft jedes Bild (122 Grains/s) – Schwellen jetzt über der Schwerkraft pro Bild. Dichte: 9–20 Grains/s bei 6 Teilchen.

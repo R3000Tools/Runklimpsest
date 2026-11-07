@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
@@ -198,7 +198,9 @@ def control(patch, p, pres):
                   saved_attribute_attributes={"valueof": valueof(p)})
     T = TRANSPARENT
     kind = p["kind"]
-    if kind in ("toggle", "button"):
+    # hidden toggles must not be live.text: the load-time refresh sends "bang", which a live.text
+    # toggle treats as a click (0.2.4: SYNC came up off, FREEZE on). live.numbox only reports.
+    if kind == "button" or (kind == "toggle" and pres is not None):
         return patch.add("live.text", pres=pres, numinlets=1, numoutlets=2, outlettype=["", ""],
                          mode=1 if kind == "toggle" else 0, text=p.get("text", ""), texton=p.get("text", ""),
                          bgcolor=T, activebgcolor=T, bgoncolor=T, activebgoncolor=T,
@@ -467,6 +469,13 @@ def build_device():
         d.connect(pa, 0, pk, ch)
     d.connect(pk, 0, pre_m, 0)
     d.connect(pre_m, 0, panel, 0)
+
+    # guard: nothing that toggles on "bang" may receive the refresh bang
+    by_id = {b["box"]["id"]: b["box"] for b in d.boxes}
+    for ln in d.lines:
+        src, dst = ln["patchline"]["source"][0], ln["patchline"]["destination"][0]
+        if by_id[src].get("text", "").startswith("r ---rk_refresh") and by_id[dst]["maxclass"] == "live.text":
+            raise SystemExit("refresh bang would toggle live.text " + by_id[dst].get("varname", ""))
 
     params = {}
     for b in d.boxes:

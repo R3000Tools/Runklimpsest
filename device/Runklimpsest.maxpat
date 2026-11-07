@@ -893,7 +893,7 @@
    {
     "box": {
      "id": "obj-12",
-     "maxclass": "live.text",
+     "maxclass": "live.numbox",
      "patching_rect": [
       20,
       88,
@@ -904,11 +904,8 @@
      "numoutlets": 2,
      "outlettype": [
       "",
-      ""
+      "float"
      ],
-     "mode": 1,
-     "text": "FREEZE",
-     "texton": "FREEZE",
      "bgcolor": [
       0.0,
       0.0,
@@ -916,18 +913,6 @@
       0.01
      ],
      "activebgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.01
-     ],
-     "bgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.01
-     ],
-     "activebgoncolor": [
       0.0,
       0.0,
       0.0,
@@ -945,13 +930,13 @@
       0.0,
       0.01
      ],
-     "textoncolor": [
+     "activeslidercolor": [
       0.0,
       0.0,
       0.0,
       0.01
      ],
-     "activetextoncolor": [
+     "tricolor": [
       0.0,
       0.0,
       0.0,
@@ -969,6 +954,7 @@
       0.0,
       0.01
      ],
+     "appearance": 0,
      "varname": "freeze",
      "parameter_enable": 1,
      "saved_attribute_attributes": {
@@ -992,7 +978,7 @@
    {
     "box": {
      "id": "obj-13",
-     "maxclass": "live.text",
+     "maxclass": "live.numbox",
      "patching_rect": [
       190,
       88,
@@ -1003,11 +989,8 @@
      "numoutlets": 2,
      "outlettype": [
       "",
-      ""
+      "float"
      ],
-     "mode": 1,
-     "text": "SYNC",
-     "texton": "SYNC",
      "bgcolor": [
       0.0,
       0.0,
@@ -1015,18 +998,6 @@
       0.01
      ],
      "activebgcolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.01
-     ],
-     "bgoncolor": [
-      0.0,
-      0.0,
-      0.0,
-      0.01
-     ],
-     "activebgoncolor": [
       0.0,
       0.0,
       0.0,
@@ -1044,13 +1015,13 @@
       0.0,
       0.01
      ],
-     "textoncolor": [
+     "activeslidercolor": [
       0.0,
       0.0,
       0.0,
       0.01
      ],
-     "activetextoncolor": [
+     "tricolor": [
       0.0,
       0.0,
       0.0,
@@ -1068,6 +1039,7 @@
       0.0,
       0.01
      ],
+     "appearance": 0,
      "varname": "sync",
      "parameter_enable": 1,
      "saved_attribute_attributes": {

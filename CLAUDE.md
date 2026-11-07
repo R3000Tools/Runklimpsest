@@ -52,6 +52,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 - Pegelregelung (AGC) des Effektanteils wird nur bei Stille am Eingang gehalten (sonst sackt ein eingefrorener Loop nach dem Stoppen ab); bei FREEZE mit laufendem Eingang regelt sie weiter.
 - Physik-Schwellen (Grain, Liegenbleiben) relativ zur Wurfgeschwindigkeit, aber immer über der Schwerkraft pro Bild – sonst hüpft ein liegendes Teilchen jedes Bild (0.2.4).
 - Hauptschläge werden beim Wurf (Raster-Tick) mit Verzögerung vorgemerkt; der Aufprall in der Physik (`skipHit`) erzeugt dann kein zweites Grain. Wartende Grains belegen eine Stimme.
+- Lade-Abfrage: `[r ---rk_refresh]` schickt „bang“ an alle Parameter. Ein `live.text`-Umschalter kippt dabei um (0.2.4: SYNC aus, FREEZE an) → versteckte Umschalter sind `live.numbox` (off/on); der Generator prüft das.
 - `live.text` im Button-Modus: Ausgabe kann je nach Version `bang` oder `1`/`0` sein → immer über `[t b]`, nie `[sel 1]` (MORE öffnete in 0.1.0 nicht).
 - Large View hat kein CLOSE und keine Objekte über den jsuis (Logo, Legende, Tempo zeichnet die jsui `large`); schließen über das Fenster-X.
 - Large View: feste Größe (`window flags nogrow/nozoom`); Position beim Öffnen aus `[mousestate]` → jsui `winpos` → `win window size …` → `[s ---rk_win]` → `[thispatcher]` (sonst öffnet es immer auf dem Hauptmonitor).
