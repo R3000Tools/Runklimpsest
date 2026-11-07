@@ -53,6 +53,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 - Hauptschläge werden beim Wurf (Raster-Tick) mit Verzögerung vorgemerkt; der Aufprall in der Physik (`skipHit`) erzeugt dann kein zweites Grain. Wartende Grains belegen eine Stimme.
 - `live.text` im Button-Modus: Ausgabe kann je nach Version `bang` oder `1`/`0` sein → immer über `[t b]`, nie `[sel 1]` (MORE öffnete in 0.1.0 nicht).
 - Large View hat kein CLOSE und keine Objekte über den jsuis (Logo, Legende, Tempo zeichnet die jsui `large`); schließen über das Fenster-X.
+- Large View: feste Größe (`window flags nogrow/nozoom`); Position beim Öffnen aus `[mousestate]` → jsui `winpos` → `win window size …` → `[s ---rk_win]` → `[thispatcher]` (sonst öffnet es immer auf dem Hauptmonitor).
 - Large View öffnet über zwei Wege: `open` → `[pcontrol]` → `[p LargeView]` und `[s ---rk_open]` → `front` → `[thispatcher]`.
 - Gemeinsamer Zustand zwischen den jsui-Instanzen über `new Global(uid)` (`G.state`, `G.params`); die Geräte-jsui erzeugt die uid und verteilt sie über `[s ---rk_uid]` (alle 2 s erneut, wegen Ladereihenfolge).
 - Tempo/Taktart kommen über `live.path live_set` → `live.observer @property tempo|signature_numerator|signature_denominator` → jsui (`tempo`, `signum`, `sigden`).

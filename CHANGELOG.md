@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+- Large View öffnet sich auf dem Monitor, auf dem LARGE VIEW geklickt wurde: Mausposition (`mousestate`, Bildschirmkoordinaten) → Fenster mittig darüber (vorher feste Position auf dem Hauptmonitor).
+- Large View mit fester Größe (kein Ziehgriff, kein Zoom): Der Inhalt skaliert nicht, Vergrößern zeigte Grau, Verkleinern schnitt ab.
+- Nutzertest 0.2.2: Gesang und Bass klingen ok. Klangverarbeitung unverändert.
+
 ## 0.2.2
 Nach Nutzertest 0.2.1 (Abnutzung auf Flächen nicht hörbar, ohne SYNC zu zufällig).
 - **Abnutzung neu (EROSION, WEAR TYPE):** arbeitet relativ zur Hüllkurve des Grains (auch auf leisem/dunklem Material wirksam), Stärke pro Lesedurchgang EROSION² × 0,25 (vorher × 0,18 auf pegelabhängige Kennlinien). SAT: spitzenerhaltende Sättigung, wandert bei Wiederholung zu Fuzz. TAPE: Tiefpass 2,2 kHz (vorher 4,5), Rauschen −38 dB relativ. BIT: 3 Bit relativ zum Pegel, Sample-and-Hold /5. HEAL-Standard 30 s (vorher 8 s, hob die Abnutzung fast wieder auf). Messung Fläche, FREEZE, 20 s (Abnutzung 30/55/80 %): SAT 0,43/1,28/1,68 (heller ×1,0/×1,6/×3,5), TAPE 0,29/0,67/0,86 (dunkler ×0,84/×0,74/×0,72), BIT 0,23/0,61/1,02 (×1,03/×1,15/×1,39); 0.2.1 bei 80 %: 0,18–0,43.

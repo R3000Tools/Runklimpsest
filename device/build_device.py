@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
@@ -266,6 +266,13 @@ def build_window():
     title = w.msg("title Runklimpsest - Large View")
     w.connect(lb, 0, title, 0)
     w.connect(title, 0, tp, 0)
+    # fixed-size window: the content does not scale, so no resize handle / zoom (0.2.3)
+    fixed = w.msg("window flags nogrow, window flags nozoom, window exec")
+    w.connect(lb, 0, fixed, 0)
+    w.connect(fixed, 0, tp, 0)
+    # position from the device (opens on the monitor where LARGE VIEW was clicked)
+    r_win = w.obj("r ---rk_win", ins=0, outs=1)
+    w.connect(r_win, 0, tp, 0)
     inl = w.add("inlet", numinlets=0, numoutlets=1, outlettype=[""], comment="open")
     _ = inl
     return {
@@ -400,7 +407,8 @@ def build_device():
             d.connect(pg, 0, genx, 0)
 
     # panel output: uid, open, evw (event ring writes), gen (engine params), else parameter changes
-    route = d.obj("route uid open evw gen", ins=1, outs=5, outtype=["", "", "", "", ""])
+    route = d.obj("route uid open evw gen win", ins=1, outs=6, outtype=["", "", "", "", "", ""])
+    s_win = d.obj("s ---rk_win", ins=1, outs=0, outtype=[])
     d.connect(route, 2, evpoke, 0)
     d.connect(route, 3, genx, 0)
     pre_uid = d.obj("prepend uid")
@@ -408,19 +416,29 @@ def build_device():
     d.connect(panel, 0, route, 0)
     d.connect(route, 0, pre_uid, 0)
     d.connect(pre_uid, 0, s_uid, 0)
-    d.connect(route, 4, widget_route, 0)   # everything else from the panel: parameter changes
+    d.connect(route, 4, s_win, 0)          # window position messages for the large view
+    d.connect(route, 5, widget_route, 0)   # everything else from the panel: parameter changes
 
     open_msg = d.msg("open")
     pc = d.obj("pcontrol", ins=1, outs=1)
     win = d.add("newobj", text="p LargeView", numinlets=1, numoutlets=0, patcher=build_window())
     # live.text (button mode) output differs between versions (bang or 1/0): accept anything
-    open_t = d.obj("t b b", outs=2, outtype=["bang", "bang"])
+    open_t = d.obj("t b b b", outs=3, outtype=["bang", "bang", "bang"])
+    # mouse position (screen coordinates) at the click -> panel computes the window rect
+    mouse = d.obj("mousestate", ins=1, outs=5, outtype=["int", "int", "int", "int", "int"])
+    mpack = d.obj("pack 0 0", ins=2, outs=1)
+    mpre = d.obj("prepend winpos")
+    d.connect(mouse, 1, mpack, 0)
+    d.connect(mouse, 2, mpack, 1)
+    d.connect(mpack, 0, mpre, 0)
+    d.connect(mpre, 0, panel, 0)
     s_open = d.obj("s ---rk_open", ins=1, outs=0, outtype=[])
     d.connect(route, 1, open_t, 0)
     if OVERLAY_CONTROLS:
         more = open_button(d, "MORE", DEVICE_AREAS["more"], visible=False)
         d.connect(more, 0, open_t, 0)
-    d.connect(open_t, 1, open_msg, 0)   # path 1: pcontrol -> open subpatcher window
+    d.connect(open_t, 2, open_msg, 0)   # path 1: pcontrol -> open subpatcher window
+    d.connect(open_t, 1, mouse, 0)      # then place it near the mouse (same monitor as Live)
     d.connect(open_t, 0, s_open, 0)     # path 2: window's own thispatcher "front"
     d.connect(open_msg, 0, pc, 0)
     d.connect(pc, 0, win, 0)
