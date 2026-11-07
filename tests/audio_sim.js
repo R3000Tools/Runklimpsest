@@ -188,6 +188,8 @@ if (require.main === module) {
         ['16_pad_tape55_freeze', Pd, { mix: 100, erosion: 55, weartype: 1, grain: 200 }, [[4, 'freeze', 1]]],
         ['17_pad_bit55_freeze', Pd, { mix: 100, erosion: 55, weartype: 2, grain: 200 }, [[4, 'freeze', 1]]],
         ['12_pluck_default', Pl, {}],
+        ['18_pad_defaults_freeze', Pd, {}, [[4, 'freeze', 1]]],
+        ['19_pad_defaults_grain40_freeze', Pd, { grain: 40 }, [[4, 'freeze', 1]]],
         ['13_pluck_mono', Pl, { mix: 100, stereo: 1 }],
         ['14_pluck_stereo', Pl, { mix: 100, stereo: 0 }]
     ];

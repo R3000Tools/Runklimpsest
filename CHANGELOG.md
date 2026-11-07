@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.6
+- **Standardwerte (Nutzer + Vorschlag):** PHYSICS: GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5 ms, SYNC an, 1/16. MEMORY: FREEZE aus, SAT, EROSION 65 %, HEAL 40 s. DOSE: TARGET WEAR, RATE 8 Takte, RECOVER 16 Takte. OUTPUT: MIX 50 %, STEREO.
+- **Abnutzung unabhängig von der Grain-Länge:** Ein Aufprall nutzt mindestens 80 ms des Puffers ab, auch wenn das hörbare Grain kürzer ist. Mit den neuen Standardwerten (5-ms-Grains) nach 20 s FREEZE: 0,137 statt 0,017 (Messung Fläche).
+- **Pegelabgleich misst nur, während Grains klingen:** Jedes Grain wird so laut wie der Eingang, Pausen bleiben Pausen. Bei sehr sparsamen, kurzen Grains (Standardwerte: ca. 4 % der Zeit hörbar) liegt die mittlere Lautheit bei MIX 100 % trotzdem ca. 12 dB unter dem Original (bei MIX 50 % ca. 3 dB) – bauartbedingt, Spitzen bei −2 dBFS.
+- Nutzertest 0.2.5: Standardwerte beim Laden und gespeicherte Werte bestätigt.
+
 ## 0.2.5
 - Fix: Standardwerte beim Laden – SYNC kam aus, FREEZE an (Nutzerbefund 0.2.4). Ursache: Die Abfrage aller Parameter beim Laden schickt „bang“, und ein `live.text`-Umschalter versteht „bang“ als Klick. SYNC und FREEZE sind jetzt (unsichtbare) `live.numbox` mit off/on, die auf „bang“ nur ihren Wert melden. Langnamen unverändert, Automation bleibt. Der Generator bricht ab, falls je wieder ein Umschalter den Lade-„bang“ bekommt.
 

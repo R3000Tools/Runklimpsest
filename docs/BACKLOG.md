@@ -20,8 +20,9 @@
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
 ## Klang (seit 0.2.1)
-- [ ] 0.2.6 Standardwerte PHYSICS (Nutzer): GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5,0 ms
-- [ ] 0.2.6 Standardwerte MEMORY / DOSE: Vorschlag offen (siehe Chat), Nutzerentscheidung
+- [x] 0.2.6 Standardwerte PHYSICS (Nutzer): GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5,0 ms
+- [x] 0.2.6 Standardwerte MEMORY / DOSE: EROSION 65 %, HEAL 40 s, SAT, TARGET WEAR, RATE 8, RECOVER 16
+- [ ] Hörtest 0.2.6: Standardwerte (sparsame 5-ms-Klicks), Pegel bei MIX 100 % (ca. −12 dB mittlere Lautheit), Abnutzung bei FREEZE
 - [x] 0.2.5: Standardwerte beim Laden und Werte im gespeicherten Set bestätigt (Nutzer)
 - [ ] Hörtest 0.2.4: Chamber-Höhe, BOUNCE (Einzelschlag ↔ Ketten), DOSE × SWARM, neue Standardwerte
 - [ ] Feinabstimmung der Standardwerte (Nutzer: später)

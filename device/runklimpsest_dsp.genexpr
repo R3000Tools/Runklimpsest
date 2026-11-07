@@ -15,10 +15,10 @@
 
 Param p_mix(50);
 Param p_out(0);
-Param p_grain(80);
-Param p_erosion(55);
+Param p_grain(5);
+Param p_erosion(65);
 Param p_weartype(0);
-Param p_heal(30);
+Param p_heal(40);
 Param p_freeze(0);
 Param p_stereo(0);
 Param p_dose(0);
@@ -28,7 +28,7 @@ Param p_evhead(0);
 Buffer ev("rkev");
 Data fresh(800000, 2);
 Data worn(800000, 2);
-Data vs(32, 14);
+Data vs(32, 15);
 Data wdl(64, 2);
 History wpos(0);
 History healpos(0);
@@ -147,6 +147,9 @@ if (head != lasthead) {
 			poke(vs, 0, best, 11);
 			poke(vs, 0, best, 12);
 			poke(vs, 0, best, 13);
+			// wear footprint: an impact dents at least 80 ms of the buffer, even when the audible
+			// grain is shorter (0.2.6: 5 ms grains wore only 0.1 % of the loop per read)
+			poke(vs, max(glen, floor(mstosamps(80))), best, 14);
 		}
 	}
 	lasthead = head;
@@ -173,26 +176,38 @@ for (v = 0; v < maxv; v += 1) {
 		} else {
 			vph = peek(vs, v, 2);
 			vlen = peek(vs, v, 3);
+			wlen = peek(vs, v, 14);
 			vidx = peek(vs, v, 4) + vph;
 			if (vidx >= blen) {
 				vidx = vidx - blen;
 			}
 			xl = peek(worn, vidx, 0);
 			xr = peek(worn, vidx, 1);
-			// Tukey window (25 % cosine flanks): smooth edges, full body for long grains
-			tt = vph / vlen;
-			win = 1;
-			if (tt < 0.25) {
-				win = 0.5 - 0.5 * cos(pi * tt * 4);
+			// audible part: Tukey window (25 % cosine flanks) over the grain length
+			if (vph < vlen) {
+				tt = vph / vlen;
+				win = 1;
+				if (tt < 0.25) {
+					win = 0.5 - 0.5 * cos(pi * tt * 4);
+				}
+				if (tt > 0.75) {
+					win = 0.5 - 0.5 * cos(pi * (1 - tt) * 4);
+				}
+				vg = peek(vs, v, 5) * win;
+				mono = (xl + xr) * 0.5 * vg;
+				wetl = wetl + mono * peek(vs, v, 6);
+				wetr = wetr + mono * peek(vs, v, 7);
+				nact = nact + 1;
 			}
-			if (tt > 0.75) {
-				win = 0.5 - 0.5 * cos(pi * (1 - tt) * 4);
+			// wear window: same shape over the (longer) footprint
+			tw = vph / wlen;
+			winw = 1;
+			if (tw < 0.25) {
+				winw = 0.5 - 0.5 * cos(pi * tw * 4);
 			}
-			vg = peek(vs, v, 5) * win;
-			mono = (xl + xr) * 0.5 * vg;
-			wetl = wetl + mono * peek(vs, v, 6);
-			wetr = wetr + mono * peek(vs, v, 7);
-			nact = nact + 1;
+			if (tw > 0.75) {
+				winw = 0.5 - 0.5 * cos(pi * (1 - tw) * 4);
+			}
 			// palimpsest write-back: move the read samples toward a degraded version
 			if (perread > 0) {
 				// level-relative wear: every type works against the grain's own envelope, so it
@@ -229,13 +244,13 @@ for (v = 0; v < maxv; v += 1) {
 						dr = peek(vs, v, 11);
 					}
 				}
-				wk = perread * win;
+				wk = perread * winw;
 				poke(worn, xl + (dl - xl) * wk, vidx, 0);
 				poke(worn, xr + (dr - xr) * wk, vidx, 1);
 			}
 			vph = vph + 1;
 			poke(vs, vph, v, 2);
-			if (vph >= vlen) {
+			if (vph >= wlen) {
 				poke(vs, 0, v, 0);
 			}
 		}
@@ -250,12 +265,17 @@ wnorm = 1.4142 / sqrt(sload);
 wetl = wetl * wnorm;
 wetr = wetr * wnorm;
 // automatic wet level: match the loudness of the input (mean square, ~0.4 s), gain limited
+// (0.2.6: the wet level is measured only while grains sound - sparse short grains are
+// matched as "each grain as loud as the input", pauses stay pauses; time-averaging left
+// 5 ms grains 10 dB too quiet),
 // to -12 .. +12 dB and smoothed (~0.3 s). Held only while the input is silent, so a frozen
 // loop keeps its level after the input stops (0.2.2: no longer held during FREEZE itself -
 // TAPE wear made frozen loops 5 dB quieter).
 msc = 1 - exp(-1 / (0.4 * samplerate));
 dryms = dryms + ((in1 * in1 + in2 * in2) * 0.5 - dryms) * msc;
-wetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;
+if (nact > 0) {
+	wetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;
+}
 if (dryms > 0.000001 && wetms > 0.0000001) {
 	agct = clamp(sqrt(dryms / wetms), 0.25, 4);
 	agc = agc + (agct - agc) * (1 - exp(-1 / (0.3 * samplerate)));
