@@ -1,6 +1,6 @@
 # Runklimpsest – Projektregeln für Claude
 
-Max-for-Live-Audio-Effekt „Granular Particle Memory“ (Hersteller R3000). Stand: 0.2.1, erste Version mit Klangverarbeitung (gen~-Codebox, Latenz 0).
+Max-for-Live-Audio-Effekt „Granular Particle Memory“ (Hersteller R3000). Stand: 0.2.2, Klangverarbeitung (gen~-Codebox, Latenz 0).
 Der Nutzer testet in Ableton Live 12 (aktuelle Version, mitgeliefertes Max) unter Windows und spricht Deutsch. Antworten und Doku für ihn auf Deutsch, Code, Commits und GUI-Texte auf Englisch.
 Antwortstil: direkt, strukturiert, Listen, kein Smalltalk, keine Emojis, Schwächen/Risiken nennen; bei konzeptionellen Aufgaben am Ende Abschnitt „Optimierung“.
 
@@ -24,6 +24,7 @@ Eigenständiges Gerät, kein Clone. Inspiration (Freakshow Industries, Sinevibes
 | `tests/render.js` | zeichnet Chamber, Dose und Large-View-Regler im Browser (Canvas-Nachbildung von mgraphics) und prüft Klick/Ziehen |
 | `tests/genexpr.js` | übersetzt die Codebox nach JavaScript (nur die verwendete Teilmenge: je Zeile eine Deklaration, keine eigenen Funktionen) |
 | `tests/audio_sim.js` | echte Teilchen-Engine + echte DSP, verdrahtet wie im Patch; Messwerte (Pegel, Spitzen, DC, Klicks, Stereo, Abnutzung) und WAV-Hörbeispiele: `node tests/audio_sim.js [ordner]` |
+| `tests/wear_test.js` | Abnutzung je WEAR TYPE und EROSION (Fläche, FREEZE, 20 s), reproduzierbarer Zufall |
 | `tests/layout.js` | Präsentations-Layout von Gerät und Large View als Kästchen (Überlappungen finden) |
 
 ## Bauen und prüfen (Linux-Container)
@@ -48,7 +49,8 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 ## Bekannte Fallstricke
 - **Grain-Ereignisse:** jsui → `evw <index> <wert>` → `[peek~ ---rkev]` (Ring mit 64 Slots × pos, amp, pan, delay ms) und `gen p_evhead <slot>` → gen~. Der Buffer `ev` in der Codebox wird per Attribut `@ev ---rkev` auf den gerätelokalen buffer~ gelegt (Objektbox-Ersetzung von `---` ist sicher, Message-Box-Ersetzung nicht belegt).
 - gen~-Codebox: GenExpr-Teilmenge, die `tests/genexpr.js` versteht; keine Namen von gen-Operatoren als Variablen (z. B. `mix`, `phase`, `delta`, `ln`).
-- Pegelregelung (AGC) des Effektanteils wird bei FREEZE und Stille gehalten – sonst sackt ein eingefrorener Loop ab.
+- Pegelregelung (AGC) des Effektanteils wird nur bei Stille am Eingang gehalten (sonst sackt ein eingefrorener Loop nach dem Stoppen ab); bei FREEZE mit laufendem Eingang regelt sie weiter.
+- Hauptschläge werden beim Wurf (Raster-Tick) mit Verzögerung vorgemerkt; der Aufprall in der Physik (`skipHit`) erzeugt dann kein zweites Grain. Wartende Grains belegen eine Stimme.
 - `live.text` im Button-Modus: Ausgabe kann je nach Version `bang` oder `1`/`0` sein → immer über `[t b]`, nie `[sel 1]` (MORE öffnete in 0.1.0 nicht).
 - Large View hat kein CLOSE und keine Objekte über den jsuis (Logo, Legende, Tempo zeichnet die jsui `large`); schließen über das Fenster-X.
 - Large View öffnet über zwei Wege: `open` → `[pcontrol]` → `[p LargeView]` und `[s ---rk_open]` → `front` → `[thispatcher]`.

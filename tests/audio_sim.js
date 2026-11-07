@@ -171,7 +171,7 @@ module.exports = { wearOf, SR, drums, pad, pluck, simulate, rms, peakOf, mean, d
 if (require.main === module) {
     const outdir = process.argv[2];
     if (outdir) fs.mkdirSync(outdir, { recursive: true });
-    const D = drums(12, 120), Pd = pad(16), Pl = pluck(12, 120);
+    const D = drums(12, 120), Pd = pad(24), Pl = pluck(12, 120);
     const scenarios = [
         ['01_drums_default', D, {}],
         ['02_drums_wet100', D, { mix: 100 }],
@@ -184,6 +184,9 @@ if (require.main === module) {
         ['09_pad_tape_freeze', Pd, { mix: 100, erosion: 80, weartype: 1, grain: 200 }, [[4, 'freeze', 1]]],
         ['10_pad_bit_freeze', Pd, { mix: 100, erosion: 80, weartype: 2, grain: 200 }, [[4, 'freeze', 1]]],
         ['11_pad_erosion0_freeze', Pd, { mix: 100, erosion: 0, grain: 200 }, [[4, 'freeze', 1]]],
+        ['15_pad_sat30_freeze', Pd, { mix: 100, erosion: 30, weartype: 0, grain: 200 }, [[4, 'freeze', 1]]],
+        ['16_pad_tape55_freeze', Pd, { mix: 100, erosion: 55, weartype: 1, grain: 200 }, [[4, 'freeze', 1]]],
+        ['17_pad_bit55_freeze', Pd, { mix: 100, erosion: 55, weartype: 2, grain: 200 }, [[4, 'freeze', 1]]],
         ['12_pluck_default', Pl, {}],
         ['13_pluck_mono', Pl, { mix: 100, stereo: 1 }],
         ['14_pluck_stereo', Pl, { mix: 100, stereo: 0 }]

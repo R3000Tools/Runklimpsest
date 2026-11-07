@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+Nach Nutzertest 0.2.1 (Abnutzung auf Flächen nicht hörbar, ohne SYNC zu zufällig).
+- **Abnutzung neu (EROSION, WEAR TYPE):** arbeitet relativ zur Hüllkurve des Grains (auch auf leisem/dunklem Material wirksam), Stärke pro Lesedurchgang EROSION² × 0,25 (vorher × 0,18 auf pegelabhängige Kennlinien). SAT: spitzenerhaltende Sättigung, wandert bei Wiederholung zu Fuzz. TAPE: Tiefpass 2,2 kHz (vorher 4,5), Rauschen −38 dB relativ. BIT: 3 Bit relativ zum Pegel, Sample-and-Hold /5. HEAL-Standard 30 s (vorher 8 s, hob die Abnutzung fast wieder auf). Messung Fläche, FREEZE, 20 s (Abnutzung 30/55/80 %): SAT 0,43/1,28/1,68 (heller ×1,0/×1,6/×3,5), TAPE 0,29/0,67/0,86 (dunkler ×0,84/×0,74/×0,72), BIT 0,23/0,61/1,02 (×1,03/×1,15/×1,39); 0.2.1 bei 80 %: 0,18–0,43.
+- **Rhythmus:** Jedes Teilchen hat eine eigene Wurfweite; ausgesprungene Teilchen warten auf den nächsten Rasterpunkt (DIVISION) und werden so geworfen, dass der Hauptschlag genau ein ganzzahliges Vielfaches später landet. Der Hauptschlag wird beim Wurf samplegenau vorgemerkt, Nachsprünge bleiben frei. GRAVITY verkürzt die Würfe. Messung ohne SYNC (Anteil Grains ±10 ms am 1/16-Raster, Zufall 0,16): vorher 0,17, jetzt 0,35–0,63; Periodizität (Autokorrelation) 0,05–0,07 → 0,22–0,55.
+- Pegelabgleich des Effektanteils wird nur noch bei Stille am Eingang gehalten, nicht mehr bei FREEZE (TAPE-Abnutzung machte eingefrorene Loops 5 dB leiser, jetzt 3,5 dB).
+- Neu: `tests/wear_test.js` (Abnutzung je Art und Stärke, reproduzierbarer Zufall).
+
 ## 0.2.1 – Klangverarbeitung
 Erste Version mit Audio. DSP als gen~-Codebox (`device/runklimpsest_dsp.genexpr`), Latenz 0 Samples.
 - **Grains aus Teilchen:** Jeder Aufprall in der Chamber startet ein Grain (bis 32 Stimmen). X-Position = Lesestelle im Puffer (2 Takte im Song-Tempo), Aufprallstärke = Lautstärke (0,25–1, Ballsprung-Abklingen hörbar). Zeitpunkt innerhalb des 30-fps-Bildes wird mitgegeben (samplegenau statt 33-ms-Raster). SYNC: wartende Grains feuern direkt beim Raster-Tick (vorher bis 33 ms zu spät).

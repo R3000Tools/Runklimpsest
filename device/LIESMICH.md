@@ -1,4 +1,4 @@
-# Runklimpsest – 0.2.1 (erste Version mit Klangverarbeitung) (Max for Live)
+# Runklimpsest – 0.2.2 (Max for Live)
 
 Granular Particle Memory: Teilchen fallen in der Chamber, jeder Aufprall spielt ein Grain aus den letzten 2 Takten. Jedes Abspielen nutzt die gespielte Stelle ab (Palimpsest).
 Latenz: 0 Samples.

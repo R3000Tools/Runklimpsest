@@ -20,6 +20,8 @@
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
 ## Klang (seit 0.2.1)
+- [ ] Hörtest 0.2.2: Abnutzung auf Flächen (SAT/TAPE/BIT, 30/55/80 %), Rhythmus ohne SYNC, TAPE-Pegel bei FREEZE (−3,5 dB in Simulation)
+- [ ] Prüfen: wartende (vorgemerkte) Hauptschläge belegen Stimmen – bei SWARM 24 + hoher Dosis Stimmenmangel möglich; ggf. eigene Warteschlange in gen~
 - [ ] Hörtest STEREO: Startwert ±70 % und Pan-Gesetz −3 dB auf Kopfhörern und Lautsprechern prüfen, Mono-Summe prüfen; danach entscheiden, ob STEREO | MONO zu einem WIDTH-Regler (0–100 %, Standard 70 %) wird
 - [ ] Klang-Zielbilder vorab festlegen (wie klingen Gravity, Bounce, Erosion 30 %/80 %, Dose hoch) – Maßstab für jede Klangänderung
 - [x] Echter Puffer (2 Takte), Schreibkopf, FREEZE

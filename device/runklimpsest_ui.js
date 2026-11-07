@@ -31,9 +31,9 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.2.1";
+var VERSION = "0.2.2";
 var NATIVE_MENU = false;
-var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 8.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
+var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.62, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 12, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 55.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 80.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 30.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 4.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 12.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 0, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
 var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120], "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120]};
 // END GENERATED
 
@@ -68,8 +68,12 @@ function makeState() {
               tempo: 120, num: 4, den: 4 };
     var i, j;
     for (i = 0; i < MAXP; i++) {
+        // 0.2.2: every particle keeps its own launch strength and sideways speed (golden-ratio
+        // spread) -> each bounces with its own period = interlocking polyrhythms instead of noise
+        var launch = 7 + 7 * ((i * 0.6180339) % 1), side = (((i * 0.3819660) % 1) - 0.5) * 6;
         s.ps.push({ x: 20 + Math.random() * (CW - 40), y: 20 + Math.random() * (CH - 90),
-                    vx: (Math.random() - 0.5) * 5, vy: Math.random() * 3, flash: 0, q: false, tr: [] });
+                    vx: side, vy: Math.random() * 3, flash: 0, q: false, tr: [],
+                    launch: launch, side: Math.abs(side) + 0.4 });
     }
     for (i = 0; i < CELLS; i++) { s.wear.push(0); s.amp.push(0.05); }
     for (i = 0; i < HIST_ROWS; i++) {
@@ -112,10 +116,54 @@ function tick() {
     syncTick();
 }
 
+// grid tick (DIVISION): particles that came to rest start their next throw on the grid
+// (0.2.2: free bounces, anchored throws - SYNC off sounded random), SYNC also fires queued grains
+function gridStepSec() {
+    return secPerBar() / sigNum / [1, 2, 4, 8][Math.max(0, Math.min(3, P.division | 0))] * (sigDen / 4);
+}
+
+// throw speed so that the first impact lands exactly m grid steps after the throw:
+// each particle has its own preferred flight time (0.3 .. 1.0 x, GRAVITY shortens it),
+// rounded to whole grid steps -> main hits on the grid, bounce tails free
+function throwSteps(p) {
+    var target = (0.3 + 0.7 * (((p.launch || 10) - 7) / 7)) * (1.6 - P.gravity);
+    return Math.max(1, Math.round(target / gridStepSec()));
+}
+
+function throwSpeed(p, m) {
+    var g = 0.15 + 0.7 * P.gravity;
+    var frames = m * gridStepSec() * FPS;
+    return g * (frames + 1) / 2; // semi-implicit Euler: back on the floor after "frames" steps
+}
+
+// x position where a thrown particle will land (walls reflect), for the scheduled main hit
+function landingX(p, frames) {
+    var x = p.x, vx = p.vx, k;
+    for (k = 0; k < Math.ceil(frames); k++) {
+        x += vx;
+        if (x < 5) { x = 5; vx = -vx; }
+        if (x > CW - 10) { x = CW - 10; vx = -vx; }
+    }
+    return x;
+}
+
 function syncTick() {
     S.step = (S.step + 1) % 16;
-    if (!P.sync) return;
-    for (var i = 0; i < S.n; i++) if (S.ps[i].q) fireGrain(S.ps[i], 0);
+    for (var i = 0; i < S.n; i++) {
+        var p = S.ps[i];
+        if (p.rest) {
+            p.rest = false;
+            var m = throwSteps(p), v = throwSpeed(p, m), frames = m * gridStepSec() * FPS;
+            p.vy = -v;
+            p.vx = (p.vx < 0 ? -1 : 1) * (p.side || 2);
+            // main hit: scheduled now, sample-accurate, exactly m grid steps ahead (the frame-
+            // based physics would land it up to one frame late); physics only draws it
+            var lx = landingX(p, frames) / CW;
+            emitGrain(Math.max(0, Math.min(1, lx)), impactAmp(v), Math.max(0, Math.min(1, lx)), m * gridStepSec() * 1000);
+            p.skipHit = true;
+        }
+        if (P.sync && p.q) fireGrain(p, 0);
+    }
 }
 
 function level(v) { inLevel = v; }
@@ -181,6 +229,11 @@ function impactAmp(imp) {
 function fireGrain(p, delayMs) {
     emitGrain(Math.max(0, Math.min(1, p.x / CW)), impactAmp(p.imp || 4), Math.max(0, Math.min(1, p.x / CW)),
               delayMs || 0);
+    markGrain(p);
+}
+
+// display side of a grain: flash ring and wear model
+function markGrain(p) {
     var flashLen = Math.round(4 + Math.min(1, P.grain / 300) * 10);
     p.flash = flashLen;
     p.flashLen = flashLen;
@@ -219,7 +272,7 @@ function stepEngine() {
 
     // fallback grid when the transport is stopped (no [metro] ticks for 1 s)
     var fallbackTick = false;
-    if (P.sync && frame - lastTick > FPS) {
+    if (frame - lastTick > FPS) {
         var stepSec = bar / sigNum / [1, 2, 4, 8][Math.max(0, Math.min(3, P.division | 0))] * (sigDen / 4);
         var per = Math.max(1, Math.round(stepSec * FPS));
         if (frame % per === 0) fallbackTick = true;
@@ -230,6 +283,11 @@ function stepEngine() {
         p = S.ps[i];
         p.tr.unshift([p.x, p.y]);
         if (p.tr.length > 5) p.tr.pop();
+        if (p.rest) {
+            // lying on the floor, waiting for the next grid tick
+            if (p.flash > 0) p.flash--;
+            continue;
+        }
         var y0 = p.y;
         p.vy += g; p.x += p.vx; p.y += p.vy;
         if (p.x < 5) { p.x = 5; p.vx = -p.vx; }
@@ -242,11 +300,16 @@ function stepEngine() {
             p.vy = -impact * rest;
             if (impact > 1.5) {
                 p.imp = impact;
-                if (P.sync) p.q = true; else fireGrain(p, frac * 1000 / FPS);
+                if (p.skipHit) {
+                    // main hit was already scheduled at the throw: only flash and wear display
+                    p.skipHit = false;
+                    markGrain(p);
+                } else if (P.sync) p.q = true; else fireGrain(p, frac * 1000 / FPS);
             }
             if (impact < 2.2) {
-                p.vy = -(7 + Math.random() * 7) * kick;
-                p.vx = (Math.random() - 0.5) * 6;
+                // came to rest: wait for the next grid tick (syncTick) for the next throw
+                p.vy = 0;
+                p.rest = true;
             }
         }
         if (p.flash > 0) p.flash--;

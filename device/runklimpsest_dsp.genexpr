@@ -18,7 +18,7 @@ Param p_out(0);
 Param p_grain(80);
 Param p_erosion(55);
 Param p_weartype(0);
-Param p_heal(8);
+Param p_heal(30);
 Param p_freeze(0);
 Param p_stereo(0);
 Param p_dose(0);
@@ -28,7 +28,7 @@ Param p_evhead(0);
 Buffer ev("rkev");
 Data fresh(800000, 2);
 Data worn(800000, 2);
-Data vs(32, 13);
+Data vs(32, 14);
 Data wdl(64, 2);
 History wpos(0);
 History healpos(0);
@@ -146,20 +146,22 @@ if (head != lasthead) {
 			poke(vs, 0, best, 10);
 			poke(vs, 0, best, 11);
 			poke(vs, 0, best, 12);
+			poke(vs, 0, best, 13);
 		}
 	}
 	lasthead = head;
 }
 
 // ---------------------------------------------------------------- voices
-// erosion per read pass: (EROSION)^2 * 0.18, DOSE adds up to +150 % (TARGET ALL / WEAR)
+// erosion per read pass: EROSION^2 * 0.25, DOSE adds up to +150 % (TARGET ALL / WEAR).
+// 0.2.2: 0.2.1 (EROSION^2 * 0.18, level-dependent targets) was inaudible on pads (user test)
 er = p_erosion * 0.01;
 dosek = 0;
 if (p_target != 1) {
 	dosek = 1.5;
 }
-perread = er * er * 0.18 * (1 + p_dose * dosek);
-tapea = 1 - exp(-2 * pi * 4500 / samplerate);
+perread = min(0.9, er * er * 0.25 * (1 + p_dose * dosek));
+tapea = 1 - exp(-2 * pi * 2200 / samplerate);
 wetl = 0;
 wetr = 0;
 nact = 0;
@@ -193,29 +195,34 @@ for (v = 0; v < maxv; v += 1) {
 			nact = nact + 1;
 			// palimpsest write-back: move the read samples toward a degraded version
 			if (perread > 0) {
+				// level-relative wear: every type works against the grain's own envelope, so it
+				// is audible on quiet / dark material too (0.2.1 was level-dependent)
+				venv = max(max(abs(xl), abs(xr)), peek(vs, v, 13) * 0.9997);
+				poke(vs, venv, v, 13);
+				ve = max(venv, 0.0001);
 				dl = xl;
 				dr = xr;
 				if (p_weartype < 0.5) {
-					// SAT: unity gain for very small signals, everything above ~-20 dBFS squashed
-					// -> warm compression + odd harmonics also on quiet material
-					dl = tanh(xl * 6) / 6;
-					dr = tanh(xr * 6) / 6;
+					// SAT: peak-preserving saturation (gain 1.3 for small signals, peaks kept);
+					// repeated passes drift toward a fuzzy, square-ish tone
+					dl = ve * tanh(1.2 * xl / ve) * 1.2008;
+					dr = ve * tanh(1.2 * xr / ve) * 1.2008;
 				} else {
 					if (p_weartype < 1.5) {
-						// TAPE: generation loss - lowpass ~4.5 kHz, soft saturation, faint hiss
+						// TAPE: generation loss - lowpass ~2.2 kHz, unity-gain soft saturation, hiss -38 dB
 						lpl = peek(vs, v, 8) + (xl - peek(vs, v, 8)) * tapea;
 						lpr = peek(vs, v, 9) + (xr - peek(vs, v, 9)) * tapea;
 						poke(vs, lpl, v, 8);
 						poke(vs, lpr, v, 9);
-						dl = tanh(lpl * 1.6) * 0.625 + noise() * 0.002;
-						dr = tanh(lpr * 1.6) * 0.625 + noise() * 0.002;
+						dl = ve * tanh(lpl / ve) + noise() * ve * 0.012;
+						dr = ve * tanh(lpr / ve) + noise() * ve * 0.012;
 					} else {
-						// BIT: sample-and-hold (/3) + 6-bit quantisation -> grit and aliasing
+						// BIT: sample-and-hold (/5) + 3-bit quantisation relative to the envelope
 						hc = peek(vs, v, 12);
 						if (hc <= 0) {
-							poke(vs, floor(xl * 32 + 0.5) / 32, v, 10);
-							poke(vs, floor(xr * 32 + 0.5) / 32, v, 11);
-							hc = 3;
+							poke(vs, floor(xl / ve * 4 + 0.5) / 4 * ve, v, 10);
+							poke(vs, floor(xr / ve * 4 + 0.5) / 4 * ve, v, 11);
+							hc = 5;
 						}
 						poke(vs, hc - 1, v, 12);
 						dl = peek(vs, v, 10);
@@ -243,12 +250,13 @@ wnorm = 1.4142 / sqrt(sload);
 wetl = wetl * wnorm;
 wetr = wetr * wnorm;
 // automatic wet level: match the loudness of the input (mean square, ~0.4 s), gain limited
-// to -12 .. +12 dB and smoothed (~0.3 s). Held during FREEZE and when the input is silent,
-// so a frozen loop keeps its level.
+// to -12 .. +12 dB and smoothed (~0.3 s). Held only while the input is silent, so a frozen
+// loop keeps its level after the input stops (0.2.2: no longer held during FREEZE itself -
+// TAPE wear made frozen loops 5 dB quieter).
 msc = 1 - exp(-1 / (0.4 * samplerate));
 dryms = dryms + ((in1 * in1 + in2 * in2) * 0.5 - dryms) * msc;
 wetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;
-if (p_freeze < 0.5 && dryms > 0.000001 && wetms > 0.0000001) {
+if (dryms > 0.000001 && wetms > 0.0000001) {
 	agct = clamp(sqrt(dryms / wetms), 0.25, 4);
 	agc = agc + (agct - agc) * (1 - exp(-1 / (0.3 * samplerate)));
 }

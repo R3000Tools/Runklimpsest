@@ -26,7 +26,7 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 | Sync | aus/an | an | Gerät + Large View |
 | Division | 1/4, 1/8, 1/16, 1/32 | 1/16 | Gerät + Large View |
 | Grain | 5–500 ms | 80 ms | nur Large View |
-| Heal | 0,5–60 s | 8 s | nur Large View |
+| Heal | 0,5–60 s | 30 s | nur Large View |
 | Dose Rate | 1–32 Takte | 4 | nur Large View |
 | Dose Recover | 1–64 Takte | 12 | nur Large View |
 | Output | −24…+12 dB | 0 dB | nur Large View |
@@ -52,3 +52,5 @@ Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeic
 - gen~-Codebox `device/runklimpsest_dsp.genexpr`, Latenz 0, 32 Grain-Stimmen, Puffer „fresh“ + „worn“ (je stereo, max. 800 000 Samples).
 - Aufprall → Ereignis (Position, Stärke, Panorama, Zeitversatz) → Stimme. Lesen aus „worn“, Rückschreiben einer abgenutzten Fassung (Palimpsest); HEAL zieht „worn“ zu „fresh“.
 - Effektanteil: Mono-Summe je Grain, Pan aus X (±70 %, −3 dB) oder mittig; Dichte-Normalisierung, Pegelangleich an den Eingang, Begrenzer mit Vorlauf, DC-Filter; MIX mit gleicher Leistung; OUTPUT; Schutzbegrenzer.
+- Rhythmus (0.2.2): Teilchen werfen auf dem DIVISION-Raster, der Hauptschlag landet ein ganzzahliges Vielfaches später (samplegenau vorgemerkt), Nachsprünge frei; SYNC rastet zusätzlich alle Aufpralle ein.
+- Abnutzung (0.2.2): relativ zur Grain-Hüllkurve; SAT → Fuzz, TAPE → dunkel + Rauschen, BIT → grob; EROSION² × 0,25 pro Lesedurchgang, HEAL 30 s.
