@@ -31,7 +31,7 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 | Dose Recover | 1–64 Takte | 12 | nur Large View |
 | Output | −24…+12 dB | 0 dB | nur Large View |
 | Wear Type | SAT, TAPE, BIT | SAT | nur Large View |
-| Dose Target | ALL, SWARM, WEAR | ALL | nur Large View |
+| Dose Target | ALL, SWARM, WEAR | WEAR | nur Large View |
 | Dose Reset | Taster | – | DOSE-Ring (Klick), Large View |
 | Stereo | STEREO, MONO | STEREO | nur Large View (OUTPUT) |
 
@@ -54,3 +54,4 @@ Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeic
 - Effektanteil: Mono-Summe je Grain, Pan aus X (±70 %, −3 dB) oder mittig; Dichte-Normalisierung, Pegelangleich an den Eingang, Begrenzer mit Vorlauf, DC-Filter; MIX mit gleicher Leistung; OUTPUT; Schutzbegrenzer.
 - Rhythmus (0.2.2): Teilchen werfen auf dem DIVISION-Raster, der Hauptschlag landet ein ganzzahliges Vielfaches später (samplegenau vorgemerkt), Nachsprünge frei; SYNC rastet zusätzlich alle Aufpralle ein.
 - Abnutzung (0.2.2): relativ zur Grain-Hüllkurve; SAT → Fuzz, TAPE → dunkel + Rauschen, BIT → grob; EROSION² × 0,25 pro Lesedurchgang, HEAL 30 s.
+- Physik (0.2.4): Schwerkraft so skaliert, dass der längste Wurf ~80 % der Kammer erreicht (GRAVITY = Flugzeit); BOUNCE = Elastizität 0,3–0,9 mit Schwellen relativ zur Wurfgeschwindigkeit; DOSE vervielfacht SWARM bis ×2 (TARGET ALL/SWARM).

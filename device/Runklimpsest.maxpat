@@ -1334,7 +1334,7 @@
        "parameter_shortname": "DOSE TARGET",
        "parameter_initial_enable": 1,
        "parameter_initial": [
-        0
+        2
        ],
        "parameter_type": 2,
        "parameter_enum": [

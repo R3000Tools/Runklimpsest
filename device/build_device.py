@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.3"
+VERSION = "0.2.4"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
@@ -57,7 +57,7 @@ PARAMS = [
     dict(name="sync", label="Sync", kind="toggle", text="SYNC", init=1, colname="cyan"),
     dict(name="division", label="Division", kind="menu", items=["1/4", "1/8", "1/16", "1/32"], init=2, colname="cyan"),
     dict(name="weartype", label="Wear Type", short="WEAR TYPE", kind="tab", items=["SAT", "TAPE", "BIT"], init=0, colname="orange"),
-    dict(name="target", label="Dose Target", short="DOSE TARGET", kind="tab", items=["ALL", "SWARM", "WEAR"], init=0, colname="magenta"),
+    dict(name="target", label="Dose Target", short="DOSE TARGET", kind="tab", items=["ALL", "SWARM", "WEAR"], init=2, colname="magenta"),
     dict(name="resetdose", label="Dose Reset", short="DOSE RESET", kind="button", text="RESET DOSE", init=0, colname="magenta"),
     # 0.1.13: grains panned by their X position (+-70 %, -3 dB pan law) or all centred
     dict(name="stereo", label="Stereo", short="STEREO", kind="tab", items=["STEREO", "MONO"], init=0, colname="cyan"),

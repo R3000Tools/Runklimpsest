@@ -20,8 +20,10 @@
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
 ## Klang (seit 0.2.1)
+- [ ] Hörtest 0.2.4: Chamber-Höhe, BOUNCE (Einzelschlag ↔ Ketten), DOSE × SWARM, neue Standardwerte
+- [ ] Feinabstimmung der Standardwerte (Nutzer: später)
 - [ ] Hörtest 0.2.2: Abnutzung auf Flächen (SAT/TAPE/BIT, 30/55/80 %), Rhythmus ohne SYNC, TAPE-Pegel bei FREEZE (−3,5 dB in Simulation) – Gesang und Bass ok (Nutzer)
-- [ ] DOSE vervielfacht SWARM statt +10 Teilchen (SWARM 1 zeigte 11 Teilchen), Anzeige „1 → 2“ – Vorschlag, Nutzerentscheidung offen
+- [x] DOSE vervielfacht SWARM statt +10 Teilchen, Anzeige „1 → 2“ (0.2.4)
 - [ ] Kurzanleitung (Physics, Memory, Dose, Output) in `device/LIESMICH.md` übernehmen
 - [ ] Large View skalierbar machen (Inhalt mit Fenstergröße zoomen) – optional, 0.2.3 hat feste Größe
 - [ ] Prüfen: wartende (vorgemerkte) Hauptschläge belegen Stimmen – bei SWARM 24 + hoher Dosis Stimmenmangel möglich; ggf. eigene Warteschlange in gen~
