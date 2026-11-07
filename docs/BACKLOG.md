@@ -28,9 +28,9 @@
 - [x] MIX, OUTPUT wirksam
 - [x] DOSE moduliert SWARM/WEAR (TARGET)
 - [ ] Entscheidung: Puffer-Inhalt im Set speichern oder beim Laden leer? (0.2.1: beim Laden leer)
-- [ ] Hörtest 0.2.1 in Live: Pegel MIX 50/100 %, GRAIN kurz/lang, SAT/TAPE/BIT bei FREEZE, SYNC-Timing, STEREO/MONO
-- [ ] CPU in Live messen (1 und 4 Instanzen), Ziel < 3 % je Instanz
-- [ ] Prüfen: gen~ Buffer-Zuordnung `@ev ---rkev` – falls keine Grains hörbar sind, ist das die erste Verdachtsstelle
+- [ ] Hörtest 0.2.1 in Live: Drums mit SYNC ok; offen: anderes Material (Gesang, Flächen, Bass, Gitarre), GRAIN kurz/lang, SAT/TAPE/BIT bei FREEZE, SYNC aus, STEREO/MONO, Pegel MIX 50/100 %
+- [x] CPU in Live (0.2.1): Runkelizer + 808 Core Drum Rack + Runklimpsest zusammen 4 % – mehrere Instanzen noch offen
+- [x] gen~ Buffer-Zuordnung `@ev ---rkev` funktioniert (0.2.1: Grains hörbar)
 - [ ] Optional: Tonhöhe pro Aufprall (z. B. ±Halbton aus Aufprallstärke), Rückwärts-Grains, Puffer-Inhalt im Set speichern
 - [ ] Anzeige der Abnutzung aus der echten DSP (Puffer-Differenz) statt aus dem JS-Modell
 

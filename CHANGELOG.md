@@ -10,6 +10,7 @@ Erste Version mit Audio. DSP als gen~-Codebox (`device/runklimpsest_dsp.genexpr`
 - **Pegel:** Effektanteil automatisch auf die Lautheit des Eingangs (±12 dB, bei FREEZE/Stille gehalten), Dichte-Normalisierung, Begrenzer mit 1,3 ms Vorlauf auf dem Effektanteil (−2 dBFS), DC-Filter. MIX mit gleicher Leistung (equal power), Standard jetzt 50 %. OUTPUT −24…+12 dB. Schutzbegrenzer ab −0,9 dBFS.
 - Meter OUT zeigen jetzt den echten Ausgang.
 - Tests: `tests/genexpr.js` übersetzt die ausgelieferte Codebox nach JavaScript, `tests/audio_sim.js` rendert echte Teilchen-Engine + echte DSP (Messwerte, Hörbeispiele).
+- Vom Nutzer in Live bestätigt: Gerät lädt ohne Fehler (gen~-Codebox kompiliert), Grains hörbar (MIX 100 % = nur Grains), CPU: Runkelizer + 808-Core-Drum-Rack + Runklimpsest zusammen 4 %, Drums mit SYNC klingen gut. Anderes Material noch offen.
 - Simulation (synthetisches Material, −3 dBFS): Lautheit ±1 dB zum Original (sehr kurze Grains −3 dB), Spitzen ≤ −1,4 dBFS, keine Klicks über Eingangsniveau, Abnutzung nach 12 s eingefrorenem Loop bei EROSION 80 %: SAT 41 %, TAPE 20 %, BIT 16 %.
 
 ## 0.2.0 – Meilenstein „UI complete“
