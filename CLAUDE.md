@@ -39,7 +39,7 @@ node tests/audio_sim.js            # Messwerte; mit Ordner auch WAVs
 Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vorschaubilder immer als „Nachbildung, nicht aus Live“ kennzeichnen.
 
 ## Arbeitsregeln
-1. Vor jedem Push: Generator gelaufen, `node --check`, `smoke.js`, `render.js` und `audio_sim.js` ohne Fehler, Patch ohne Verbindungen ins Leere. Jede Klangänderung: Messwerte aus `audio_sim.js` nennen und Hörbeispiele (FLAC) mitschicken.
+1. Vor jedem Push: Generator gelaufen, `node --check`, `smoke.js`, `render.js` und `audio_sim.js` ohne Fehler, Patch ohne Verbindungen ins Leere. Jede Klangänderung: Messwerte aus `audio_sim.js` nennen. Hörbeispiele (FLAC) **nur auf Anfrage des Nutzers** schicken (eigene Test-Renderings sind erlaubt, werden aber nicht ausgeliefert).
 2. **Parameter-Regel:** Jede Funktion genau einmal als `live.*`-Objekt mit Parameter Mode im Geräte-Patcher. Im Gerät liegen alle Parameter **versteckt** (Automation und Push-Bänke `BANKS` funktionieren ohne GUI-Objekt; keine zusätzliche Leiste – Nutzerentscheidung nach 0.1.9); die eine jsui `device` zeichnet die Oberfläche und wertet ihre Klicks selbst aus (`<name> <wert>` → `[route uid open …]` → `[route <parameter>]` → `[s ---<name>_c]`). Die Large View enthält **keine** Parameter: Ihre Bedienelemente zeichnet die jsui `controls`, Änderungen gehen als `<name> <wert>` → `[route]` → `[s ---<name>_c]` an das Original. Live-Spiegel ohne Parameter (`parameter_enable 0`) verlieren Namen, Einheiten und Auswahllisten (Befund 0.1.1) – nicht verwenden.
 3. Parameter-Namen (`parameter_longname`) nie ändern ohne Hinweis im CHANGELOG (Automation in Projekten geht verloren).
 4. Max-JS (js/jsui) ist ES5: kein `let`/`const`, keine Pfeilfunktionen, keine Template-Strings. Funktionsnamen dürfen nicht mit Variablennamen kollidieren (Nachrichten an jsui rufen Funktionen gleichen Namens).
@@ -69,7 +69,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 ## Versionen und Auslieferung
 - Versionsnummer in `device/build_device.py` (`VERSION`) – erscheint im Gerät; Überschrift in `device/LIESMICH.md` mitziehen.
 - Jede Version: Nummer erhöhen, Abschnitt `## x.y.z` oben in `CHANGELOG.md`.
-- Auslieferung an den Nutzer als ZIP im Chat (`Runklimpsest-vX.Y.Z.zip` mit Inhalt von `device/`), Hörbeispiele als FLAC-ZIP; kein CI.
+- Auslieferung an den Nutzer als ZIP im Chat (`Runklimpsest-vX.Y.Z.zip` mit Inhalt von `device/`); Hörbeispiele als FLAC-ZIP nur auf Anfrage; kein CI.
 - Arbeitsbranch: `claude/runklimpsest-v0.1`.
 - Meilensteine als Git-Tag `vX.Y.Z` auf den Versions-Commit (0.2.0 = „UI complete“). Ein GitHub Release legt der Nutzer im Browser an (Tag wählen, ZIP anhängen, CHANGELOG-Text). Klangverarbeitung seit 0.2.1 (Nutzerentscheidung).
 
