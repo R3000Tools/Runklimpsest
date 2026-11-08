@@ -19,7 +19,14 @@
 
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
-## Klang (seit 0.2.1)
+## Nächste Version (0.2.8) – vom Nutzer festgehalten, noch nicht umgesetzt
+- [ ] GRAIN-Standard 20 ms statt 5 ms, auch beim Neuladen (Nutzer; Alternative: 30 ms – über einer Periode von 40-Hz-Bass)
+- [ ] Info-Tipps auf Englisch für alle Bedienelemente (Gerät und Large View). Weg 1: jsui setzt beim Überfahren ihr `annotation`-Attribut → Text in Lives Info-Ansicht (ungeprüft, ob Live den Wechsel übernimmt). Weg 2: eigener Hinweis in der jsui (`onidle`)
+- [ ] Würfe nutzen die Höhe zu wenig: Nachsprünge kommen höchstens knapp über die Mitte (Nutzer). Ursache: Wurfhöhe ∝ Flugzeit², kurze Würfe (1–2 Rasterschritte) bleiben flach, BOUNCE 50 % = 36 % der Höhe. Vorschlag: Schwerkraft pro Teilchen so wählen, dass jeder Hauptwurf 55–90 % der Höhe erreicht (Timing bleibt gleich); keine negativen GRAVITY-Werte (Teilchen würden nicht mehr landen = keine Grains)
+- [ ] GRAVITY schnell von hoch auf 0: Teilchen springen kurz höher, teils über die Chamber hinaus (Nutzer: „kinda cute“) – beibehalten, aber Teilchen außerhalb sauber zurückholen (Decke weich oder oben abschneiden und wieder einfallen lassen)
+- [ ] MEMORY baut sich schleppend und schrittweise auf (Nutzer). Ursachen: Übersicht tastet 4 Stellen pro Sample ab (2 Takte bei 120 BPM = 1 s pro Durchlauf), jsui liest nur alle 8 Bilder (0,27 s), Anzeige-Verstärkung springt. Vorschlag: Spalte am Schreibkopf live aktualisieren (1 Sample pro Sample), Lesestellen der Stimmen direkt nachführen, Hintergrund-Durchlauf nur für HEAL; jsui jedes 2. Bild lesen; Spalten weich überblenden
+
+
 - [x] 0.2.6 Standardwerte PHYSICS (Nutzer): GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5,0 ms
 - [x] 0.2.6 Standardwerte MEMORY / DOSE: EROSION 65 %, HEAL 40 s, SAT, TARGET WEAR, RATE 8, RECOVER 16
 - [ ] Hörtest 0.2.6: Standardwerte (sparsame 5-ms-Klicks), Pegel bei MIX 100 % (ca. −12 dB mittlere Lautheit), Abnutzung bei FREEZE
