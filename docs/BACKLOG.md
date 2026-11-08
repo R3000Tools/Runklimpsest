@@ -19,7 +19,7 @@
 
 - [ ] Prüfen, ob Push die Bank-Namen „Main“/„Detail“ übernimmt (Format von `parameterbanks` ungeprüft)
 
-## Nächste Version (0.2.8) – vom Nutzer festgehalten, noch nicht umgesetzt
+## 0.2.8 (umgesetzt) und Nutzernotizen
 - [x] (0.2.8) GRAIN-Standard **30 ms** statt 5 ms, auch beim Neuladen (Nutzerentscheidung: über einer Periode von 40-Hz-Bass, noch perkussiv)
 - [ ] (später, Nutzer) Info-Tipps auf Englisch für alle Bedienelemente (Gerät und Large View). Weg 1: jsui setzt beim Überfahren ihr `annotation`-Attribut → Text in Lives Info-Ansicht (ungeprüft, ob Live den Wechsel übernimmt). Weg 2: eigener Hinweis in der jsui (`onidle`)
 - [x] (0.2.8, umgesetzt wie vorgeschlagen) Würfe nutzen die Höhe zu wenig: Nachsprünge kommen höchstens knapp über die Mitte (Nutzer). Ursache: Wurfhöhe ∝ Flugzeit², kurze Würfe (1–2 Rasterschritte) bleiben flach, BOUNCE 50 % = 36 % der Höhe. Vorschlag: Schwerkraft pro Teilchen so wählen, dass jeder Hauptwurf 55–90 % der Höhe erreicht (Timing bleibt gleich); keine negativen GRAVITY-Werte (Teilchen würden nicht mehr landen = keine Grains)
@@ -27,7 +27,13 @@
 - [x] (0.2.8) **Beschlossen:** MEMORY baut sich schleppend und schrittweise auf (Nutzer). Ursachen: Übersicht tastet 4 Stellen pro Sample ab (2 Takte bei 120 BPM = 1 s pro Durchlauf), jsui liest nur alle 8 Bilder (0,27 s), Anzeige-Verstärkung springt. Vorschlag: Spalte am Schreibkopf live aktualisieren (1 Sample pro Sample), Lesestellen der Stimmen direkt nachführen, Hintergrund-Durchlauf nur für HEAL; jsui jedes 2. Bild lesen; Spalten weich überblenden
 - [x] (0.2.8) Aufprall in MEMORY als orange nachglühender Fleck in der Breite des echten Abnutzungs-Fußabdrucks (≥ 80 ms bzw. GRAIN) – Abnutzung auch bei SWARM 1 sofort sichtbar (Nutzer-Screenshot 0.2.7: Orange kaum zu sehen)
 
+## Befunde Live-Test 0.2.8 (Drum-Loop, Aufnahmen des Nutzers)
+- [ ] **Fehler:** Eingefrorener Loop wird nach Stopp des Eingangs ca. 20 dB leiser (Live: Effektanteil −31 → −52 dB; Simulation gleich: −52…−54 dB). Ursache: Der Eingangs-Mittelwert der Pegelregelung fällt in der Stille, die Regelung läuft auf ihre Untergrenze (×0,25), bevor das Halten greift. Fix in der Simulation geprüft: Eingangs-Mittelwert nur bei Signal nachführen, Regelung nur bei aktivem Eingang (Spitzenwert > −60 dB, 0,2 s Abfall) – nach Stopp −34…−40 dB statt −52…−59 (MIX 100), kein Pegelsprung beim Wiedereinsetzen
+- [x] Simulation gegen Live geprüft: Pegel je Takt ±1 dB, Verhalten nach Eingangsstopp gleich
+- [ ] Wiederholung mit MIX 100 % (Aufnahmen 02–09 lagen bei MIX ≈ 50 %, 01 bei ≈ 25 %): Abnutzung und DOSE-Dichte so nicht messbar
+- [ ] Automation von FREEZE in Live: Ergebnis der Prüfung (lief der Transport?) offen
 
+## Klang (seit 0.2.1)
 - [x] 0.2.6 Standardwerte PHYSICS (Nutzer): GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5,0 ms
 - [x] 0.2.6 Standardwerte MEMORY / DOSE: EROSION 65 %, HEAL 40 s, SAT, TARGET WEAR, RATE 8, RECOVER 16
 - [ ] Hörtest 0.2.6: Standardwerte (sparsame 5-ms-Klicks), Pegel bei MIX 100 % (ca. −12 dB mittlere Lautheit), Abnutzung bei FREEZE
