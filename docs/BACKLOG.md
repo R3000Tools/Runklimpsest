@@ -50,7 +50,7 @@
 - [x] CPU in Live (0.2.1): Runkelizer + 808 Core Drum Rack + Runklimpsest zusammen 4 % – mehrere Instanzen noch offen
 - [x] gen~ Buffer-Zuordnung `@ev ---rkev` funktioniert (0.2.1: Grains hörbar)
 - [ ] Optional: Tonhöhe pro Aufprall (z. B. ±Halbton aus Aufprallstärke), Rückwärts-Grains, Puffer-Inhalt im Set speichern
-- [x] Anzeige der Abnutzung aus der echten DSP (Puffer-Differenz) statt aus dem JS-Modell (0.2.7, in Live zu prüfen: gerätelokaler Buffer-Name per `[prepend ovname ---rkov]`)
+- [x] Anzeige der Abnutzung aus der echten DSP (Puffer-Differenz) statt aus dem JS-Modell (0.2.7, in Live bestätigt: gerätelokaler Buffer-Name per `[prepend ovname ---rkov]` funktioniert)
 - [ ] Hörtest-Fix Bass/Drums seit 0.2.6 („Bass seltsam, Drums waren besser“): Tests A (GRAIN 80 ms, EROSION 65 %), B (5 ms, 0 %), C (80 ms, 0 %) vom Nutzer abwarten; Kandidaten: Mindest-Grainlänge, Wear-Fußabdruck an GRAIN koppeln
 - [ ] Test 0.2.7 in Live: echte Wellenform sichtbar? CPU mit offener Large View (MEMORY zeichnet ~256 Spalten + Schraffur); ggf. MEMORY nur alle 2 Bilder neu zeichnen
 - [ ] Optional: Gerät – Schraffur im kleinen MEMORY prüfen (evtl. nur Tönung)
