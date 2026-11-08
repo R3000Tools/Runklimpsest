@@ -30,7 +30,8 @@
 ## Befunde Live-Test 0.2.8 (Drum-Loop, Aufnahmen des Nutzers)
 - [ ] **Fehler:** Eingefrorener Loop wird nach Stopp des Eingangs ca. 20 dB leiser (Live: Effektanteil −31 → −52 dB; Simulation gleich: −52…−54 dB). Ursache: Der Eingangs-Mittelwert der Pegelregelung fällt in der Stille, die Regelung läuft auf ihre Untergrenze (×0,25), bevor das Halten greift. Fix in der Simulation geprüft: Eingangs-Mittelwert nur bei Signal nachführen, Regelung nur bei aktivem Eingang (Spitzenwert > −60 dB, 0,2 s Abfall) – nach Stopp −34…−40 dB statt −52…−59 (MIX 100), kein Pegelsprung beim Wiedereinsetzen
 - [x] Simulation gegen Live geprüft: Pegel je Takt ±1 dB, Verhalten nach Eingangsstopp gleich
-- [ ] Wiederholung mit MIX 100 % (Aufnahmen 02–09 lagen bei MIX ≈ 50 %, 01 bei ≈ 25 %): Abnutzung und DOSE-Dichte so nicht messbar
+- [x] Wiederholung mit MIX 100 % (8 Aufnahmen, 16 Takte): Simulation mit demselben Loop trifft Live – mittlerer Pegel ±0,8 dB in allen 8 Fällen, Grain-Dichte je Takt, Crest (11 dB), Grundrauschen (−56 dB) gleich; Stereo in Live etwas breiter (Korrelation 0,76–0,83 statt 0,83–0,86); DOSE SWARM verdoppelt die Teilchen in Live wie simuliert
+- [ ] **Abnutzung auf Drums kaum messbar** (Standard SWARM 4, GRAIN 30 ms, EROSION 65 %, FREEZE ab Takt 3): Spektrum der späten Takte meist innerhalb der Streuung (±2–3 dB) zur Referenz ohne Abnutzung; nur TAPE (−3…−6 dB über 1 kHz) und SAT 100 %/HEAL 60 s (−7 dB über 4 kHz) zeigen eine Richtung. Passt zur Anzeige (MOST WORN niedrig). Entscheidung nach Hörurteil des Nutzers: Abnutzung kräftiger (z. B. EROSION-Kurve, Fußabdruck 80 → 150 ms, HEAL-Standard länger)?
 - [ ] Automation von FREEZE in Live: Ergebnis der Prüfung (lief der Transport?) offen
 
 ## Klang (seit 0.2.1)
