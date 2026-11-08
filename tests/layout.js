@@ -9,5 +9,5 @@ const col={jsui:'#2a6',comment:'transparent',panel:'transparent'}[b.maxclass]||'
 s+=`<div style="position:absolute;left:${x}px;top:${y}px;width:${bw}px;height:${bh}px;border:1px solid #9cf;background:${col}55;overflow:hidden;box-sizing:border-box">${lbl}</div>`;}
 return s+'</div>';}
 (async()=>{const b=await chromium.launch();const pg=await b.newPage({deviceScaleFactor:2});
-await pg.setContent(html(p.boxes,p.devicewidth||580,169)+'<br>'+html(win.boxes,960,620));
+await pg.setContent(html(p.boxes,p.devicewidth||580,169)+'<br>'+html(win.boxes,960,456));
 await pg.screenshot({path:process.argv[2]||'layout.png',fullPage:true});await b.close();})();

@@ -3128,7 +3128,7 @@
       150,
       22
      ],
-     "text": "gen~ @ev ---rkev",
+     "text": "gen~ @ev ---rkev @ov ---rkov",
      "numinlets": 2,
      "numoutlets": 2,
      "outlettype": [
@@ -3198,7 +3198,7 @@
           760,
           640
          ],
-         "code": "// Runklimpsest audio engine - gen~ codebox (GenExpr).\n// build_device.py embeds this file into [gen~ @ev ---rkev]; tests/audio_sim.js transpiles\n// the same file to JavaScript and renders it, so the shipped code is the tested code.\n// Keep to the subset the transpiler understands: one declaration per line, C-style\n// statements, no user functions, locals assigned before use, loops \"v += 1\".\n//\n// Signal flow\n//   input -> record (2 bars, \"fresh\" + \"worn\" copies) unless FREEZE\n//   grain events (from the particle engine via buffer~ ---rkev) -> 32 voices\n//   each voice reads \"worn\", outputs the grain and writes a degraded copy back\n//   (palimpsest: reading wears the source), HEAL sweeps worn back toward fresh\n//   grains: mono sum, constant-power pan from X (+-70 %) or centre (MONO)\n//   wet: density normalisation, DC blocker -> equal-power MIX -> OUTPUT -> soft clip\n// Latency: 0 samples (grains read from the past, dry is not delayed).\n\nParam p_mix(50);\nParam p_out(0);\nParam p_grain(5);\nParam p_erosion(65);\nParam p_weartype(0);\nParam p_heal(40);\nParam p_freeze(0);\nParam p_stereo(0);\nParam p_dose(0);\nParam p_target(0);\nParam p_barsec(2);\nParam p_evhead(0);\nBuffer ev(\"rkev\");\nData fresh(800000, 2);\nData worn(800000, 2);\nData vs(32, 15);\nData wdl(64, 2);\nHistory wpos(0);\nHistory healpos(0);\nHistory lasthead(0);\nHistory smix(0.5);\nHistory sout(1);\nHistory sload(1);\nHistory dryms(0);\nHistory wetms(0);\nHistory agc(1);\nHistory wdi(0);\nHistory lenv(0);\nHistory lgain(1);\nHistory dcxl(0);\nHistory dcyl(0);\nHistory dcxr(0);\nHistory dcyr(0);\n\n// ---------------------------------------------------------------- constants\ncap = 800000;\nblen = clamp(floor(p_barsec * 2 * samplerate), 4096, cap);\nevslots = 64;\nmaxv = 32;\n\n// ---------------------------------------------------------------- record\nif (p_freeze < 0.5) {\n\twi = wpos;\n\tif (wi >= blen) {\n\t\twi = 0;\n\t}\n\tpoke(fresh, in1, wi, 0);\n\tpoke(fresh, in2, wi, 1);\n\tpoke(worn, in1, wi, 0);\n\tpoke(worn, in2, wi, 1);\n\twpos = wi + 1;\n}\n\n// ---------------------------------------------------------------- heal sweep\n// one buffer position per sample; a full sweep takes blen samples, so the per-sweep\n// pull toward \"fresh\" is 1 - exp(-sweep / HEAL) -> time constant = HEAL seconds\nhi = healpos;\nif (hi >= blen) {\n\thi = 0;\n}\nhk = 1 - exp(-(blen / samplerate) / max(0.1, p_heal));\nhfl = peek(fresh, hi, 0);\nhfr = peek(fresh, hi, 1);\nhwl = peek(worn, hi, 0);\nhwr = peek(worn, hi, 1);\npoke(worn, hwl + (hfl - hwl) * hk, hi, 0);\npoke(worn, hwr + (hfr - hwr) * hk, hi, 1);\nhealpos = hi + 1;\n\n// ---------------------------------------------------------------- grain events\n// slot k (1..63, 0) holds pos, amp, pan x, delay ms at k*4 .. k*4+3\nhead = floor(p_evhead);\nif (head != lasthead) {\n\tek = lasthead;\n\tfor (j = 0; j < evslots; j += 1) {\n\t\tif (ek != head) {\n\t\t\tek = ek + 1;\n\t\t\tif (ek >= evslots) {\n\t\t\t\tek = 0;\n\t\t\t}\n\t\t\teb = ek * 4;\n\t\t\tepos = peek(ev, eb, 0);\n\t\t\teamp = peek(ev, eb + 1, 0);\n\t\t\tex = peek(ev, eb + 2, 0);\n\t\t\tedel = peek(ev, eb + 3, 0);\n\t\t\t// free voice first, else steal the one closest to its end\n\t\t\tbest = 0;\n\t\t\tbestscore = -1;\n\t\t\tfor (v = 0; v < maxv; v += 1) {\n\t\t\t\tvact = peek(vs, v, 0);\n\t\t\t\tvscore = 2;\n\t\t\t\tif (vact > 0.5) {\n\t\t\t\t\tvscore = peek(vs, v, 2) / max(1, peek(vs, v, 3));\n\t\t\t\t}\n\t\t\t\tif (vscore > bestscore) {\n\t\t\t\t\tbestscore = vscore;\n\t\t\t\t\tbest = v;\n\t\t\t\t}\n\t\t\t}\n\t\t\tglen = max(48, floor(mstosamps(p_grain * (1 + 0.08 * noise()))));\n\t\t\tgstart = floor(clamp(epos, 0, 1) * (blen - 1));\n\t\t\t// never read across the write head (newest meets oldest audio = click):\n\t\t\t// such grains start right behind the head instead\n\t\t\tif (p_freeze < 0.5) {\n\t\t\t\tgdist = wpos - gstart;\n\t\t\t\tif (gdist < 0) {\n\t\t\t\t\tgdist = gdist + blen;\n\t\t\t\t}\n\t\t\t\tif (gdist < glen + 64) {\n\t\t\t\t\tgstart = wpos - glen - 64;\n\t\t\t\t\tif (gstart < 0) {\n\t\t\t\t\t\tgstart = gstart + blen;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tgpan = 0;\n\t\t\tif (p_stereo < 0.5) {\n\t\t\t\tgpan = (clamp(ex, 0, 1) * 2 - 1) * 0.7;\n\t\t\t}\n\t\t\tgth = (gpan + 1) * pi * 0.25;\n\t\t\tpoke(vs, 1, best, 0);\n\t\t\tpoke(vs, floor(mstosamps(max(0, edel))), best, 1);\n\t\t\tpoke(vs, 0, best, 2);\n\t\t\tpoke(vs, glen, best, 3);\n\t\t\tpoke(vs, gstart, best, 4);\n\t\t\tpoke(vs, clamp(eamp, 0, 1), best, 5);\n\t\t\tpoke(vs, cos(gth), best, 6);\n\t\t\tpoke(vs, sin(gth), best, 7);\n\t\t\tpoke(vs, 0, best, 8);\n\t\t\tpoke(vs, 0, best, 9);\n\t\t\tpoke(vs, 0, best, 10);\n\t\t\tpoke(vs, 0, best, 11);\n\t\t\tpoke(vs, 0, best, 12);\n\t\t\tpoke(vs, 0, best, 13);\n\t\t\t// wear footprint: an impact dents at least 80 ms of the buffer, even when the audible\n\t\t\t// grain is shorter (0.2.6: 5 ms grains wore only 0.1 % of the loop per read)\n\t\t\tpoke(vs, max(glen, floor(mstosamps(80))), best, 14);\n\t\t}\n\t}\n\tlasthead = head;\n}\n\n// ---------------------------------------------------------------- voices\n// erosion per read pass: EROSION^2 * 0.25, DOSE adds up to +150 % (TARGET ALL / WEAR).\n// 0.2.2: 0.2.1 (EROSION^2 * 0.18, level-dependent targets) was inaudible on pads (user test)\ner = p_erosion * 0.01;\ndosek = 0;\nif (p_target != 1) {\n\tdosek = 1.5;\n}\nperread = min(0.9, er * er * 0.25 * (1 + p_dose * dosek));\ntapea = 1 - exp(-2 * pi * 2200 / samplerate);\nwetl = 0;\nwetr = 0;\nnact = 0;\nfor (v = 0; v < maxv; v += 1) {\n\tif (peek(vs, v, 0) > 0.5) {\n\t\tvwait = peek(vs, v, 1);\n\t\tif (vwait > 0) {\n\t\t\tpoke(vs, vwait - 1, v, 1);\n\t\t} else {\n\t\t\tvph = peek(vs, v, 2);\n\t\t\tvlen = peek(vs, v, 3);\n\t\t\twlen = peek(vs, v, 14);\n\t\t\tvidx = peek(vs, v, 4) + vph;\n\t\t\tif (vidx >= blen) {\n\t\t\t\tvidx = vidx - blen;\n\t\t\t}\n\t\t\txl = peek(worn, vidx, 0);\n\t\t\txr = peek(worn, vidx, 1);\n\t\t\t// audible part: Tukey window (25 % cosine flanks) over the grain length\n\t\t\tif (vph < vlen) {\n\t\t\t\ttt = vph / vlen;\n\t\t\t\twin = 1;\n\t\t\t\tif (tt < 0.25) {\n\t\t\t\t\twin = 0.5 - 0.5 * cos(pi * tt * 4);\n\t\t\t\t}\n\t\t\t\tif (tt > 0.75) {\n\t\t\t\t\twin = 0.5 - 0.5 * cos(pi * (1 - tt) * 4);\n\t\t\t\t}\n\t\t\t\tvg = peek(vs, v, 5) * win;\n\t\t\t\tmono = (xl + xr) * 0.5 * vg;\n\t\t\t\twetl = wetl + mono * peek(vs, v, 6);\n\t\t\t\twetr = wetr + mono * peek(vs, v, 7);\n\t\t\t\tnact = nact + 1;\n\t\t\t}\n\t\t\t// wear window: same shape over the (longer) footprint\n\t\t\ttw = vph / wlen;\n\t\t\twinw = 1;\n\t\t\tif (tw < 0.25) {\n\t\t\t\twinw = 0.5 - 0.5 * cos(pi * tw * 4);\n\t\t\t}\n\t\t\tif (tw > 0.75) {\n\t\t\t\twinw = 0.5 - 0.5 * cos(pi * (1 - tw) * 4);\n\t\t\t}\n\t\t\t// palimpsest write-back: move the read samples toward a degraded version\n\t\t\tif (perread > 0) {\n\t\t\t\t// level-relative wear: every type works against the grain's own envelope, so it\n\t\t\t\t// is audible on quiet / dark material too (0.2.1 was level-dependent)\n\t\t\t\tvenv = max(max(abs(xl), abs(xr)), peek(vs, v, 13) * 0.9997);\n\t\t\t\tpoke(vs, venv, v, 13);\n\t\t\t\tve = max(venv, 0.0001);\n\t\t\t\tdl = xl;\n\t\t\t\tdr = xr;\n\t\t\t\tif (p_weartype < 0.5) {\n\t\t\t\t\t// SAT: peak-preserving saturation (gain 1.3 for small signals, peaks kept);\n\t\t\t\t\t// repeated passes drift toward a fuzzy, square-ish tone\n\t\t\t\t\tdl = ve * tanh(1.2 * xl / ve) * 1.2008;\n\t\t\t\t\tdr = ve * tanh(1.2 * xr / ve) * 1.2008;\n\t\t\t\t} else {\n\t\t\t\t\tif (p_weartype < 1.5) {\n\t\t\t\t\t\t// TAPE: generation loss - lowpass ~2.2 kHz, unity-gain soft saturation, hiss -38 dB\n\t\t\t\t\t\tlpl = peek(vs, v, 8) + (xl - peek(vs, v, 8)) * tapea;\n\t\t\t\t\t\tlpr = peek(vs, v, 9) + (xr - peek(vs, v, 9)) * tapea;\n\t\t\t\t\t\tpoke(vs, lpl, v, 8);\n\t\t\t\t\t\tpoke(vs, lpr, v, 9);\n\t\t\t\t\t\tdl = ve * tanh(lpl / ve) + noise() * ve * 0.012;\n\t\t\t\t\t\tdr = ve * tanh(lpr / ve) + noise() * ve * 0.012;\n\t\t\t\t\t} else {\n\t\t\t\t\t\t// BIT: sample-and-hold (/5) + 3-bit quantisation relative to the envelope\n\t\t\t\t\t\thc = peek(vs, v, 12);\n\t\t\t\t\t\tif (hc <= 0) {\n\t\t\t\t\t\t\tpoke(vs, floor(xl / ve * 4 + 0.5) / 4 * ve, v, 10);\n\t\t\t\t\t\t\tpoke(vs, floor(xr / ve * 4 + 0.5) / 4 * ve, v, 11);\n\t\t\t\t\t\t\thc = 5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tpoke(vs, hc - 1, v, 12);\n\t\t\t\t\t\tdl = peek(vs, v, 10);\n\t\t\t\t\t\tdr = peek(vs, v, 11);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\twk = perread * winw;\n\t\t\t\tpoke(worn, xl + (dl - xl) * wk, vidx, 0);\n\t\t\t\tpoke(worn, xr + (dr - xr) * wk, vidx, 1);\n\t\t\t}\n\t\t\tvph = vph + 1;\n\t\t\tpoke(vs, vph, v, 2);\n\t\t\tif (vph >= wlen) {\n\t\t\t\tpoke(vs, 0, v, 0);\n\t\t\t}\n\t\t}\n\t}\n}\n\n// ---------------------------------------------------------------- wet bus\n// density normalisation: overlapping grains add up; scale by 1/sqrt(mean active voices),\n// sqrt(2) undoes the -3 dB centre of the constant-power pan\nsload = sload + (max(1, nact) - sload) * 0.0005;\nwnorm = 1.4142 / sqrt(sload);\nwetl = wetl * wnorm;\nwetr = wetr * wnorm;\n// automatic wet level: match the loudness of the input (mean square, ~0.4 s), gain limited\n// (0.2.6: the wet level is measured only while grains sound - sparse short grains are\n// matched as \"each grain as loud as the input\", pauses stay pauses; time-averaging left\n// 5 ms grains 10 dB too quiet),\n// to -12 .. +12 dB and smoothed (~0.3 s). Held only while the input is silent, so a frozen\n// loop keeps its level after the input stops (0.2.2: no longer held during FREEZE itself -\n// TAPE wear made frozen loops 5 dB quieter).\nmsc = 1 - exp(-1 / (0.4 * samplerate));\ndryms = dryms + ((in1 * in1 + in2 * in2) * 0.5 - dryms) * msc;\nif (nact > 0) {\n\twetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;\n}\nif (dryms > 0.000001 && wetms > 0.0000001) {\n\tagct = clamp(sqrt(dryms / wetms), 0.25, 4);\n\tagc = agc + (agct - agc) * (1 - exp(-1 / (0.3 * samplerate)));\n}\nwetl = wetl * agc;\nwetr = wetr * agc;\n// wet peak limiter, ceiling -2 dBFS, 64-sample lookahead (1.3 ms; the wet path is not\n// time-aligned to the dry signal anyway, so this adds no latency to the device)\nlpk = max(abs(wetl), abs(wetr));\nif (lpk > lenv) {\n\tlenv = lpk;\n} else {\n\tlenv = lenv + (lpk - lenv) * (1 - exp(-1 / (0.08 * samplerate)));\n}\nlgt = min(1, 0.79 / max(lenv, 0.000001));\nif (lgt < lgain) {\n\tlgain = lgain + (lgt - lgain) * 0.06;\n} else {\n\tlgain = lgain + (lgt - lgain) * (1 - exp(-1 / (0.08 * samplerate)));\n}\nwdo = wdi + 1;\nif (wdo >= 64) {\n\twdo = 0;\n}\npoke(wdl, wetl, wdi, 0);\npoke(wdl, wetr, wdi, 1);\nwetl = peek(wdl, wdo, 0) * lgain;\nwetr = peek(wdl, wdo, 1) * lgain;\nwdi = wdo;\n// DC blocker (~10 Hz): repeated asymmetric wear must not leave an offset\ndcol = wetl - dcxl + 0.9987 * dcyl;\ndcxl = wetl;\ndcyl = dcol;\ndcor = wetr - dcxr + 0.9987 * dcyr;\ndcxr = wetr;\ndcyr = dcor;\n\n// ---------------------------------------------------------------- mix, output\nsmix = smix + (clamp(p_mix * 0.01, 0, 1) - smix) * 0.0008;\nsout = sout + (pow(10, clamp(p_out, -24, 12) / 20) - sout) * 0.0008;\ndryg = cos(smix * pi * 0.5);\nwetg = sin(smix * pi * 0.5);\nol = (in1 * dryg + dcol * wetg) * sout;\norr = (in2 * dryg + dcor * wetg) * sout;\n// transparent below -0.9 dBFS, soft knee above (protection, not a sound feature)\nal = abs(ol);\nif (al > 0.9) {\n\tol = sign(ol) * (0.9 + 0.1 * tanh((al - 0.9) * 10));\n}\nar = abs(orr);\nif (ar > 0.9) {\n\torr = sign(orr) * (0.9 + 0.1 * tanh((ar - 0.9) * 10));\n}\nout1 = ol;\nout2 = orr;\n",
+         "code": "// Runklimpsest audio engine - gen~ codebox (GenExpr).\n// build_device.py embeds this file into [gen~ @ev ---rkev]; tests/audio_sim.js transpiles\n// the same file to JavaScript and renders it, so the shipped code is the tested code.\n// Keep to the subset the transpiler understands: one declaration per line, C-style\n// statements, no user functions, locals assigned before use, loops \"v += 1\".\n//\n// Signal flow\n//   input -> record (2 bars, \"fresh\" + \"worn\" copies) unless FREEZE\n//   grain events (from the particle engine via buffer~ ---rkev) -> 32 voices\n//   each voice reads \"worn\", outputs the grain and writes a degraded copy back\n//   (palimpsest: reading wears the source), HEAL sweeps worn back toward fresh\n//   grains: mono sum, constant-power pan from X (+-70 %) or centre (MONO)\n//   wet: density normalisation, DC blocker -> equal-power MIX -> OUTPUT -> soft clip\n//   display: overview of the buffer (256 columns) in buffer~ ---rkov, read by the jsui\n// Latency: 0 samples (grains read from the past, dry is not delayed).\n\nParam p_mix(50);\nParam p_out(0);\nParam p_grain(5);\nParam p_erosion(65);\nParam p_weartype(0);\nParam p_heal(40);\nParam p_freeze(0);\nParam p_stereo(0);\nParam p_dose(0);\nParam p_target(0);\nParam p_barsec(2);\nParam p_evhead(0);\nBuffer ev(\"rkev\");\nBuffer ov(\"rkov\");\nData fresh(800000, 2);\nData worn(800000, 2);\nData vs(32, 15);\nData wdl(64, 2);\nHistory wpos(0);\nHistory healpos(0);\nHistory lasthead(0);\nHistory smix(0.5);\nHistory sout(1);\nHistory sload(1);\nHistory dryms(0);\nHistory wetms(0);\nHistory agc(1);\nHistory wdi(0);\nHistory lenv(0);\nHistory lgain(1);\nHistory dcxl(0);\nHistory dcyl(0);\nHistory dcxr(0);\nHistory dcyr(0);\nHistory ovpos(0);\nHistory ocol(0);\nHistory afp(0);\nHistory awp(0);\nHistory aws(0);\nHistory afs(0);\nHistory ads(0);\nHistory acnt(0);\n\n// ---------------------------------------------------------------- constants\ncap = 800000;\nblen = clamp(floor(p_barsec * 2 * samplerate), 4096, cap);\nevslots = 64;\nmaxv = 32;\n\n// ---------------------------------------------------------------- record\nif (p_freeze < 0.5) {\n\twi = wpos;\n\tif (wi >= blen) {\n\t\twi = 0;\n\t}\n\tpoke(fresh, in1, wi, 0);\n\tpoke(fresh, in2, wi, 1);\n\tpoke(worn, in1, wi, 0);\n\tpoke(worn, in2, wi, 1);\n\twpos = wi + 1;\n}\n\n// ---------------------------------------------------------------- heal sweep\n// one buffer position per sample; a full sweep takes blen samples, so the per-sweep\n// pull toward \"fresh\" is 1 - exp(-sweep / HEAL) -> time constant = HEAL seconds\nhi = healpos;\nif (hi >= blen) {\n\thi = 0;\n}\nhk = 1 - exp(-(blen / samplerate) / max(0.1, p_heal));\nhfl = peek(fresh, hi, 0);\nhfr = peek(fresh, hi, 1);\nhwl = peek(worn, hi, 0);\nhwr = peek(worn, hi, 1);\npoke(worn, hwl + (hfl - hwl) * hk, hi, 0);\npoke(worn, hwr + (hfr - hwr) * hk, hi, 1);\nhealpos = hi + 1;\n\n// ---------------------------------------------------------------- display overview\n// 256 columns x 4 values in buffer~ ---rkov (index col * 4 + k): fresh peak, worn peak,\n// worn rms, wear (rms of worn - fresh relative to fresh rms, 0..1); index 1024 = write head\n// position 0..1. Scans 4 buffer positions per sample: a 2-bar loop at 120 BPM in 1 s.\novn = 256;\novi = ovpos;\noc0 = ocol;\nqfp = afp;\nqwp = awp;\nqws = aws;\nqfs = afs;\nqds = ads;\nqn = acnt;\nfor (oqi = 0; oqi < 4; oqi += 1) {\n\tif (ovi >= blen) {\n\t\tovi = 0;\n\t}\n\tovc = floor(ovi * ovn / blen);\n\tif (ovc != oc0) {\n\t\tocn = max(1, qn);\n\t\tofr = sqrt(qfs / ocn);\n\t\tpoke(ov, qfp, oc0 * 4, 0);\n\t\tpoke(ov, qwp, oc0 * 4 + 1, 0);\n\t\tpoke(ov, sqrt(qws / ocn), oc0 * 4 + 2, 0);\n\t\tpoke(ov, clamp(sqrt(qds / ocn) / max(ofr, 0.003), 0, 1), oc0 * 4 + 3, 0);\n\t\tqfp = 0;\n\t\tqwp = 0;\n\t\tqws = 0;\n\t\tqfs = 0;\n\t\tqds = 0;\n\t\tqn = 0;\n\t\toc0 = ovc;\n\t}\n\tofm = (peek(fresh, ovi, 0) + peek(fresh, ovi, 1)) * 0.5;\n\towm = (peek(worn, ovi, 0) + peek(worn, ovi, 1)) * 0.5;\n\tqfp = max(qfp, abs(ofm));\n\tqwp = max(qwp, abs(owm));\n\tqws = qws + owm * owm;\n\tqfs = qfs + ofm * ofm;\n\tqds = qds + (owm - ofm) * (owm - ofm);\n\tqn = qn + 1;\n\tovi = ovi + 1;\n}\novpos = ovi;\nocol = oc0;\nafp = qfp;\nawp = qwp;\naws = qws;\nafs = qfs;\nads = qds;\nacnt = qn;\npoke(ov, wpos / blen, ovn * 4, 0);\n\n// ---------------------------------------------------------------- grain events\n// slot k (1..63, 0) holds pos, amp, pan x, delay ms at k*4 .. k*4+3\nhead = floor(p_evhead);\nif (head != lasthead) {\n\tek = lasthead;\n\tfor (j = 0; j < evslots; j += 1) {\n\t\tif (ek != head) {\n\t\t\tek = ek + 1;\n\t\t\tif (ek >= evslots) {\n\t\t\t\tek = 0;\n\t\t\t}\n\t\t\teb = ek * 4;\n\t\t\tepos = peek(ev, eb, 0);\n\t\t\teamp = peek(ev, eb + 1, 0);\n\t\t\tex = peek(ev, eb + 2, 0);\n\t\t\tedel = peek(ev, eb + 3, 0);\n\t\t\t// free voice first, else steal the one closest to its end\n\t\t\tbest = 0;\n\t\t\tbestscore = -1;\n\t\t\tfor (v = 0; v < maxv; v += 1) {\n\t\t\t\tvact = peek(vs, v, 0);\n\t\t\t\tvscore = 2;\n\t\t\t\tif (vact > 0.5) {\n\t\t\t\t\tvscore = peek(vs, v, 2) / max(1, peek(vs, v, 3));\n\t\t\t\t}\n\t\t\t\tif (vscore > bestscore) {\n\t\t\t\t\tbestscore = vscore;\n\t\t\t\t\tbest = v;\n\t\t\t\t}\n\t\t\t}\n\t\t\tglen = max(48, floor(mstosamps(p_grain * (1 + 0.08 * noise()))));\n\t\t\tgstart = floor(clamp(epos, 0, 1) * (blen - 1));\n\t\t\t// never read across the write head (newest meets oldest audio = click):\n\t\t\t// such grains start right behind the head instead\n\t\t\tif (p_freeze < 0.5) {\n\t\t\t\tgdist = wpos - gstart;\n\t\t\t\tif (gdist < 0) {\n\t\t\t\t\tgdist = gdist + blen;\n\t\t\t\t}\n\t\t\t\tif (gdist < glen + 64) {\n\t\t\t\t\tgstart = wpos - glen - 64;\n\t\t\t\t\tif (gstart < 0) {\n\t\t\t\t\t\tgstart = gstart + blen;\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t}\n\t\t\tgpan = 0;\n\t\t\tif (p_stereo < 0.5) {\n\t\t\t\tgpan = (clamp(ex, 0, 1) * 2 - 1) * 0.7;\n\t\t\t}\n\t\t\tgth = (gpan + 1) * pi * 0.25;\n\t\t\tpoke(vs, 1, best, 0);\n\t\t\tpoke(vs, floor(mstosamps(max(0, edel))), best, 1);\n\t\t\tpoke(vs, 0, best, 2);\n\t\t\tpoke(vs, glen, best, 3);\n\t\t\tpoke(vs, gstart, best, 4);\n\t\t\tpoke(vs, clamp(eamp, 0, 1), best, 5);\n\t\t\tpoke(vs, cos(gth), best, 6);\n\t\t\tpoke(vs, sin(gth), best, 7);\n\t\t\tpoke(vs, 0, best, 8);\n\t\t\tpoke(vs, 0, best, 9);\n\t\t\tpoke(vs, 0, best, 10);\n\t\t\tpoke(vs, 0, best, 11);\n\t\t\tpoke(vs, 0, best, 12);\n\t\t\tpoke(vs, 0, best, 13);\n\t\t\t// wear footprint: an impact dents at least 80 ms of the buffer, even when the audible\n\t\t\t// grain is shorter (0.2.6: 5 ms grains wore only 0.1 % of the loop per read)\n\t\t\tpoke(vs, max(glen, floor(mstosamps(80))), best, 14);\n\t\t}\n\t}\n\tlasthead = head;\n}\n\n// ---------------------------------------------------------------- voices\n// erosion per read pass: EROSION^2 * 0.25, DOSE adds up to +150 % (TARGET ALL / WEAR).\n// 0.2.2: 0.2.1 (EROSION^2 * 0.18, level-dependent targets) was inaudible on pads (user test)\ner = p_erosion * 0.01;\ndosek = 0;\nif (p_target != 1) {\n\tdosek = 1.5;\n}\nperread = min(0.9, er * er * 0.25 * (1 + p_dose * dosek));\ntapea = 1 - exp(-2 * pi * 2200 / samplerate);\nwetl = 0;\nwetr = 0;\nnact = 0;\nfor (v = 0; v < maxv; v += 1) {\n\tif (peek(vs, v, 0) > 0.5) {\n\t\tvwait = peek(vs, v, 1);\n\t\tif (vwait > 0) {\n\t\t\tpoke(vs, vwait - 1, v, 1);\n\t\t} else {\n\t\t\tvph = peek(vs, v, 2);\n\t\t\tvlen = peek(vs, v, 3);\n\t\t\twlen = peek(vs, v, 14);\n\t\t\tvidx = peek(vs, v, 4) + vph;\n\t\t\tif (vidx >= blen) {\n\t\t\t\tvidx = vidx - blen;\n\t\t\t}\n\t\t\txl = peek(worn, vidx, 0);\n\t\t\txr = peek(worn, vidx, 1);\n\t\t\t// audible part: Tukey window (25 % cosine flanks) over the grain length\n\t\t\tif (vph < vlen) {\n\t\t\t\ttt = vph / vlen;\n\t\t\t\twin = 1;\n\t\t\t\tif (tt < 0.25) {\n\t\t\t\t\twin = 0.5 - 0.5 * cos(pi * tt * 4);\n\t\t\t\t}\n\t\t\t\tif (tt > 0.75) {\n\t\t\t\t\twin = 0.5 - 0.5 * cos(pi * (1 - tt) * 4);\n\t\t\t\t}\n\t\t\t\tvg = peek(vs, v, 5) * win;\n\t\t\t\tmono = (xl + xr) * 0.5 * vg;\n\t\t\t\twetl = wetl + mono * peek(vs, v, 6);\n\t\t\t\twetr = wetr + mono * peek(vs, v, 7);\n\t\t\t\tnact = nact + 1;\n\t\t\t}\n\t\t\t// wear window: same shape over the (longer) footprint\n\t\t\ttw = vph / wlen;\n\t\t\twinw = 1;\n\t\t\tif (tw < 0.25) {\n\t\t\t\twinw = 0.5 - 0.5 * cos(pi * tw * 4);\n\t\t\t}\n\t\t\tif (tw > 0.75) {\n\t\t\t\twinw = 0.5 - 0.5 * cos(pi * (1 - tw) * 4);\n\t\t\t}\n\t\t\t// palimpsest write-back: move the read samples toward a degraded version\n\t\t\tif (perread > 0) {\n\t\t\t\t// level-relative wear: every type works against the grain's own envelope, so it\n\t\t\t\t// is audible on quiet / dark material too (0.2.1 was level-dependent)\n\t\t\t\tvenv = max(max(abs(xl), abs(xr)), peek(vs, v, 13) * 0.9997);\n\t\t\t\tpoke(vs, venv, v, 13);\n\t\t\t\tve = max(venv, 0.0001);\n\t\t\t\tdl = xl;\n\t\t\t\tdr = xr;\n\t\t\t\tif (p_weartype < 0.5) {\n\t\t\t\t\t// SAT: peak-preserving saturation (gain 1.3 for small signals, peaks kept);\n\t\t\t\t\t// repeated passes drift toward a fuzzy, square-ish tone\n\t\t\t\t\tdl = ve * tanh(1.2 * xl / ve) * 1.2008;\n\t\t\t\t\tdr = ve * tanh(1.2 * xr / ve) * 1.2008;\n\t\t\t\t} else {\n\t\t\t\t\tif (p_weartype < 1.5) {\n\t\t\t\t\t\t// TAPE: generation loss - lowpass ~2.2 kHz, unity-gain soft saturation, hiss -38 dB\n\t\t\t\t\t\tlpl = peek(vs, v, 8) + (xl - peek(vs, v, 8)) * tapea;\n\t\t\t\t\t\tlpr = peek(vs, v, 9) + (xr - peek(vs, v, 9)) * tapea;\n\t\t\t\t\t\tpoke(vs, lpl, v, 8);\n\t\t\t\t\t\tpoke(vs, lpr, v, 9);\n\t\t\t\t\t\tdl = ve * tanh(lpl / ve) + noise() * ve * 0.012;\n\t\t\t\t\t\tdr = ve * tanh(lpr / ve) + noise() * ve * 0.012;\n\t\t\t\t\t} else {\n\t\t\t\t\t\t// BIT: sample-and-hold (/5) + 3-bit quantisation relative to the envelope\n\t\t\t\t\t\thc = peek(vs, v, 12);\n\t\t\t\t\t\tif (hc <= 0) {\n\t\t\t\t\t\t\tpoke(vs, floor(xl / ve * 4 + 0.5) / 4 * ve, v, 10);\n\t\t\t\t\t\t\tpoke(vs, floor(xr / ve * 4 + 0.5) / 4 * ve, v, 11);\n\t\t\t\t\t\t\thc = 5;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tpoke(vs, hc - 1, v, 12);\n\t\t\t\t\t\tdl = peek(vs, v, 10);\n\t\t\t\t\t\tdr = peek(vs, v, 11);\n\t\t\t\t\t}\n\t\t\t\t}\n\t\t\t\twk = perread * winw;\n\t\t\t\tpoke(worn, xl + (dl - xl) * wk, vidx, 0);\n\t\t\t\tpoke(worn, xr + (dr - xr) * wk, vidx, 1);\n\t\t\t}\n\t\t\tvph = vph + 1;\n\t\t\tpoke(vs, vph, v, 2);\n\t\t\tif (vph >= wlen) {\n\t\t\t\tpoke(vs, 0, v, 0);\n\t\t\t}\n\t\t}\n\t}\n}\n\n// ---------------------------------------------------------------- wet bus\n// density normalisation: overlapping grains add up; scale by 1/sqrt(mean active voices),\n// sqrt(2) undoes the -3 dB centre of the constant-power pan\nsload = sload + (max(1, nact) - sload) * 0.0005;\nwnorm = 1.4142 / sqrt(sload);\nwetl = wetl * wnorm;\nwetr = wetr * wnorm;\n// automatic wet level: match the loudness of the input (mean square, ~0.4 s), gain limited\n// (0.2.6: the wet level is measured only while grains sound - sparse short grains are\n// matched as \"each grain as loud as the input\", pauses stay pauses; time-averaging left\n// 5 ms grains 10 dB too quiet),\n// to -12 .. +12 dB and smoothed (~0.3 s). Held only while the input is silent, so a frozen\n// loop keeps its level after the input stops (0.2.2: no longer held during FREEZE itself -\n// TAPE wear made frozen loops 5 dB quieter).\nmsc = 1 - exp(-1 / (0.4 * samplerate));\ndryms = dryms + ((in1 * in1 + in2 * in2) * 0.5 - dryms) * msc;\nif (nact > 0) {\n\twetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;\n}\nif (dryms > 0.000001 && wetms > 0.0000001) {\n\tagct = clamp(sqrt(dryms / wetms), 0.25, 4);\n\tagc = agc + (agct - agc) * (1 - exp(-1 / (0.3 * samplerate)));\n}\nwetl = wetl * agc;\nwetr = wetr * agc;\n// wet peak limiter, ceiling -2 dBFS, 64-sample lookahead (1.3 ms; the wet path is not\n// time-aligned to the dry signal anyway, so this adds no latency to the device)\nlpk = max(abs(wetl), abs(wetr));\nif (lpk > lenv) {\n\tlenv = lpk;\n} else {\n\tlenv = lenv + (lpk - lenv) * (1 - exp(-1 / (0.08 * samplerate)));\n}\nlgt = min(1, 0.79 / max(lenv, 0.000001));\nif (lgt < lgain) {\n\tlgain = lgain + (lgt - lgain) * 0.06;\n} else {\n\tlgain = lgain + (lgt - lgain) * (1 - exp(-1 / (0.08 * samplerate)));\n}\nwdo = wdi + 1;\nif (wdo >= 64) {\n\twdo = 0;\n}\npoke(wdl, wetl, wdi, 0);\npoke(wdl, wetr, wdi, 1);\nwetl = peek(wdl, wdo, 0) * lgain;\nwetr = peek(wdl, wdo, 1) * lgain;\nwdi = wdo;\n// DC blocker (~10 Hz): repeated asymmetric wear must not leave an offset\ndcol = wetl - dcxl + 0.9987 * dcyl;\ndcxl = wetl;\ndcyl = dcol;\ndcor = wetr - dcxr + 0.9987 * dcyr;\ndcxr = wetr;\ndcyr = dcor;\n\n// ---------------------------------------------------------------- mix, output\nsmix = smix + (clamp(p_mix * 0.01, 0, 1) - smix) * 0.0008;\nsout = sout + (pow(10, clamp(p_out, -24, 12) / 20) - sout) * 0.0008;\ndryg = cos(smix * pi * 0.5);\nwetg = sin(smix * pi * 0.5);\nol = (in1 * dryg + dcol * wetg) * sout;\norr = (in2 * dryg + dcor * wetg) * sout;\n// transparent below -0.9 dBFS, soft knee above (protection, not a sound feature)\nal = abs(ol);\nif (al > 0.9) {\n\tol = sign(ol) * (0.9 + 0.1 * tanh((al - 0.9) * 10));\n}\nar = abs(orr);\nif (ar > 0.9) {\n\torr = sign(orr) * (0.9 + 0.1 * tanh((ar - 0.9) * 10));\n}\nout1 = ol;\nout2 = orr;\n",
          "fontface": 0,
          "fontname": "<Monospaced>",
          "fontsize": 12.0,
@@ -3323,11 +3323,12 @@
       150,
       22
      ],
-     "text": "peek~ ---rkev",
-     "numinlets": 3,
-     "numoutlets": 1,
+     "text": "buffer~ ---rkov 100 1",
+     "numinlets": 1,
+     "numoutlets": 2,
      "outlettype": [
-      "float"
+      "float",
+      "bang"
      ]
     }
    },
@@ -3341,11 +3342,11 @@
       150,
       22
      ],
-     "text": "prepend p_erosion",
-     "numinlets": 1,
+     "text": "peek~ ---rkev",
+     "numinlets": 3,
      "numoutlets": 1,
      "outlettype": [
-      ""
+      "float"
      ]
     }
    },
@@ -3359,7 +3360,7 @@
       150,
       22
      ],
-     "text": "prepend p_mix",
+     "text": "prepend p_erosion",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3377,7 +3378,7 @@
       150,
       22
      ],
-     "text": "prepend p_grain",
+     "text": "prepend p_mix",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3395,7 +3396,7 @@
       150,
       22
      ],
-     "text": "prepend p_heal",
+     "text": "prepend p_grain",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3413,7 +3414,7 @@
       150,
       22
      ],
-     "text": "prepend p_out",
+     "text": "prepend p_heal",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3431,7 +3432,7 @@
       150,
       22
      ],
-     "text": "prepend p_freeze",
+     "text": "prepend p_out",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3449,7 +3450,7 @@
       150,
       22
      ],
-     "text": "prepend p_weartype",
+     "text": "prepend p_freeze",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3467,7 +3468,7 @@
       150,
       22
      ],
-     "text": "prepend p_target",
+     "text": "prepend p_weartype",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3485,7 +3486,7 @@
       150,
       22
      ],
-     "text": "prepend p_stereo",
+     "text": "prepend p_target",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -3503,15 +3504,10 @@
       150,
       22
      ],
-     "text": "route uid open evw gen win",
+     "text": "prepend p_stereo",
      "numinlets": 1,
-     "numoutlets": 6,
+     "numoutlets": 1,
      "outlettype": [
-      "",
-      "",
-      "",
-      "",
-      "",
       ""
      ]
     }
@@ -3526,10 +3522,18 @@
       150,
       22
      ],
-     "text": "s ---rk_win",
+     "text": "route uid open evw gen win ovreq",
      "numinlets": 1,
-     "numoutlets": 0,
-     "outlettype": []
+     "numoutlets": 7,
+     "outlettype": [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      ""
+     ]
     }
    },
    {
@@ -3539,6 +3543,22 @@
      "patching_rect": [
       870,
       700,
+      150,
+      22
+     ],
+     "text": "s ---rk_win",
+     "numinlets": 1,
+     "numoutlets": 0,
+     "outlettype": []
+    }
+   },
+   {
+    "box": {
+     "id": "obj-126",
+     "maxclass": "newobj",
+     "patching_rect": [
+      20,
+      734,
       150,
       22
      ],
@@ -3552,10 +3572,10 @@
    },
    {
     "box": {
-     "id": "obj-126",
+     "id": "obj-127",
      "maxclass": "newobj",
      "patching_rect": [
-      20,
+      190,
       734,
       150,
       22
@@ -3568,10 +3588,28 @@
    },
    {
     "box": {
-     "id": "obj-127",
+     "id": "obj-128",
+     "maxclass": "newobj",
+     "patching_rect": [
+      360,
+      734,
+      150,
+      22
+     ],
+     "text": "prepend ovname ---rkov",
+     "numinlets": 1,
+     "numoutlets": 1,
+     "outlettype": [
+      ""
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "obj-129",
      "maxclass": "message",
      "patching_rect": [
-      190,
+      530,
       734,
       150,
       22
@@ -3586,10 +3624,10 @@
    },
    {
     "box": {
-     "id": "obj-128",
+     "id": "obj-130",
      "maxclass": "newobj",
      "patching_rect": [
-      360,
+      700,
       734,
       150,
       22
@@ -3604,10 +3642,10 @@
    },
    {
     "box": {
-     "id": "obj-129",
+     "id": "obj-131",
      "maxclass": "newobj",
      "patching_rect": [
-      530,
+      870,
       734,
       150,
       22
@@ -3629,7 +3667,7 @@
        120.0,
        120.0,
        960.0,
-       620.0
+       456.0
       ],
       "openinpresentation": 1,
       "toolbarvisible": 0,
@@ -3651,7 +3689,7 @@
           0,
           0,
           960,
-          620
+          456
          ],
          "numinlets": 1,
          "numoutlets": 0,
@@ -3695,7 +3733,7 @@
           20,
           0,
           920,
-          430
+          276
          ],
          "filename": "runklimpsest_ui.js",
          "jsarguments": [
@@ -3758,7 +3796,7 @@
          "presentation": 1,
          "presentation_rect": [
           20,
-          444,
+          282,
           920,
           160
          ],
@@ -4618,11 +4656,11 @@
    },
    {
     "box": {
-     "id": "obj-130",
+     "id": "obj-132",
      "maxclass": "newobj",
      "patching_rect": [
-      700,
-      734,
+      20,
+      768,
       150,
       22
      ],
@@ -4638,11 +4676,11 @@
    },
    {
     "box": {
-     "id": "obj-131",
+     "id": "obj-133",
      "maxclass": "newobj",
      "patching_rect": [
-      870,
-      734,
+      190,
+      768,
       150,
       22
      ],
@@ -4660,10 +4698,10 @@
    },
    {
     "box": {
-     "id": "obj-132",
+     "id": "obj-134",
      "maxclass": "newobj",
      "patching_rect": [
-      20,
+      360,
       768,
       150,
       22
@@ -4678,10 +4716,10 @@
    },
    {
     "box": {
-     "id": "obj-133",
+     "id": "obj-135",
      "maxclass": "newobj",
      "patching_rect": [
-      190,
+      530,
       768,
       150,
       22
@@ -4696,10 +4734,10 @@
    },
    {
     "box": {
-     "id": "obj-134",
+     "id": "obj-136",
      "maxclass": "newobj",
      "patching_rect": [
-      360,
+      700,
       768,
       150,
       22
@@ -4712,10 +4750,10 @@
    },
    {
     "box": {
-     "id": "obj-135",
+     "id": "obj-137",
      "maxclass": "newobj",
      "patching_rect": [
-      530,
+      870,
       768,
       150,
       22
@@ -4731,11 +4769,11 @@
    },
    {
     "box": {
-     "id": "obj-136",
+     "id": "obj-138",
      "maxclass": "newobj",
      "patching_rect": [
-      700,
-      768,
+      20,
+      802,
       150,
       22
      ],
@@ -4750,11 +4788,11 @@
    },
    {
     "box": {
-     "id": "obj-137",
+     "id": "obj-139",
      "maxclass": "newobj",
      "patching_rect": [
-      870,
-      768,
+      190,
+      802,
       150,
       22
      ],
@@ -4768,10 +4806,10 @@
    },
    {
     "box": {
-     "id": "obj-138",
+     "id": "obj-140",
      "maxclass": "newobj",
      "patching_rect": [
-      20,
+      360,
       802,
       150,
       22
@@ -4786,42 +4824,6 @@
    },
    {
     "box": {
-     "id": "obj-139",
-     "maxclass": "newobj",
-     "patching_rect": [
-      190,
-      802,
-      150,
-      22
-     ],
-     "text": "prepend level",
-     "numinlets": 1,
-     "numoutlets": 1,
-     "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
-     "id": "obj-140",
-     "maxclass": "newobj",
-     "patching_rect": [
-      360,
-      802,
-      150,
-      22
-     ],
-     "text": "pak f f f f",
-     "numinlets": 4,
-     "numoutlets": 1,
-     "outlettype": [
-      ""
-     ]
-    }
-   },
-   {
-    "box": {
      "id": "obj-141",
      "maxclass": "newobj",
      "patching_rect": [
@@ -4830,7 +4832,7 @@
       150,
       22
      ],
-     "text": "prepend meters",
+     "text": "prepend level",
      "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
@@ -4848,11 +4850,11 @@
       150,
       22
      ],
-     "text": "peakamp~ 33",
-     "numinlets": 2,
+     "text": "pak f f f f",
+     "numinlets": 4,
      "numoutlets": 1,
      "outlettype": [
-      "float"
+      ""
      ]
     }
    },
@@ -4866,11 +4868,11 @@
       150,
       22
      ],
-     "text": "peakamp~ 33",
-     "numinlets": 2,
+     "text": "prepend meters",
+     "numinlets": 1,
      "numoutlets": 1,
      "outlettype": [
-      "float"
+      ""
      ]
     }
    },
@@ -4898,6 +4900,42 @@
      "maxclass": "newobj",
      "patching_rect": [
       190,
+      836,
+      150,
+      22
+     ],
+     "text": "peakamp~ 33",
+     "numinlets": 2,
+     "numoutlets": 1,
+     "outlettype": [
+      "float"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "obj-146",
+     "maxclass": "newobj",
+     "patching_rect": [
+      360,
+      836,
+      150,
+      22
+     ],
+     "text": "peakamp~ 33",
+     "numinlets": 2,
+     "numoutlets": 1,
+     "outlettype": [
+      "float"
+     ]
+    }
+   },
+   {
+    "box": {
+     "id": "obj-147",
+     "maxclass": "newobj",
+     "patching_rect": [
+      530,
       836,
       150,
       22
@@ -6287,7 +6325,7 @@
       0
      ],
      "destination": [
-      "obj-114",
+      "obj-115",
       0
      ]
     }
@@ -6295,7 +6333,7 @@
    {
     "patchline": {
      "source": [
-      "obj-114",
+      "obj-115",
       0
      ],
      "destination": [
@@ -6311,7 +6349,7 @@
       0
      ],
      "destination": [
-      "obj-115",
+      "obj-116",
       0
      ]
     }
@@ -6319,7 +6357,7 @@
    {
     "patchline": {
      "source": [
-      "obj-115",
+      "obj-116",
       0
      ],
      "destination": [
@@ -6335,7 +6373,7 @@
       0
      ],
      "destination": [
-      "obj-116",
+      "obj-117",
       0
      ]
     }
@@ -6343,7 +6381,7 @@
    {
     "patchline": {
      "source": [
-      "obj-116",
+      "obj-117",
       0
      ],
      "destination": [
@@ -6359,7 +6397,7 @@
       0
      ],
      "destination": [
-      "obj-117",
+      "obj-118",
       0
      ]
     }
@@ -6367,7 +6405,7 @@
    {
     "patchline": {
      "source": [
-      "obj-117",
+      "obj-118",
       0
      ],
      "destination": [
@@ -6383,7 +6421,7 @@
       0
      ],
      "destination": [
-      "obj-118",
+      "obj-119",
       0
      ]
     }
@@ -6391,7 +6429,7 @@
    {
     "patchline": {
      "source": [
-      "obj-118",
+      "obj-119",
       0
      ],
      "destination": [
@@ -6407,7 +6445,7 @@
       0
      ],
      "destination": [
-      "obj-119",
+      "obj-120",
       0
      ]
     }
@@ -6415,7 +6453,7 @@
    {
     "patchline": {
      "source": [
-      "obj-119",
+      "obj-120",
       0
      ],
      "destination": [
@@ -6431,7 +6469,7 @@
       0
      ],
      "destination": [
-      "obj-120",
+      "obj-121",
       0
      ]
     }
@@ -6439,7 +6477,7 @@
    {
     "patchline": {
      "source": [
-      "obj-120",
+      "obj-121",
       0
      ],
      "destination": [
@@ -6455,7 +6493,7 @@
       0
      ],
      "destination": [
-      "obj-121",
+      "obj-122",
       0
      ]
     }
@@ -6463,7 +6501,7 @@
    {
     "patchline": {
      "source": [
-      "obj-121",
+      "obj-122",
       0
      ],
      "destination": [
@@ -6479,7 +6517,7 @@
       0
      ],
      "destination": [
-      "obj-122",
+      "obj-123",
       0
      ]
     }
@@ -6487,7 +6525,7 @@
    {
     "patchline": {
      "source": [
-      "obj-122",
+      "obj-123",
       0
      ],
      "destination": [
@@ -6499,11 +6537,11 @@
    {
     "patchline": {
      "source": [
-      "obj-123",
+      "obj-124",
       2
      ],
      "destination": [
-      "obj-113",
+      "obj-114",
       0
      ]
     }
@@ -6511,7 +6549,7 @@
    {
     "patchline": {
      "source": [
-      "obj-123",
+      "obj-124",
       3
      ],
      "destination": [
@@ -6527,7 +6565,7 @@
       0
      ],
      "destination": [
-      "obj-123",
+      "obj-124",
       0
      ]
     }
@@ -6535,19 +6573,7 @@
    {
     "patchline": {
      "source": [
-      "obj-123",
-      0
-     ],
-     "destination": [
-      "obj-125",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-125",
+      "obj-124",
       0
      ],
      "destination": [
@@ -6559,11 +6585,11 @@
    {
     "patchline": {
      "source": [
-      "obj-123",
-      4
+      "obj-126",
+      0
      ],
      "destination": [
-      "obj-124",
+      "obj-127",
       0
      ]
     }
@@ -6571,8 +6597,20 @@
    {
     "patchline": {
      "source": [
-      "obj-123",
-      5
+      "obj-124",
+      4
+     ],
+     "destination": [
+      "obj-125",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-124",
+      6
      ],
      "destination": [
       "obj-19",
@@ -6583,11 +6621,11 @@
    {
     "patchline": {
      "source": [
-      "obj-131",
-      1
+      "obj-124",
+      5
      ],
      "destination": [
-      "obj-132",
+      "obj-128",
       0
      ]
     }
@@ -6595,31 +6633,7 @@
    {
     "patchline": {
      "source": [
-      "obj-131",
-      2
-     ],
-     "destination": [
-      "obj-132",
-      1
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-132",
-      0
-     ],
-     "destination": [
-      "obj-133",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-133",
+      "obj-128",
       0
      ],
      "destination": [
@@ -6631,44 +6645,8 @@
    {
     "patchline": {
      "source": [
-      "obj-123",
+      "obj-133",
       1
-     ],
-     "destination": [
-      "obj-130",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-130",
-      2
-     ],
-     "destination": [
-      "obj-127",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-130",
-      1
-     ],
-     "destination": [
-      "obj-131",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-130",
-      0
      ],
      "destination": [
       "obj-134",
@@ -6679,23 +6657,23 @@
    {
     "patchline": {
      "source": [
-      "obj-127",
-      0
+      "obj-133",
+      2
      ],
      "destination": [
-      "obj-128",
-      0
+      "obj-134",
+      1
      ]
     }
    },
    {
     "patchline": {
      "source": [
-      "obj-128",
+      "obj-134",
       0
      ],
      "destination": [
-      "obj-129",
+      "obj-135",
       0
      ]
     }
@@ -6704,102 +6682,6 @@
     "patchline": {
      "source": [
       "obj-135",
-      0
-     ],
-     "destination": [
-      "obj-111",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-135",
-      1
-     ],
-     "destination": [
-      "obj-111",
-      1
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-111",
-      0
-     ],
-     "destination": [
-      "obj-136",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-111",
-      1
-     ],
-     "destination": [
-      "obj-136",
-      1
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-135",
-      0
-     ],
-     "destination": [
-      "obj-137",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-135",
-      1
-     ],
-     "destination": [
-      "obj-137",
-      1
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-137",
-      0
-     ],
-     "destination": [
-      "obj-138",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-138",
-      0
-     ],
-     "destination": [
-      "obj-139",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-139",
       0
      ],
      "destination": [
@@ -6811,35 +6693,11 @@
    {
     "patchline": {
      "source": [
-      "obj-135",
-      0
-     ],
-     "destination": [
-      "obj-142",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-142",
-      0
-     ],
-     "destination": [
-      "obj-140",
-      0
-     ]
-    }
-   },
-   {
-    "patchline": {
-     "source": [
-      "obj-135",
+      "obj-124",
       1
      ],
      "destination": [
-      "obj-143",
+      "obj-132",
       0
      ]
     }
@@ -6847,11 +6705,83 @@
    {
     "patchline": {
      "source": [
-      "obj-143",
+      "obj-132",
+      2
+     ],
+     "destination": [
+      "obj-129",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-132",
+      1
+     ],
+     "destination": [
+      "obj-133",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-132",
       0
      ],
      "destination": [
-      "obj-140",
+      "obj-136",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-129",
+      0
+     ],
+     "destination": [
+      "obj-130",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-130",
+      0
+     ],
+     "destination": [
+      "obj-131",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-137",
+      0
+     ],
+     "destination": [
+      "obj-111",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-137",
+      1
+     ],
+     "destination": [
+      "obj-111",
       1
      ]
     }
@@ -6863,6 +6793,90 @@
       0
      ],
      "destination": [
+      "obj-138",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-111",
+      1
+     ],
+     "destination": [
+      "obj-138",
+      1
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-137",
+      0
+     ],
+     "destination": [
+      "obj-139",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-137",
+      1
+     ],
+     "destination": [
+      "obj-139",
+      1
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-139",
+      0
+     ],
+     "destination": [
+      "obj-140",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-140",
+      0
+     ],
+     "destination": [
+      "obj-141",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-141",
+      0
+     ],
+     "destination": [
+      "obj-1",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-137",
+      0
+     ],
+     "destination": [
       "obj-144",
       0
      ]
@@ -6875,7 +6889,55 @@
       0
      ],
      "destination": [
-      "obj-140",
+      "obj-142",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-137",
+      1
+     ],
+     "destination": [
+      "obj-145",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-145",
+      0
+     ],
+     "destination": [
+      "obj-142",
+      1
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-111",
+      0
+     ],
+     "destination": [
+      "obj-146",
+      0
+     ]
+    }
+   },
+   {
+    "patchline": {
+     "source": [
+      "obj-146",
+      0
+     ],
+     "destination": [
+      "obj-142",
       2
      ]
     }
@@ -6887,7 +6949,7 @@
       1
      ],
      "destination": [
-      "obj-145",
+      "obj-147",
       0
      ]
     }
@@ -6895,11 +6957,11 @@
    {
     "patchline": {
      "source": [
-      "obj-145",
+      "obj-147",
       0
      ],
      "destination": [
-      "obj-140",
+      "obj-142",
       3
      ]
     }
@@ -6907,11 +6969,11 @@
    {
     "patchline": {
      "source": [
-      "obj-140",
+      "obj-142",
       0
      ],
      "destination": [
-      "obj-141",
+      "obj-143",
       0
      ]
     }
@@ -6919,7 +6981,7 @@
    {
     "patchline": {
      "source": [
-      "obj-141",
+      "obj-143",
       0
      ],
      "destination": [

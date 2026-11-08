@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.2.7
+GUI-Iteration 13 (Nutzerwahl): Layout A, Farbschema „Cyan → Orange“, Hintergrund im Kartenton. Klangverarbeitung unverändert.
+- **Echte Wellenform in MEMORY:** gen~ schreibt eine Übersicht des Puffers (256 Spalten: Spitze frisch, Spitze abgenutzt, mittlere Lautstärke, Abnutzung) und die Position des Schreibkopfs in `buffer~ ---rkov`; die Geräte-jsui liest sie (JS-Buffer-Objekt, gerätelokaler Name über `[prepend ovname ---rkov]`). Ohne Puffer zeigt die Anzeige wie bisher das JS-Modell. **In Live ungetestet.**
+- **MEMORY neu:** Spitzen als cyanfarbenes Band, mittlere Lautstärke hell, dünne Kontur = frische Aufnahme (Palimpsest), abgenutzte Stellen orange getönt und schraffiert, Abnutzungsstreifen unten (leuchtet weiß, wo gerade gelesen wird), Leseköpfe mit Nachleuchten, Takt-Lineal (1 · 1.2 · …), Schreibkopf cyan (grau bei FREEZE). Kopfzeile: MOST WORN mit Position (Takt.Schlag.16tel) und Durchschnitt.
+- **CHAMBER ohne Wellenform:** Boden mit Teilstrichen auf derselben X-Skala wie MEMORY, Aufprall blitzt am Boden auf, Flugspuren als Linie.
+- **DOSE-Schimmer:** magenta von oben, Stärke = Dosis, nur wo DOSE wirkt (TARGET ALL: beide, SWARM: Chamber, WEAR: MEMORY). Bei Dosis 0 sehen alle Bereiche gleich aus.
+- **Large View 960 × 456** (vorher 620): Chamber und MEMORY nebeneinander, je 450 × 200; WEAR HISTORY entfällt (übernimmt der Abnutzungsstreifen); IN/OUT-Meter in MEMORY; Karten unverändert. Alle Kästen im selben Kartenton.
+- Messung (Simulation): Mittelwert der angezeigten Abnutzung folgt der gemessenen Puffer-Abnutzung (Fläche SAT 80 % FREEZE: 0,45 angezeigt / 0,48 gemessen; TAPE 0,30/0,33; BIT 0,27/0,27; EROSION 0: 0,00). Mehraufwand gen~: 4 Pufferstellen pro Sample.
+- Offen: Klang-Fix Bass/Drums (wartet auf Tests A/B/C des Nutzers).
+
 ## 0.2.6
 - **Standardwerte (Nutzer + Vorschlag):** PHYSICS: GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5 ms, SYNC an, 1/16. MEMORY: FREEZE aus, SAT, EROSION 65 %, HEAL 40 s. DOSE: TARGET WEAR, RATE 8 Takte, RECOVER 16 Takte. OUTPUT: MIX 50 %, STEREO.
 - **Abnutzung unabhängig von der Grain-Länge:** Ein Aufprall nutzt mindestens 80 ms des Puffers ab, auch wenn das hörbare Grain kürzer ist. Mit den neuen Standardwerten (5-ms-Grains) nach 20 s FREEZE: 0,137 statt 0,017 (Messung Fläche).

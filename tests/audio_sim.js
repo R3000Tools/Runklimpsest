@@ -71,12 +71,14 @@ function pluck(sec, bpm) {
 }
 
 // ------------------------------------------------------------------ device simulation
-function makeUi(onOut) {
+function makeUi(onOut, ovbuf) {
     const src = fs.readFileSync(path.join(ROOT, 'runklimpsest_ui.js'), 'utf8');
     const mg = new Proxy({}, { get: (t, k) => (k in t ? t[k] : (k === 'text_measure' ? () => [10, 8] :
         (k === 'pattern_create_linear' ? () => ({ add_color_stop_rgba() {} }) : () => {}))), set: (t, k, v) => { t[k] = v; return true; } });
     const ctx = { mgraphics: mg, jsarguments: ['x', 'device'], messagename: '', box: { rect: [0, 0, 580, 169] },
-        Global: function (n) { return {}; }, outlet: (...a) => onOut(a.slice(1)), post: () => {}, Math };
+        Global: function (n) { return {}; }, outlet: (...a) => onOut(a.slice(1)), post: () => {}, Math,
+        // Max JS Buffer stand-in: reads the gen~ overview (Buffer ov) like the real jsui
+        Buffer: function () { this.peek = (c, s0, k) => Array.from(ovbuf ? ovbuf.subarray(s0, s0 + k) : []); } };
     vm.createContext(ctx);
     vm.runInContext(src, ctx);
     return {
@@ -91,13 +93,15 @@ const GEN_PARAM = { mix: 'p_mix', output: 'p_out', grain: 'p_grain', erosion: 'p
 function simulate(input, settings, opts) {
     opts = opts || {};
     const g = gen.load(path.join(ROOT, 'runklimpsest_dsp.genexpr'), SR);
-    const evbuf = new Float64Array(512);
+    const evbuf = new Float64Array(512), ovbuf = new Float64Array(1025);
     g.bind('ev', evbuf);
-    let events = 0;
-    const ui = makeUi((a) => {
-        if (a[0] === 'evw') evbuf[a[1]] = a[2];
+    g.bind('ov', ovbuf);
+    let events = 0, ui = null;
+    ui = makeUi((a) => {
+        if (a[0] === 'ovreq') ui.send('ovname', 'sim_rkov');
+        else if (a[0] === 'evw') evbuf[a[1]] = a[2];
         else if (a[0] === 'gen') { g.set(a[1], a[2]); if (a[1] === 'p_evhead') events++; }
-    });
+    }, ovbuf);
     const setP = (k, v) => { ui.send(k, v); if (GEN_PARAM[k]) g.set(GEN_PARAM[k], v); };
     const spec = ui.get('SPEC');
     for (const k in spec) if (k !== 'resetdose') setP(k, spec[k].def);
@@ -129,7 +133,8 @@ function simulate(input, settings, opts) {
         let act = 0; const vs = g.data.vs[0]; for (let v = 0; v < 32; v++) if (vs[v] > 0.5) act++;
         voiceSum += act; voiceN++;
     }
-    return { L: outL, R: outR, events, avgVoices: voiceSum / voiceN, msPerSec: (Date.now() - t0) / (n / SR), g };
+    return { L: outL, R: outR, events, avgVoices: voiceSum / voiceN, msPerSec: (Date.now() - t0) / (n / SR), g, ovbuf,
+        ov: ui.get('JSON.stringify({ok: S.ov.ok, head: S.ov.head, we: S.ov.we})') };
 }
 
 // ------------------------------------------------------------------ measurements
@@ -165,6 +170,9 @@ function wearOf(g) {
     let d = 0, s = 0; for (let i = 0; i < blen; i++) { d += (w[i] - f[i]) ** 2; s += f[i] ** 2; } return Math.sqrt(d / (s + 1e-18));
 }
 
+// display overview as the jsui sees it: real data? mean and max wear of the 256 columns
+function ovText(o) { const m = o.we.reduce((a, b) => a + b, 0) / o.we.length; return (o.ok ? 'real' : 'MODEL') + ' ' + m.toFixed(2) + ' ' + Math.max(...o.we).toFixed(2); }
+
 module.exports = { wearOf, SR, drums, pad, pluck, simulate, rms, peakOf, mean, db, clickScore, corr, brightness, writeWav };
 
 // ------------------------------------------------------------------ CLI
@@ -193,7 +201,7 @@ if (require.main === module) {
         ['13_pluck_mono', Pl, { mix: 100, stereo: 1 }],
         ['14_pluck_stereo', Pl, { mix: 100, stereo: 0 }]
     ];
-    console.log('scenario                          dry rms  out rms  out pk   dc       click  corr  bright(4s / end)  voices ev/s  ms/s  wear   >0.9');
+    console.log('scenario                          dry rms  out rms  out pk   dc       click  corr  bright(4s / end)  voices ev/s  ms/s  wear   >0.9     ov(ok mean max)');
     for (const [name, inp, set, sched] of scenarios) {
         const r = simulate(inp, set, { schedule: sched });
         const n = r.L.length, e4 = Math.min(n, 4 * SR);
@@ -203,7 +211,8 @@ if (require.main === module) {
             mean(r.L).toExponential(1).padStart(9), clickScore(r.L, inp[0]).toFixed(2).padStart(6), corr(r.L, r.R).toFixed(2).padStart(5),
             (brightness(r.L, e4 - SR, e4).toFixed(3) + ' / ' + brightness(r.L, n - SR, n).toFixed(3)).padStart(17),
             r.avgVoices.toFixed(1).padStart(7), (r.events / (n / SR)).toFixed(1).padStart(5), r.msPerSec.toFixed(0).padStart(5),
-            wearOf(r.g).toFixed(3).padStart(6), (over / n * 100).toFixed(3).padStart(7) + '%'].join(' ');
+            wearOf(r.g).toFixed(3).padStart(6), (over / n * 100).toFixed(3).padStart(7) + '%',
+            ovText(JSON.parse(r.ov))].join(' ');
         console.log(line);
         if (outdir) writeWav(path.join(outdir, name + '.wav'), r.L, r.R);
     }

@@ -1,6 +1,6 @@
 # Runklimpsest – Projektregeln für Claude
 
-Max-for-Live-Audio-Effekt „Granular Particle Memory“ (Hersteller R3000). Stand: 0.2.6, Klangverarbeitung (gen~-Codebox, Latenz 0).
+Max-for-Live-Audio-Effekt „Granular Particle Memory“ (Hersteller R3000). Stand: 0.2.7, Klangverarbeitung (gen~-Codebox, Latenz 0), echte Puffer-Anzeige.
 Der Nutzer testet in Ableton Live 12 (aktuelle Version, mitgeliefertes Max) unter Windows und spricht Deutsch. Antworten und Doku für ihn auf Deutsch, Code, Commits und GUI-Texte auf Englisch.
 Antwortstil: direkt, strukturiert, Listen, kein Smalltalk, keine Emojis, Schwächen/Risiken nennen; bei konzeptionellen Aufgaben am Ende Abschnitt „Optimierung“.
 
@@ -17,8 +17,8 @@ Eigenständiges Gerät, kein Clone. Inspiration (Freakshow Industries, Sinevibes
 | Pfad | Inhalt |
 |---|---|
 | `device/build_device.py` | erzeugt `Runklimpsest.maxpat` und `Runklimpsest.amxd` – **Patch nie von Hand ändern, immer über dieses Skript** |
-| `device/runklimpsest_ui.js` | jsui: Teilchen-Engine und alle Anzeigen (Modi `device`, `large`, `controls`; Layout 0.1.13 = GUI-Iteration 8); Block `BEGIN/END GENERATED` (Parameter, Layout, Version) schreibt der Generator |
-| `device/runklimpsest_dsp.genexpr` | Klangverarbeitung (gen~-Codebox); der Generator bettet sie in `[gen~ @ev ---rkev]` ein |
+| `device/runklimpsest_ui.js` | jsui: Teilchen-Engine und alle Anzeigen (Modi `device`, `large`, `controls`; Gerät Layout 0.1.13, Large View 0.2.7 = GUI-Iteration 13); Block `BEGIN/END GENERATED` (Parameter, Layout, Version) schreibt der Generator |
+| `device/runklimpsest_dsp.genexpr` | Klangverarbeitung (gen~-Codebox); der Generator bettet sie in `[gen~ @ev ---rkev @ov ---rkov]` ein |
 | `device/Runklimpsest.amxd` | generiertes Gerät (ungefroren, braucht die JS-Datei daneben) |
 | `tests/smoke.js` | JS in Node mit nachgebildeter Max-API: Engine, alle Modi, DOSE-Reset |
 | `tests/render.js` | zeichnet Chamber, Dose und Large-View-Regler im Browser (Canvas-Nachbildung von mgraphics) und prüft Klick/Ziehen |
@@ -48,6 +48,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 
 ## Bekannte Fallstricke
 - **Grain-Ereignisse:** jsui → `evw <index> <wert>` → `[peek~ ---rkev]` (Ring mit 64 Slots × pos, amp, pan, delay ms) und `gen p_evhead <slot>` → gen~. Der Buffer `ev` in der Codebox wird per Attribut `@ev ---rkev` auf den gerätelokalen buffer~ gelegt (Objektbox-Ersetzung von `---` ist sicher, Message-Box-Ersetzung nicht belegt).
+- **Puffer-Anzeige (0.2.7):** gen~ schreibt 256 Spalten × 4 Werte (Spitze frisch, Spitze abgenutzt, RMS abgenutzt, Abnutzung) + Schreibkopf (Index 1024) in `buffer~ ---rkov`. Die jsui kennt den gerätelokalen Namen nicht (`---` wird in JS-Strings nicht ersetzt): Sie sendet `ovreq` → `[route … ovreq]` → `[prepend ovname ---rkov]` → `ovname <name>` → `new Buffer(name)`, liest alle 8 Bilder `peek(1, 0, 1025)`. Ohne Puffer: JS-Modell (`modelOverview`). In Live ungeprüft.
 - gen~-Codebox: GenExpr-Teilmenge, die `tests/genexpr.js` versteht; keine Namen von gen-Operatoren als Variablen (z. B. `mix`, `phase`, `delta`, `ln`).
 - Pegelregelung (AGC) misst den Effektanteil nur, während Grains klingen (0.2.6), und wird nur bei Stille am Eingang gehalten (sonst sackt ein eingefrorener Loop nach dem Stoppen ab); bei FREEZE mit laufendem Eingang regelt sie weiter.
 - Physik-Schwellen (Grain, Liegenbleiben) relativ zur Wurfgeschwindigkeit, aber immer über der Schwerkraft pro Bild – sonst hüpft ein liegendes Teilchen jedes Bild (0.2.4).
@@ -55,7 +56,7 @@ Max/Live gibt es im Container nicht: Verhalten in Live prüft nur der Nutzer. Vo
 - Lade-Abfrage: `[r ---rk_refresh]` schickt „bang“ an alle Parameter. Ein `live.text`-Umschalter kippt dabei um (0.2.4: SYNC aus, FREEZE an) → versteckte Umschalter sind `live.numbox` (off/on); der Generator prüft das.
 - `live.text` im Button-Modus: Ausgabe kann je nach Version `bang` oder `1`/`0` sein → immer über `[t b]`, nie `[sel 1]` (MORE öffnete in 0.1.0 nicht).
 - Large View hat kein CLOSE und keine Objekte über den jsuis (Logo, Legende, Tempo zeichnet die jsui `large`); schließen über das Fenster-X.
-- Large View: feste Größe (`window flags nogrow/nozoom`); Position beim Öffnen aus `[mousestate]` → jsui `winpos` → `win window size …` → `[s ---rk_win]` → `[thispatcher]` (sonst öffnet es immer auf dem Hauptmonitor).
+- Large View 960 × 456 (jsui `large` 920 × 276, `controls` ab y 282): feste Größe (`window flags nogrow/nozoom`); Position beim Öffnen aus `[mousestate]` → jsui `winpos` → `win window size …` → `[s ---rk_win]` → `[thispatcher]` (sonst öffnet es immer auf dem Hauptmonitor).
 - Large View öffnet über zwei Wege: `open` → `[pcontrol]` → `[p LargeView]` und `[s ---rk_open]` → `front` → `[thispatcher]`.
 - Gemeinsamer Zustand zwischen den jsui-Instanzen über `new Global(uid)` (`G.state`, `G.params`); die Geräte-jsui erzeugt die uid und verteilt sie über `[s ---rk_uid]` (alle 2 s erneut, wegen Ladereihenfolge).
 - Tempo/Taktart kommen über `live.path live_set` → `live.observer @property tempo|signature_numerator|signature_denominator` → jsui (`tempo`, `signum`, `sigden`).

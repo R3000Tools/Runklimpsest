@@ -1,9 +1,17 @@
 // Usage: node tests/render.js [out.png]. Renders jsui modes with a Canvas2D-backed mgraphics mock (approximation of Max drawing).
 const fs=require('fs');const {chromium}=require('playwright');
 const src=fs.readFileSync(require('path').join(__dirname,'..','device','runklimpsest_ui.js'),'utf8');
-const page=`<html><body style="margin:0;background:#16181d"><canvas id=c width=960 height=820></canvas><script>
+const page=`<html><body style="margin:0;background:#16181d"><canvas id=c width=960 height=660></canvas><script>
 const SRC=${JSON.stringify(src)};
 const globals={};
+// stand-in for the gen~ overview buffer (Max JS Buffer): drum-like peaks, two worn zones
+function MockBuffer(name){this.name=name;}
+MockBuffer.prototype.peek=function(ch,start,n){const a=[];const N=256;
+  for(let i=0;i<N;i++){const t=i/N*8,beat=t%1,b=Math.floor(t);let pk=0.1+0.05*Math.abs(Math.sin(i*7.3));
+    pk+=0.8*Math.exp(-beat*9)*(b%4===0?1:0.55)+(b%2===1?0.5*Math.exp(-beat*14):0)+0.15*Math.exp(-((t*2)%1)*22);pk=Math.min(0.95,pk)*0.5;
+    const x=i/N,we=(x>0.3&&x<0.47)?0.7:((x>0.66&&x<0.73)?0.4:0.03);
+    a.push(pk,pk*(1-0.3*we),pk*0.35*(1+0.8*we),we);}
+  a.push(0.7);return a;};
 function make(mode,ctx,ox,oy,w,h,name){
   let fontSize=10,fontBold=false;
   const mg={init(){},redraw(){},
@@ -20,15 +28,15 @@ function make(mode,ctx,ox,oy,w,h,name){
     set_source(p){ctx.fillStyle=ctx.strokeStyle=p._g;}};
   const origMove=mg.move_to;mg.move_to=(x,y)=>{ctx.__p=[x,y];origMove(x,y);};
   const out=[];
-  const env={mgraphics:mg,jsarguments:name?['x',mode,name]:['x',mode],outlet:(...a)=>out.push(a),Math,messagename:'',box:{rect:[0,0,w,h]}};
+  const env={Buffer:MockBuffer,mgraphics:mg,jsarguments:name?['x',mode,name]:['x',mode],outlet:(...a)=>out.push(a),Math,messagename:'',box:{rect:[0,0,w,h]}};
   env.Global=function(n){if(!globals[n])globals[n]={};return globals[n];};
-  const f=new Function(...Object.keys(env),SRC+';return {bang,uid,paint,meters,anything,level,tick,onclick,ondrag,ondblclick,out:()=>out,setmsg:(m)=>{messagename=m;}};');
+  const f=new Function(...Object.keys(env),SRC+';return {ovname,bang,uid,paint,meters,anything,level,tick,onclick,ondrag,ondblclick,out:()=>out,setmsg:(m)=>{messagename=m;}};');
   const api=f(...Object.values(env));
   return {api,paint(){ctx.save();ctx.translate(ox,oy);ctx.beginPath();api.paint.call({box:{rect:[0,0,w,h]}});ctx.restore();},out};
 }
 const c=document.getElementById('c').getContext('2d');
-const ch=make('device',c,10,10,580,169), lg=make('large',c,20,200,920,430), ctl=make('controls',c,20,644,920,160);
-let uid=null;
+const ch=make('device',c,10,10,580,169), lg=make('large',c,20,200,920,276), ctl=make('controls',c,20,482,920,160);
+let uid=null;ch.api.ovname('rkov_test');
 for(let f=0;f<240;f++){ch.api.level(0.5);if(f%4==0)ch.api.tick();ch.api.bang();for(const o of ch.out.splice(0))if(o[1]=='uid')uid=o[2];}
 ctl.api.uid(uid);lg.api.uid(uid);
 ch.api.meters(0.4,0.3);const DLr=new Function(SRC.slice(SRC.indexOf('// BEGIN GENERATED'),SRC.indexOf('// END GENERATED'))+';return LAYOUT;')();ch.api.onclick(DLr.division[0]+5,DLr.division[1]+5,1,0,0);

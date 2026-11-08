@@ -31,14 +31,16 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.2.6";
+var VERSION = "0.2.7";
 var NATIVE_MENU = false;
 var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 4, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 65.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 5.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 40.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 8.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 16.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 2, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
 var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120], "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120]};
 // END GENERATED
 
 // virtual chamber size used by the physics (rendering scales it)
-var CW = 400, CH = 234, CELLS = 60, HIST_ROWS = 12, HIST_COLS = 30, MAXP = 32;
+var CW = 400, CH = 234, CELLS = 60, MAXP = 32;
+// buffer overview from gen~ (buffer~ ---rkov): OVN columns x 4 values + write head
+var OVN = 256, TRAIL = 10;
 var FPS = 30;
 
 var COL = {
@@ -63,10 +65,11 @@ function secPerBar() {
 }
 
 function makeState() {
-    var s = { ps: [], wear: [], amp: [], hist: [], head: 0, step: 0, dose: 0, rising: false,
+    var s = { ps: [], wear: [], amp: [], head: 0, step: 0, dose: 0, rising: false,
               n: 0, queued: 0, flashing: 0, resetReq: false, frozen: false, sync: true,
-              tempo: 120, num: 4, den: 4 };
-    var i, j;
+              tempo: 120, num: 4, den: 4, target: 2, reads: [], meters: [0, 0, 0, 0],
+              ov: { ok: false, fp: [], wp: [], wr: [], we: [], head: 0, gain: 1 } };
+    var i;
     for (i = 0; i < MAXP; i++) {
         // 0.2.2: every particle keeps its own launch strength and sideways speed (golden-ratio
         // spread) -> each bounces with its own period = interlocking polyrhythms instead of noise
@@ -76,11 +79,7 @@ function makeState() {
                     launch: launch, side: Math.abs(side) + 0.4 });
     }
     for (i = 0; i < CELLS; i++) { s.wear.push(0); s.amp.push(0.05); }
-    for (i = 0; i < HIST_ROWS; i++) {
-        var row = [];
-        for (j = 0; j < HIST_COLS; j++) row.push(0);
-        s.hist.push(row);
-    }
+    for (i = 0; i < OVN; i++) { s.ov.fp.push(0); s.ov.wp.push(0); s.ov.wr.push(0); s.ov.we.push(0); }
     return s;
 }
 
@@ -189,6 +188,48 @@ function meters(l, r, ol, or) {
     meterR = Math.max(r || 0, meterR * 0.85);
     meterOL = Math.max(ol === undefined ? (l || 0) : ol, meterOL * 0.85);
     meterOR = Math.max(or === undefined ? (r || 0) : or, meterOR * 0.85);
+    if (S) S.meters = [meterL, meterR, meterOL, meterOR];
+}
+
+// ---------------------------------------------------------------- buffer overview (0.2.7)
+// gen~ writes 256 columns (fresh peak, worn peak, worn rms, wear) + write head into the
+// device-unique buffer~ ---rkov. "---" is replaced in object boxes only, so the panel asks
+// for the real name ("ovreq" -> [prepend ovname ---rkov]) and reads it with a JS Buffer.
+// Without the buffer (or in tests) the display falls back to the JS model (S.amp, S.wear).
+var ovBuf = null, ovName = null, ovFails = 0;
+function ovname(n) {
+    if (MODE !== "device" || n === undefined) return;
+    n = String(n);
+    if (n === "bang" || n === ovName) return;
+    try { ovBuf = new Buffer(n); ovName = n; ovFails = 0; } catch (e) { ovBuf = null; }
+}
+
+function readOverview() {
+    var a, i, o = S.ov, mx = 0;
+    if (!ovBuf) return false;
+    try { a = ovBuf.peek(1, 0, OVN * 4 + 1); } catch (e) { a = null; }
+    if (!a || a.length < OVN * 4 + 1) { if (++ovFails > 10) { ovBuf = null; ovName = null; } return false; }
+    for (i = 0; i < OVN; i++) {
+        o.fp[i] = a[i * 4]; o.wp[i] = a[i * 4 + 1]; o.wr[i] = a[i * 4 + 2]; o.we[i] = a[i * 4 + 3];
+        if (o.fp[i] > mx) mx = o.fp[i];
+    }
+    o.head = a[OVN * 4];
+    o.ok = mx > 0.0001;
+    // display gain: the loudest column fills ~90 % of the height (quiet material stays readable)
+    o.gain += (0.9 / Math.max(0.02, mx) - o.gain) * 0.3;
+    return true;
+}
+
+// fallback overview from the JS model (no buffer yet / tests)
+function modelOverview() {
+    var o = S.ov, i;
+    for (i = 0; i < OVN; i++) {
+        var c = Math.min(CELLS - 1, Math.floor(i / OVN * CELLS)), w = S.wear[c], a = S.amp[c];
+        o.fp[i] = a; o.wp[i] = a * (1 - 0.35 * w); o.wr[i] = o.wp[i] * 0.4; o.we[i] = w;
+    }
+    o.head = S.head / CELLS;
+    o.gain = 0.9;
+    o.ok = false;
 }
 
 // song tempo and time signature from [live.observer]
@@ -198,7 +239,7 @@ function sigden(v) { if (v > 0) sigDen = v; }
 
 // LARGE VIEW opened: place the window around the mouse position (screen coordinates from
 // [mousestate]) so it opens on the monitor that shows Live, not always on the main monitor
-var WIN_W = 960, WIN_H = 620;
+var WIN_W = 960, WIN_H = 456;
 function winpos(mx, my) {
     // the device sits at the bottom of Live: open fully above the mouse, centred horizontally
     var x1 = Math.round(mx - WIN_W / 2), y1 = Math.round(my - WIN_H - 40);
@@ -266,6 +307,8 @@ function markGrain(p) {
     var idx = Math.min(CELLS - 1, Math.max(0, Math.floor(p.x / CW * CELLS)));
     var inc = (0.02 + 0.15 * P.erosion / 100) * (P.target != 1 ? (1 + S.dose) : 1);
     S.wear[idx] = Math.min(1, S.wear[idx] + inc);
+    S.reads.push({ x: Math.max(0, Math.min(1, p.x / CW)), a: 1 });
+    if (S.reads.length > 24) S.reads.shift();
 }
 
 function stepEngine() {
@@ -289,6 +332,7 @@ function stepEngine() {
     S.nBase = nBase;
     S.sync = !!P.sync;
     S.frozen = !!P.freeze;
+    S.target = P.target | 0;
 
     var g = gravityPx();
     // BOUNCE 0..100 % -> restitution 0.3..0.9: ~2 to ~20 rebounds above the grain threshold
@@ -310,7 +354,7 @@ function stepEngine() {
     for (i = 0; i < n; i++) {
         p = S.ps[i];
         p.tr.unshift([p.x, p.y]);
-        if (p.tr.length > 5) p.tr.pop();
+        if (p.tr.length > TRAIL) p.tr.pop();
         if (p.rest) {
             // lying on the floor, waiting for the next grid tick
             if (p.flash > 0) p.flash--;
@@ -366,17 +410,16 @@ function stepEngine() {
         S.amp[h] = Math.max(0.04, Math.min(1, lin * 1.4));
     }
 
-    // wear history: one row every 0.5 s
-    if (frame % 15 === 0) {
-        var row = [];
-        var per2 = CELLS / HIST_COLS;
-        for (i = 0; i < HIST_COLS; i++) {
-            var sum = 0, j;
-            for (j = 0; j < per2; j++) sum += S.wear[i * per2 + j];
-            row.push(sum / per2);
-        }
-        S.hist.unshift(row);
-        S.hist.pop();
+    // read heads fade out in ~0.6 s
+    for (i = S.reads.length - 1; i >= 0; i--) {
+        S.reads[i].a -= 1 / (0.6 * FPS);
+        if (S.reads[i].a <= 0) S.reads.splice(i, 1);
+    }
+
+    // buffer overview: real data from gen~ every 8 frames, else the JS model
+    if (frame % 8 === 0) {
+        if (!ovBuf && frame % 64 === 0) outlet(0, "ovreq");
+        if (!readOverview() || !S.ov.ok) modelOverview();
     }
 }
 
@@ -581,29 +624,36 @@ function drawSeg(r, items, sel, col, label) {
 
 // ---------------------------------------------------------------- views
 
-function drawChamber(x0, y0, w, h, st, big) {
-    var sx = w / CW, sy = h / CH, i, p;
-    roundBox(x0, y0, w, h, big ? 8 : 5, [0.051, 0.063, 0.078], 0.08);
+// card tone: every box (chamber, memory, control cards) is the same translucent dark (0.2.7)
+function panelBox(x, y, w, h, diam) {
+    mgraphics.rectangle_rounded(x, y, w, h, diam, diam);
+    mgraphics.set_source_rgba(0, 0, 0, 0.25);
+    mgraphics.fill_preserve();
+    mgraphics.set_source_rgba(1, 1, 1, 0.07);
+    mgraphics.set_line_width(1);
+    mgraphics.stroke();
+}
 
-    if (big) {
-        mgraphics.set_line_width(1);
-        for (i = 1; i < 8; i++) {
-            mgraphics.set_source_rgba(1, 1, 1, 0.04);
-            mgraphics.move_to(x0 + w * i / 8, y0 + 1);
-            mgraphics.line_to(x0 + w * i / 8, y0 + h - 1);
-            mgraphics.stroke();
-        }
-        var cw = (w - 16) / CELLS;
-        for (i = 0; i < CELLS; i++) {
-            rgba(heat(st.wear[i]), 0.85);
-            mgraphics.rectangle(x0 + 8 + i * cw, y0 + h - 30, Math.max(1, cw - 1), 14);
-            mgraphics.fill();
-        }
-        font(9, false);
-        rgba(COL.dim);
-        text("BUFFER START", x0 + 10, y0 + h - 4);
-        text("BUFFER END", x0 + w - 10, y0 + h - 4, "right");
-    }
+// DOSE shimmer: magenta from the top edge, strength = dose; shown where DOSE acts
+// (chamber for TARGET ALL/SWARM, memory for ALL/WEAR) - at dose 0 every box looks the same
+function doseHaze(x0, y0, w, h, st, diam) {
+    if (st.dose < 0.01) return;
+    var pat = mgraphics.pattern_create_linear(0, y0, 0, y0 + h * 0.5);
+    pat.add_color_stop_rgba(0, 1.0, 0.310, 0.847, 0.12 * st.dose);
+    pat.add_color_stop_rgba(1, 1.0, 0.310, 0.847, 0);
+    mgraphics.set_source(pat);
+    mgraphics.rectangle_rounded(x0 + 0.5, y0 + 0.5, w - 1, h * 0.5, diam, diam);
+    mgraphics.fill();
+}
+
+// beats per bar and 16ths per beat of the song (2-bar buffer)
+function beatsPerBar(st) { return Math.max(1, st.num || 4); }
+function sixteenthsPerBeat(st) { return Math.max(1, Math.round(16 / Math.max(1, st.den || 4))); }
+
+function drawChamber(x0, y0, w, h, st, big) {
+    var sx = w / CW, i, p, diam = big ? 12 : 10;
+    panelBox(x0, y0, w, h, diam);
+    if (st.target !== 2) doseHaze(x0, y0, w, h, st, diam);
 
     if (st.sync) {
         var gap = big ? 5 : 2, sw = (w - 16 - gap * 15) / 16;
@@ -611,34 +661,60 @@ function drawChamber(x0, y0, w, h, st, big) {
             var cur = i === st.step;
             if (cur) rgba(COL.cyan); else if (i % 4 === 0) mgraphics.set_source_rgba(0.231, 0.247, 0.286, 1);
             else rgba(COL.track);
-            mgraphics.rectangle_rounded(x0 + 8 + i * (sw + gap), y0 + (big ? 10 : 5), sw, big ? 4 : 2, 2, 2);
+            mgraphics.rectangle_rounded(x0 + 8 + i * (sw + gap), y0 + (big ? 10 : 5), sw, big ? 3 : 2, 2, 2);
             mgraphics.fill();
         }
     }
 
-    var floorY = y0 + h - (big ? 34 : 4);
-    if (st.flashing > 0) rgba(COL.cyan, 0.9); else rgba(COL.track);
+    // floor = the buffer: ticks on beats (device) or 16ths (large view), same scale as MEMORY
+    var floorY = y0 + h - (big ? 28 : 6);
+    var nb = beatsPerBar(st) * 2, n16 = big ? sixteenthsPerBeat(st) : 1, nt = nb * n16;
+    rgba(COL.cyan, 0.45);
+    mgraphics.set_line_width(1);
+    for (i = 0; i <= nt; i++) {
+        var tx = x0 + 8 + (w - 16) * i / nt, tl = (i % (nt / 2) === 0) ? (big ? 8 : 4) : ((i % n16 === 0) ? (big ? 5 : 2) : 2);
+        mgraphics.move_to(tx, floorY + 2);
+        mgraphics.line_to(tx, floorY + 2 + tl);
+    }
+    mgraphics.stroke();
+    rgba(COL.cyan, st.flashing > 0 ? 0.35 : 0.2);
+    mgraphics.rectangle(x0 + 6, floorY - 1.5, w - 12, big ? 5 : 4);
+    mgraphics.fill();
+    rgba(COL.cyan);
     mgraphics.rectangle(x0 + 6, floorY, w - 12, big ? 2 : 1.5);
     mgraphics.fill();
+    if (big) {
+        font(8, false);
+        mgraphics.set_source_rgba(0.365, 0.384, 0.424, 1);
+        text("BUFFER START", x0 + 10, y0 + h - 6);
+        text("BUFFER END", x0 + w - 10, y0 + h - 6, "right");
+    }
 
-    var pr = big ? 5 : 2.6;
-    var yScale = big ? (h - 40) / CH : sy;
+    var pr = big ? 4.5 : 2.4;
+    var yScale = (floorY - y0) / (CH - 18);
     for (i = 0; i < st.n; i++) {
         p = st.ps[i];
-        var px = x0 + p.x * sx + pr, py = y0 + p.y * yScale + pr;
-        if (big) {
+        var px = x0 + p.x * sx, py = y0 + p.y * yScale - pr;
+        // trail: the last positions as a fading line (the parabola of the flight)
+        if (p.tr.length > 2 && !p.rest) {
+            mgraphics.set_line_width(big ? 1.5 : 1);
             for (var k = 1; k < p.tr.length; k++) {
-                rgba(COL.cyan, 0.3 - k * 0.06);
-                mgraphics.ellipse(x0 + p.tr[k][0] * sx + pr - 2, y0 + p.tr[k][1] * yScale + pr - 2, 4, 4);
-                mgraphics.fill();
+                mgraphics.set_source_rgba(1, 1, 1, 0.28 * (1 - k / p.tr.length));
+                mgraphics.move_to(x0 + p.tr[k - 1][0] * sx, y0 + p.tr[k - 1][1] * yScale - pr);
+                mgraphics.line_to(x0 + p.tr[k][0] * sx, y0 + p.tr[k][1] * yScale - pr);
+                mgraphics.stroke();
             }
         }
         if (p.flash > 0) {
-            var fl = p.flashLen || 7;
-            var rr = pr * 1.5 + (fl - p.flash) * (big ? 4 : 1.6);
-            rgba(COL.cyan, 0.9 * p.flash / fl);
-            mgraphics.set_line_width(big ? 2 : 1);
-            mgraphics.ellipse(px - rr, py - rr, rr * 2, rr * 2);
+            var fl = p.flashLen || 7, fa = p.flash / fl;
+            // impact: flash on the floor at the read position + expanding ring
+            mgraphics.set_source_rgba(1, 1, 1, 0.9 * fa);
+            mgraphics.rectangle(px - (big ? 9 : 4), floorY - 0.5, big ? 18 : 8, big ? 3 : 2.5);
+            mgraphics.fill();
+            var rr = pr * 1.5 + (fl - p.flash) * (big ? 3 : 1.4);
+            rgba(COL.cyan, 0.6 * fa);
+            mgraphics.set_line_width(big ? 1.5 : 1);
+            mgraphics.ellipse(px - rr, floorY - rr, rr * 2, rr * 2);
             mgraphics.stroke();
         }
         if (p.q) {
@@ -650,7 +726,7 @@ function drawChamber(x0, y0, w, h, st, big) {
             mgraphics.ellipse(px - pr, py - pr, pr * 2, pr * 2);
             mgraphics.stroke();
         } else {
-            rgba(COL.cyan, 0.25);
+            rgba(COL.cyan, 0.22);
             mgraphics.ellipse(px - pr * 2, py - pr * 2, pr * 4, pr * 4);
             mgraphics.fill();
             mgraphics.set_source_rgba(1, 1, 1, 1);
@@ -658,22 +734,172 @@ function drawChamber(x0, y0, w, h, st, big) {
             mgraphics.fill();
         }
     }
-
 }
 
-function drawWave(x0, y0, w, h, st) {
-    roundBox(x0, y0, w, h, 5, COL.box, 0.08);
-    var cw = (w - 8) / CELLS, i;
-    for (i = 0; i < CELLS; i++) {
-        var bh = Math.max(1, st.amp[i] * (1 - 0.5 * st.wear[i]) * (h - 8));
-        rgba(mixc(COL.fresh, COL.orange, st.wear[i]));
-        mgraphics.rectangle(x0 + 4 + i * cw, y0 + h / 2 - bh / 2, Math.max(1, cw - 0.6), bh);
+// MEMORY (0.2.7, scheme "cyan -> orange"): fresh audio cyan, wear orange.
+// Two layers (peak band + rms core), thin outline of the fresh recording (palimpsest ghost),
+// worn zones tinted + hatched, wear lane at the bottom (lights up where grains read),
+// read heads fade out, cyan write head (grey when frozen).
+var MEM_ICE = [0.769, 0.957, 1.0], LANE0 = [0.071, 0.149, 0.180];
+function drawMemory(x0, y0, w, h, st, big) {
+    var o = st.ov, i, diam = big ? 12 : 10;
+    panelBox(x0, y0, w, h, diam);
+    if (st.target !== 1) doseHaze(x0, y0, w, h, st, diam);
+    if (!o || !o.fp.length) return;
+    var meterW = big ? 22 : 0;
+    var wx = x0 + 4, ww = w - 8 - meterW;
+    var top = y0 + (big ? 16 : 12), laneH = big ? 6 : 4, laneY = y0 + h - laneH - (big ? 6 : 4);
+    var bot = laneY - (big ? 6 : 4), mid = (top + bot) / 2, half = (bot - top) / 2;
+    var n = o.fp.length, dx = ww / n, g = o.gain;
+    // display curve for wear: sqrt makes light wear visible (numbers in the header stay real)
+    var wd = [];
+    for (i = 0; i < n; i++) wd.push(Math.sqrt(Math.max(0, Math.min(1, o.we[i]))));
+
+    // ruler: bar lines strong, beats faint (labels 1, 1.2, ... in the large view)
+    var nb = beatsPerBar(st), nbt = nb * 2;
+    mgraphics.set_line_width(1);
+    for (i = 0; i <= nbt; i++) {
+        var rx = Math.round(wx + ww * i / nbt) + 0.5, bar = i % nb === 0;
+        if (bar) rgba(COL.cyan, 0.2); else rgba(COL.cyan, 0.07);
+        mgraphics.move_to(rx, top - (big ? 4 : 2));
+        mgraphics.line_to(rx, bot);
+        mgraphics.stroke();
+        if (i < nbt && (big || bar)) {
+            font(big ? 7.5 : 6.5, bar);
+            if (bar) rgba(COL.text, 0.75); else rgba(COL.dim, 0.8);
+            text(bar ? String(i / nb + 1) : (Math.floor(i / nb) + 1) + "." + (i % nb + 1), rx + 3, y0 + (big ? 10 : 8));
+        }
+    }
+    rgba(COL.cyan, 0.08);
+    mgraphics.move_to(wx, mid);
+    mgraphics.line_to(wx + ww, mid);
+    mgraphics.stroke();
+
+    function yv(v) { return Math.min(half, v * g * half); }
+    // peak band (worn)
+    rgba(COL.cyan, 0.18);
+    mgraphics.move_to(wx, mid - yv(o.wp[0]));
+    for (i = 0; i < n; i++) mgraphics.line_to(wx + (i + 0.5) * dx, mid - yv(o.wp[i]));
+    for (i = n - 1; i >= 0; i--) mgraphics.line_to(wx + (i + 0.5) * dx, mid + yv(o.wp[i]) * 0.94);
+    mgraphics.close_path();
+    mgraphics.fill();
+    // wear tint inside the band
+    for (i = 0; i < n; i++) {
+        if (wd[i] < 0.2) continue;
+        rgba(COL.orange, Math.min(0.45, 0.4 * wd[i]));
+        var bh = yv(o.wp[i]);
+        mgraphics.rectangle(wx + i * dx, mid - bh, dx + 0.3, bh * 1.94);
         mgraphics.fill();
     }
-    var hx = x0 + 4 + (st.head / CELLS) * (w - 8);
-    if (st.frozen) mgraphics.set_source_rgba(0.231, 0.247, 0.286, 1); else rgba(COL.cyan);
-    mgraphics.rectangle(hx, y0 + 3, 1.5, h - 6);
+    // rms core
+    rgba(MEM_ICE, 0.85);
+    mgraphics.move_to(wx, mid - yv(o.wr[0]));
+    for (i = 0; i < n; i++) mgraphics.line_to(wx + (i + 0.5) * dx, mid - yv(o.wr[i]));
+    for (i = n - 1; i >= 0; i--) mgraphics.line_to(wx + (i + 0.5) * dx, mid + yv(o.wr[i]) * 0.94);
+    mgraphics.close_path();
     mgraphics.fill();
+    // hatch on worn zones (diagonal lines, clipped to the band column by column)
+    var hs = big ? 5 : 4;
+    rgba(COL.orange, 0.85);
+    mgraphics.set_line_width(big ? 1 : 0.8);
+    for (i = 0; i < n; i++) {
+        if (wd[i] < 0.4) continue;
+        var xa = wx + i * dx, xb = xa + dx, hb = yv(o.wp[i]), ya = mid - hb, yb = mid + hb * 0.94;
+        var k0 = Math.ceil((ya + xa) / hs), k1 = Math.floor((yb + xa) / hs);
+        for (var k = k0; k <= k1; k++) {
+            var y1 = k * hs - xa, y2 = k * hs - xb;
+            if (y2 < ya) continue;
+            mgraphics.move_to(xa, y1);
+            mgraphics.line_to(xb, y2);
+        }
+    }
+    mgraphics.stroke();
+    // outlines: worn peak (cyan) and the fresh recording (ghost)
+    mgraphics.set_line_width(big ? 0.8 : 0.7);
+    rgba(COL.cyan, 0.85);
+    mgraphics.move_to(wx, mid - yv(o.wp[0]));
+    for (i = 0; i < n; i++) mgraphics.line_to(wx + (i + 0.5) * dx, mid - yv(o.wp[i]));
+    mgraphics.stroke();
+    mgraphics.move_to(wx, mid + yv(o.wp[0]) * 0.94);
+    for (i = 0; i < n; i++) mgraphics.line_to(wx + (i + 0.5) * dx, mid + yv(o.wp[i]) * 0.94);
+    mgraphics.stroke();
+    rgba(MEM_ICE, 0.4);
+    mgraphics.move_to(wx, mid - yv(o.fp[0]));
+    for (i = 0; i < n; i++) mgraphics.line_to(wx + (i + 0.5) * dx, mid - yv(o.fp[i]));
+    mgraphics.stroke();
+    mgraphics.move_to(wx, mid + yv(o.fp[0]) * 0.94);
+    for (i = 0; i < n; i++) mgraphics.line_to(wx + (i + 0.5) * dx, mid + yv(o.fp[i]) * 0.94);
+    mgraphics.stroke();
+
+    // wear lane: dark cyan -> orange; columns just read light up white
+    var lc = big ? 2 : 4, lw = dx * lc;
+    for (i = 0; i < n; i += lc) {
+        var we = 0, j;
+        for (j = 0; j < lc && i + j < n; j++) we = Math.max(we, wd[i + j]);
+        rgba(mixc(LANE0, COL.orange, we));
+        mgraphics.rectangle(wx + i * dx, laneY, Math.max(0.6, lw - 0.6), laneH);
+        mgraphics.fill();
+    }
+    for (i = 0; i < st.reads.length; i++) {
+        var rd = st.reads[i], hx = wx + rd.x * ww;
+        mgraphics.set_source_rgba(1, 1, 1, 0.9 * rd.a);
+        mgraphics.rectangle(hx - (big ? 4 : 2), laneY, big ? 8 : 4, laneH);
+        mgraphics.fill();
+        // read head with a short afterglow to the left
+        var tail = mgraphics.pattern_create_linear(hx - (big ? 16 : 8), 0, hx, 0);
+        tail.add_color_stop_rgba(0, 1, 1, 1, 0);
+        tail.add_color_stop_rgba(1, 1, 1, 1, 0.16 * rd.a);
+        mgraphics.set_source(tail);
+        mgraphics.rectangle(hx - (big ? 16 : 8), top, big ? 16 : 8, bot - top);
+        mgraphics.fill();
+        mgraphics.set_source_rgba(1, 1, 1, rd.a);
+        mgraphics.rectangle(hx, top, 1, bot - top);
+        mgraphics.fill();
+    }
+    // write head
+    var whx = wx + Math.max(0, Math.min(1, o.head)) * ww;
+    if (st.frozen) mgraphics.set_source_rgba(0.365, 0.384, 0.424, 1); else rgba(COL.cyan);
+    mgraphics.rectangle(whx, top - 2, big ? 2 : 1.5, bot - top + 2);
+    mgraphics.fill();
+    if (big && !st.frozen) {
+        font(7, true);
+        rgba(COL.cyan);
+        text("REC", whx + 5, top + 8);
+    }
+    if (big) drawMeters(x0 + w - 18, top - 2, 14, laneY + laneH - top + 2, st.meters || [0, 0, 0, 0], 2.5, 1);
+}
+
+// IN L/R, OUT L/R meters (device and large view)
+function drawMeters(x, y, w, h, mv, bw, gap) {
+    var i, xs = [0, bw + gap, 2 * bw + 3 * gap, 3 * bw + 4 * gap];
+    for (i = 0; i < 4; i++) {
+        var mx = x + xs[i];
+        mgraphics.set_source_rgba(0.114, 0.125, 0.153, 1);
+        mgraphics.rectangle_rounded(mx, y, bw, h, bw * 0.6, bw * 0.6);
+        mgraphics.fill();
+        var db = mv[i] > 0.00001 ? 20 * Math.log(mv[i]) / Math.LN10 : -90;
+        var nrm = Math.max(0, Math.min(1, (db + 60) / 60)), fh = nrm * h;
+        if (fh > 0.5) {
+            var pat = mgraphics.pattern_create_linear(0, y + h, 0, y);
+            pat.add_color_stop_rgba(0, 0.231, 0.878, 0.561, 1);
+            pat.add_color_stop_rgba(0.75, 0.231, 0.878, 0.561, 1);
+            pat.add_color_stop_rgba(0.9, 1.0, 0.847, 0.290, 1);
+            pat.add_color_stop_rgba(1, 1.0, 0.353, 0.239, 1);
+            mgraphics.set_source(pat);
+            mgraphics.rectangle_rounded(mx, y + h - fh, bw, fh, bw * 0.6, bw * 0.6);
+            mgraphics.fill();
+        }
+    }
+}
+
+// most worn column (position as bar.beat.16th) and mean wear, from the overview
+function wearStats(st) {
+    var o = st.ov, i, mx = 0, mi = 0, sum = 0, n = o.we.length;
+    for (i = 0; i < n; i++) { sum += o.we[i]; if (o.we[i] > mx) { mx = o.we[i]; mi = i; } }
+    var nb = beatsPerBar(st), s16 = sixteenthsPerBeat(st), steps = nb * s16 * 2;
+    var stp = Math.floor(mi / n * steps), bar = Math.floor(stp / (nb * s16)) + 1;
+    var beat = Math.floor((stp % (nb * s16)) / s16) + 1, six = stp % s16 + 1;
+    return { most: mx, pos: bar + "." + beat + "." + six, avg: n ? sum / n : 0 };
 }
 
 function memStatus(st) { return st.frozen ? "FROZEN · decaying" : "REC · 2 BARS"; }
@@ -747,11 +973,11 @@ function drawDevice(w, h, st) {
     rgba(COL.dim);
     text(st.n + " particles \u00b7 " + (st.sync ? st.queued + " queued" : st.flashing + " grains"),
          L.chamber[0] + L.chamber[2], 13, "right");
-    if (st.frozen) rgba(COL.cyan); else rgba(COL.dim);
-    text(memStatus(st), L.wave[0] + L.wave[2], 13, "right");
+    if (st.frozen) { rgba(COL.cyan); text(memStatus(st), L.wave[0] + L.wave[2], 13, "right"); }
+    else { rgba(COL.dim); text("MOST WORN " + Math.round(wearStats(st).most * 100) + " %", L.wave[0] + L.wave[2], 13, "right"); }
 
     drawChamber(L.chamber[0], L.chamber[1], L.chamber[2], L.chamber[3], st, false);
-    drawWave(L.wave[0], L.wave[1], L.wave[2], L.wave[3], st);
+    drawMemory(L.wave[0], L.wave[1], L.wave[2], L.wave[3], st, false);
 
     // controls block (3 x 2)
     r = L.controls;
@@ -827,8 +1053,11 @@ function drawLegendDot(x, y) {
     mgraphics.fill();
 }
 
+// layout 0.2.7 (GUI iteration 13): CHAMBER | MEMORY side by side, same width and height,
+// no wear history (the wear lane in MEMORY shows it), meters in MEMORY; controls below
+var LV = { chamber: [0, 66, 450, 200], memory: [470, 66, 450, 200] };
 function drawLarge(w, h, st) {
-    var leftW = 600, rightX = 616, rightW = w - rightX, i, j;
+    var C = LV.chamber, M = LV.memory;
     // header: logo left, legend + tempo right
     drawTitleAt(0, 8, 22);
     font(8.5, false);
@@ -841,49 +1070,22 @@ function drawLarge(w, h, st) {
 
     font(10, true);
     rgba(COL.cyan);
-    text("CHAMBER", 0, 58);
-    font(8.5, false);
+    text("CHAMBER", C[0], 58);
+    font(8, false);
     rgba(COL.dim);
-    text("X = BUFFER POSITION \u00b7 IMPACT = GRAIN", leftW, 58, "right");
-    drawChamber(0, 66, leftW, h - 66, st, true);
+    text(st.n + " PARTICLES \u00b7 " + (st.sync ? st.queued + " QUEUED" : st.flashing + " GRAINS"), C[0] + C[2], 58, "right");
+    drawChamber(C[0], C[1], C[2], C[3], st, true);
 
     font(10, true);
     rgba(COL.orange);
-    text("MEMORY", rightX, 58);
-    font(8.5, false);
-    if (st.frozen) rgba(COL.cyan); else rgba(COL.dim);
-    text(memStatus(st), w, 58, "right");
-    drawWave(rightX, 66, rightW, 120, st);
-
-    font(8.5, true);
-    rgba(COL.dim);
-    text("WEAR HISTORY", rightX, 208);
+    text("MEMORY", M[0], 58);
     font(8, false);
-    text("NEWEST ON TOP", w, 208, "right");
-    var hy = 214, hh = 160;
-    roundBox(rightX, hy, rightW, hh, 5, COL.box, 0.08);
-    var cw = (rightW - 12) / HIST_COLS, rh = (hh - 12) / HIST_ROWS;
-    for (i = 0; i < HIST_ROWS; i++) {
-        for (j = 0; j < HIST_COLS; j++) {
-            rgba(heat(st.hist[i][j]));
-            mgraphics.rectangle(rightX + 6 + j * cw, hy + 6 + i * rh, Math.max(1, cw - 1), Math.max(1, rh - 1.5));
-            mgraphics.fill();
-        }
-    }
-    var maxW = 0, maxI = 0, sum = 0;
-    for (i = 0; i < CELLS; i++) { sum += st.wear[i]; if (st.wear[i] > maxW) { maxW = st.wear[i]; maxI = i; } }
-    var sy = 384, sw = (rightW - 8) / 2;
-    roundBox(rightX, sy, sw, h - sy, 6, [0.07, 0.075, 0.09], 0.06);
-    roundBox(rightX + sw + 8, sy, sw, h - sy, 6, [0.07, 0.075, 0.09], 0.06);
-    font(7.5, true);
-    rgba(COL.dim);
-    text("MOST WORN", rightX + 10, sy + 14);
-    text("AVG WEAR", rightX + sw + 18, sy + 14);
-    font(12, true);
-    rgba(COL.orange);
-    text(Math.round(maxW * 100) + "% @ " + (maxI / CELLS * 2).toFixed(2) + " bars", rightX + 10, sy + 32);
-    rgba(COL.text);
-    text(Math.round(sum / CELLS * 100) + "%", rightX + sw + 18, sy + 32);
+    var ws = wearStats(st);
+    var info = "MOST WORN " + Math.round(ws.most * 100) + " % @ " + ws.pos + " \u00b7 AVG " + Math.round(ws.avg * 100) + " %";
+    if (st.frozen) info = "FROZEN \u00b7 " + info;
+    if (st.frozen) rgba(COL.cyan); else rgba(COL.dim);
+    text(info, M[0] + M[2], 58, "right");
+    drawMemory(M[0], M[1], M[2], M[3], st, true);
 }
 
 // ---------------------------------------------------------------- large view controls

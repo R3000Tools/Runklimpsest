@@ -71,7 +71,7 @@ const qd = c(DL.division); ch.onclick(qd[0], qd[1], 1, 0, 0);                 //
 const it3 = vm.runInContext('menuItemRect(3)', ch); paint(ch);                   // list drawn
 ch.onclick(it3[0] + 5, it3[1] + 5, 1, 0, 0);                                     // picks 1/32
 for (const k of ['freeze', 'more', 'dose']) { const q = c(DL[k]); ch.onclick(q[0], q[1], 1, 0, 0); }
-const dout = ch.out.map(o => o.slice(1)).filter(o => o[0] !== 'uid' && o[0] !== 'evw' && o[0] !== 'gen');
+const dout = ch.out.map(o => o.slice(1)).filter(o => o[0] !== 'uid' && o[0] !== 'evw' && o[0] !== 'gen' && o[0] !== 'ovreq');
 console.log('device panel out', JSON.stringify(dout));
 const got = dout.map(o => o[0]).join(',');
 if (got !== 'gravity,gravity,sync,division,freeze,open,resetdose') throw new Error('device click outputs wrong: ' + got);
@@ -82,3 +82,14 @@ if (!ko.length || ko[0][0] !== 'gravity' || ko[ko.length - 1][1] !== gdef) throw
 if (mo.length !== 2 || mo[0][0] !== 'division') throw new Error('menu widget output wrong');
 const L = vm.runInContext('LAYOUT', ch); if (!L.dose || !L.chamber) throw new Error('generated LAYOUT missing');
 console.log('tempo seen by engine', st.tempo, st.num + '/' + st.den);
+// 0.2.7 overview: without a buffer the panel asks for its name, with one it reads real data
+const req = []; for (let f = 0; f < 130; f++) { send(ch, 'bang'); for (const o of ch.out.splice(0)) if (o[1] === 'ovreq') req.push(f); }
+if (!req.length) throw new Error('panel never asked for the overview buffer name (ovreq)');
+if (st.ov.ok) throw new Error('overview marked real without a buffer');
+ch.Buffer = function (n) { this.n = n; };
+ch.Buffer.prototype.peek = function (c, s0, n) { const a = []; for (let i = 0; i < n; i++) a.push(i === n - 1 ? 0.25 : ((i % 4 === 3) ? 0.5 : 0.3)); return a; };
+send(ch, 'ovname', '123rkov', 'bang');
+for (let f = 0; f < 16; f++) send(ch, 'bang');
+if (!st.ov.ok || Math.abs(st.ov.head - 0.25) > 1e-9 || st.ov.we[10] !== 0.5) throw new Error('overview not read from buffer');
+paint(ch); paint(large);
+console.log('overview: ovreq sent, buffer read ok, head', st.ov.head, 'most worn', vm.runInContext('wearStats(sharedState())', ch).most);

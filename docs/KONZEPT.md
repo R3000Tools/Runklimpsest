@@ -44,9 +44,10 @@ Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeic
 
 ## Oberfläche
 - Gerät 580 × 169 px ohne Titelzeile, Raster (0.1.13): 3 Spalten CHAMBER | MEMORY | CONTROLS (3×2: GRAVITY, BOUNCE, SWARM / EROSION, DOSE, MIX) plus IN/OUT-Meter; eine Kopfzeile, eine Button-Zeile (SYNC + Division, FREEZE, LARGE VIEW). Gezeichnet und bedient von einer jsui; Parameter versteckt.
-- Large View 960 × 620 px: Kopfzeile (Logo, Legende, Tempo), große Chamber, MEMORY, WEAR HISTORY, Kennzahlen; unten vier Karten nach Funktion (PHYSICS, MEMORY, DOSE, OUTPUT), Inhalte mittig, cyan Punkt = auch im Gerät. Kein CLOSE (Fenster-X).
+- Large View 960 × 456 px (0.2.7, GUI-Iteration 13): Kopfzeile (Logo, Legende, Tempo), CHAMBER und MEMORY nebeneinander, gleich groß (je 450 × 200, gleiche X-Skala), Kennzahlen in der MEMORY-Kopfzeile, IN/OUT-Meter in MEMORY; unten vier Karten nach Funktion (PHYSICS, MEMORY, DOSE, OUTPUT), Inhalte mittig, cyan Punkt = auch im Gerät. Kein CLOSE (Fenster-X). WEAR HISTORY entfiel (doppelt zu MEMORY).
+- Anzeigen (0.2.7): MEMORY zeigt die echte Puffer-Übersicht aus gen~ – Schema „Cyan → Orange“: frisches Audio cyan (wie die Chamber), Abnutzung orange (wie MEMORY/EROSION), Kontur der frischen Aufnahme = Palimpsest. Chamber ohne Wellenform, Boden mit Teilstrichen. Alle Kästen im Kartenton (eine Regel). DOSE-Schimmer nur dort, wo DOSE wirkt (TARGET), Stärke = Dosis.
 - Stil: Runkelizer FX (Verlauf #23262e → #0a0a0d, Farbe pro Bereich: Cyan Chamber/Physics, Orange Memory/Wear, Magenta Dose; LED-Buttons; Meter grün → rot). Alle Texte Englisch, keine Bereichs-Hinweise unter den Reglern (Platz).
-- GUI-Entwürfe (Iterationen 1–8): Claude-Artifact „Palimpsest M4L GUI“ (privat beim Nutzer).
+- GUI-Entwürfe (Iterationen 1–13): Claude-Artifact „Palimpsest M4L GUI“ (privat beim Nutzer).
 
 ## Klangverarbeitung (0.2.1)
 - gen~-Codebox `device/runklimpsest_dsp.genexpr`, Latenz 0, 32 Grain-Stimmen, Puffer „fresh“ + „worn“ (je stereo, max. 800 000 Samples).

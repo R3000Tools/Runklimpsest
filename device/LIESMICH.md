@@ -1,4 +1,4 @@
-# Runklimpsest – 0.2.6 (Max for Live)
+# Runklimpsest – 0.2.7 (Max for Live)
 
 Granular Particle Memory: Teilchen fallen in der Chamber, jeder Aufprall spielt ein Grain aus den letzten 2 Takten. Jedes Abspielen nutzt die gespielte Stelle ab (Palimpsest).
 Latenz: 0 Samples.
@@ -27,10 +27,10 @@ Latenz: 0 Samples.
 
 | Element | Funktion |
 |---|---|
-| CHAMBER | Teilchen fallen, Aufprall = Grain (Ring). X-Position = Stelle im Puffer |
+| CHAMBER | Teilchen fallen, Aufprall = Grain (Blitz am Boden + Ring). X-Position = Stelle im Puffer, Teilstriche = Schläge/16tel |
 | SYNC + Division | An: Teilchen warten (hohler Ring) bis zum nächsten Rasterschritt (1/4 … 1/32, Song-Tempo). Leiste oben = 16 Schritte |
 | LARGE VIEW | öffnet die Large View (schließen: Fenster-X) |
-| MEMORY | Puffer (2 Takte im Song-Tempo) mit dem echten Eingangspegel; Abnutzung färbt orange und drückt die Balken |
+| MEMORY | Wellenform des Puffers (2 Takte im Song-Tempo): cyan = Audio, dünne Kontur = frische Aufnahme, orange/schraffiert = abgenutzt; Streifen unten = Abnutzung je Stelle, weiße Linien = gerade gelesen, cyan Linie = Schreibkopf |
 | FREEZE | Schreibkopf stoppt, der Puffer wird nur noch abgenutzt |
 | GRAVITY, BOUNCE, SWARM | Physik: Fallgeschwindigkeit, Elastizität, Teilchenzahl |
 | EROSION | wie stark ein Aufprall die Stelle abnutzt |
@@ -41,22 +41,22 @@ Latenz: 0 Samples.
 | HEAL (Large View) | wie schnell sich der Puffer erholt |
 | STEREO / MONO (Large View) | Grains nach X-Position verteilt (±70 %) oder mittig |
 
-**Large View:** vier Karten nach Funktion – PHYSICS, MEMORY, DOSE, OUTPUT (inkl. STEREO | MONO). Ein cyan Punkt am Namen heißt: gibt es auch im Gerät. Alle Parameter sind automatisierbar.
+**Large View:** CHAMBER und MEMORY nebeneinander (mit IN/OUT-Metern), darunter vier Karten nach Funktion – PHYSICS, MEMORY, DOSE, OUTPUT (inkl. STEREO | MONO). Ein cyan Punkt am Namen heißt: gibt es auch im Gerät. Alle Parameter sind automatisierbar.
 
 Knobs (Gerät und Large View): ziehen = ändern, Shift = fein, Doppelklick = Standardwert. Notenwert im Gerät: Klick öffnet die Liste, Klick auf einen Eintrag wählt ihn.
 Automation: alle 16 Parameter über die Automationsauswahl der Spur; Regler-Bewegungen bei Aufnahme werden aufgezeichnet. Push/Controller mit Geräte-Steuerung: Bänke „Main“, „Detail“ und „Reset“. MIDI-Map per Klick auf die Regler (Strg+M) ist bei dieser Oberfläche nicht möglich.
-DOSE ist kein Regler, sondern eine Anzeige: steigt nur bei laufendem Audio-Signal (Geschwindigkeit über RATE), fällt in Stille (RECOVER), Klick auf den Ring = Reset auf 0 % (Ring blinkt kurz).
+Magenta-Schimmer oben in CHAMBER/MEMORY = Dosis, dort wo sie wirkt (TARGET). DOSE ist kein Regler, sondern eine Anzeige: steigt nur bei laufendem Audio-Signal (Geschwindigkeit über RATE), fällt in Stille (RECOVER), Klick auf den Ring = Reset auf 0 % (Ring blinkt kurz).
 
 ## Bitte testen (Feedback-Format: *Bereich / Element / Wert / Problem*)
 
 1. Lädt das Gerät, laufen Teilchen und Pufferanzeige?
-2. Abspielen: steigt DOSE, füllt sich MEMORY mit dem Pegel?
+2. Abspielen: steigt DOSE, zeigt MEMORY die **echte Wellenform** (Kicks/Snares erkennbar)? Bei FREEZE: werden gelesene Stellen orange?
 3. Klick auf den DOSE-Ring: springt er auf 0 %?
 4. SYNC an/aus und Division bei laufendem Transport: feuern die Grains im Raster?
 5. Large View öffnen, Regler dort bewegen: bewegt sich der Regler im Gerät mit (und umgekehrt)?
 6. Automation: Gibt es pro Funktion genau **eine** Spur (16 Parameter, keine doppelten)?
 7. Projekt speichern, neu laden: sind alle Werte wieder da?
-8. CPU-Anzeige von Live mit offener Large View.
+8. CPU-Anzeige von Live mit offener Large View (MEMORY zeichnet jetzt deutlich mehr).
 
 ## Bekannte Grenzen (Prototyp)
 

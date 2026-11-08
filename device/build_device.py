@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.6"
+VERSION = "0.2.7"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
@@ -95,8 +95,8 @@ DEVICE_AREAS = {
     "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120],
     "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120],
 }
-# large view (960 x 620)
-WIN_W, WIN_H = 960, 620
+# large view (960 x 456, 0.2.7: smaller chamber, no wear history)
+WIN_W, WIN_H = 960, 456
 
 TRANSPARENT = [0.0, 0.0, 0.0, 0.01]
 
@@ -239,14 +239,14 @@ def build_window():
     background(w, WIN_W, WIN_H)
     # layout 0.1.13: the large jsui draws logo, legend and tempo itself (no overlapping objects;
     # no LARGE VIEW label / CLOSE button - window title and the OS close button do that)
-    large = w.jsui("large", [20, 0, 920, 430])
+    large = w.jsui("large", [20, 0, 920, 276])
     for name in ("rk_draw", "rk_uid"):
         r = w.obj(f"r ---{name}", ins=0, outs=1)
         w.connect(r, 0, large, 0)
 
     # Controls are drawn by a jsui (live.* mirrors without a parameter lose names,
     # units and item lists). Output "<name> <value>" -> [route] -> original parameter.
-    controls = w.jsui("controls", [20, 444, 920, 160])
+    controls = w.jsui("controls", [20, 282, 920, 160])
     for name in ("rk_draw", "rk_uid"):
         r = w.obj(f"r ---{name}", ins=0, outs=1)
         w.connect(r, 0, controls, 0)
@@ -313,7 +313,7 @@ def build_gen(d):
         "boxes": g.boxes,
         "lines": g.lines,
     }
-    return d.add("newobj", text="gen~ @ev ---rkev", numinlets=2, numoutlets=2, outlettype=["signal", "signal"],
+    return d.add("newobj", text="gen~ @ev ---rkev @ov ---rkov", numinlets=2, numoutlets=2, outlettype=["signal", "signal"],
                  patcher=gen_patcher)
 
 
@@ -401,6 +401,10 @@ def build_device():
     genx = build_gen(d)
     evbuf = d.obj("buffer~ ---rkev 50 1", ins=1, outs=2, outtype=["float", "bang"])
     _ = evbuf
+    # display overview written by gen~ (Buffer ov), read by the panel jsui with a JS Buffer
+    # object; 1025 values (256 columns x 4 + write head) - 100 ms is enough down to 11 kHz
+    ovbuf = d.obj("buffer~ ---rkov 100 1", ins=1, outs=2, outtype=["float", "bang"])
+    _ = ovbuf
     evpoke = d.obj("peek~ ---rkev", ins=3, outs=1, outtype=["float"])
     for p in PARAMS:
         if p["name"] in GEN_PARAM:
@@ -409,7 +413,7 @@ def build_device():
             d.connect(pg, 0, genx, 0)
 
     # panel output: uid, open, evw (event ring writes), gen (engine params), else parameter changes
-    route = d.obj("route uid open evw gen win", ins=1, outs=6, outtype=["", "", "", "", "", ""])
+    route = d.obj("route uid open evw gen win ovreq", ins=1, outs=7, outtype=[""] * 7)
     s_win = d.obj("s ---rk_win", ins=1, outs=0, outtype=[])
     d.connect(route, 2, evpoke, 0)
     d.connect(route, 3, genx, 0)
@@ -419,7 +423,12 @@ def build_device():
     d.connect(route, 0, pre_uid, 0)
     d.connect(pre_uid, 0, s_uid, 0)
     d.connect(route, 4, s_win, 0)          # window position messages for the large view
-    d.connect(route, 5, widget_route, 0)   # everything else from the panel: parameter changes
+    d.connect(route, 6, widget_route, 0)   # everything else from the panel: parameter changes
+    # the panel asks for the device-unique name of the overview buffer: "---" is replaced in
+    # object boxes only, so [prepend ovname ---rkov] hands the real name to the JS Buffer object
+    ov_name = d.obj("prepend ovname ---rkov")
+    d.connect(route, 5, ov_name, 0)
+    d.connect(ov_name, 0, panel, 0)
 
     open_msg = d.msg("open")
     pc = d.obj("pcontrol", ins=1, outs=1)

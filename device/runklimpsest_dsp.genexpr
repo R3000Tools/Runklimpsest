@@ -11,6 +11,7 @@
 //   (palimpsest: reading wears the source), HEAL sweeps worn back toward fresh
 //   grains: mono sum, constant-power pan from X (+-70 %) or centre (MONO)
 //   wet: density normalisation, DC blocker -> equal-power MIX -> OUTPUT -> soft clip
+//   display: overview of the buffer (256 columns) in buffer~ ---rkov, read by the jsui
 // Latency: 0 samples (grains read from the past, dry is not delayed).
 
 Param p_mix(50);
@@ -26,6 +27,7 @@ Param p_target(0);
 Param p_barsec(2);
 Param p_evhead(0);
 Buffer ev("rkev");
+Buffer ov("rkov");
 Data fresh(800000, 2);
 Data worn(800000, 2);
 Data vs(32, 15);
@@ -46,6 +48,14 @@ History dcxl(0);
 History dcyl(0);
 History dcxr(0);
 History dcyr(0);
+History ovpos(0);
+History ocol(0);
+History afp(0);
+History awp(0);
+History aws(0);
+History afs(0);
+History ads(0);
+History acnt(0);
 
 // ---------------------------------------------------------------- constants
 cap = 800000;
@@ -81,6 +91,59 @@ hwr = peek(worn, hi, 1);
 poke(worn, hwl + (hfl - hwl) * hk, hi, 0);
 poke(worn, hwr + (hfr - hwr) * hk, hi, 1);
 healpos = hi + 1;
+
+// ---------------------------------------------------------------- display overview
+// 256 columns x 4 values in buffer~ ---rkov (index col * 4 + k): fresh peak, worn peak,
+// worn rms, wear (rms of worn - fresh relative to fresh rms, 0..1); index 1024 = write head
+// position 0..1. Scans 4 buffer positions per sample: a 2-bar loop at 120 BPM in 1 s.
+ovn = 256;
+ovi = ovpos;
+oc0 = ocol;
+qfp = afp;
+qwp = awp;
+qws = aws;
+qfs = afs;
+qds = ads;
+qn = acnt;
+for (oqi = 0; oqi < 4; oqi += 1) {
+	if (ovi >= blen) {
+		ovi = 0;
+	}
+	ovc = floor(ovi * ovn / blen);
+	if (ovc != oc0) {
+		ocn = max(1, qn);
+		ofr = sqrt(qfs / ocn);
+		poke(ov, qfp, oc0 * 4, 0);
+		poke(ov, qwp, oc0 * 4 + 1, 0);
+		poke(ov, sqrt(qws / ocn), oc0 * 4 + 2, 0);
+		poke(ov, clamp(sqrt(qds / ocn) / max(ofr, 0.003), 0, 1), oc0 * 4 + 3, 0);
+		qfp = 0;
+		qwp = 0;
+		qws = 0;
+		qfs = 0;
+		qds = 0;
+		qn = 0;
+		oc0 = ovc;
+	}
+	ofm = (peek(fresh, ovi, 0) + peek(fresh, ovi, 1)) * 0.5;
+	owm = (peek(worn, ovi, 0) + peek(worn, ovi, 1)) * 0.5;
+	qfp = max(qfp, abs(ofm));
+	qwp = max(qwp, abs(owm));
+	qws = qws + owm * owm;
+	qfs = qfs + ofm * ofm;
+	qds = qds + (owm - ofm) * (owm - ofm);
+	qn = qn + 1;
+	ovi = ovi + 1;
+}
+ovpos = ovi;
+ocol = oc0;
+afp = qfp;
+awp = qwp;
+aws = qws;
+afs = qfs;
+ads = qds;
+acnt = qn;
+poke(ov, wpos / blen, ovn * 4, 0);
 
 // ---------------------------------------------------------------- grain events
 // slot k (1..63, 0) holds pos, amp, pan x, delay ms at k*4 .. k*4+3
