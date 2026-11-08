@@ -31,9 +31,9 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.2.7";
+var VERSION = "0.2.8";
 var NATIVE_MENU = false;
-var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 4, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 65.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 5.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 40.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 8.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 16.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 2, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
+var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 4, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 65.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 30.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 40.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 8.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 16.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 2, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
 var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120], "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120]};
 // END GENERATED
 
@@ -68,7 +68,8 @@ function makeState() {
     var s = { ps: [], wear: [], amp: [], head: 0, step: 0, dose: 0, rising: false,
               n: 0, queued: 0, flashing: 0, resetReq: false, frozen: false, sync: true,
               tempo: 120, num: 4, den: 4, target: 2, reads: [], meters: [0, 0, 0, 0],
-              ov: { ok: false, fp: [], wp: [], wr: [], we: [], head: 0, gain: 1 } };
+              ov: { ok: false, fp: [], wp: [], wr: [], we: [], head: 0, gain: 1,
+                    rfp: [], rwp: [], rwr: [], rwe: [], rhead: 0, rgain: 1 } };
     var i;
     for (i = 0; i < MAXP; i++) {
         // 0.2.2: every particle keeps its own launch strength and sideways speed (golden-ratio
@@ -79,7 +80,10 @@ function makeState() {
                     launch: launch, side: Math.abs(side) + 0.4 });
     }
     for (i = 0; i < CELLS; i++) { s.wear.push(0); s.amp.push(0.05); }
-    for (i = 0; i < OVN; i++) { s.ov.fp.push(0); s.ov.wp.push(0); s.ov.wr.push(0); s.ov.we.push(0); }
+    for (i = 0; i < OVN; i++) {
+        s.ov.fp.push(0); s.ov.wp.push(0); s.ov.wr.push(0); s.ov.we.push(0);
+        s.ov.rfp.push(0); s.ov.rwp.push(0); s.ov.rwr.push(0); s.ov.rwe.push(0);
+    }
     return s;
 }
 
@@ -148,6 +152,21 @@ function throwSpeed(p, m) {
     return gravityPx() * (frames + 1) / 2; // semi-implicit Euler: back on the floor after "frames" steps
 }
 
+// 0.2.8: own gravity per throw, so every main throw peaks at 55..90 % of the chamber (each
+// particle its own height) - the flight time (grid timing) stays exactly as before. Short throws
+// were flat (apex ~ time^2), bounces stayed below the middle (user test 0.2.7).
+function throwGravity(p, m) {
+    var frames = m * gridStepSec() * FPS, frac = 0.55 + 0.35 * Math.max(0, Math.min(1, ((p.launch || 10) - 7) / 7));
+    return 8 * frac * (CH - 40) / Math.max(1, frames * frames);
+}
+
+// gravity of a particle now: its throw gravity, scaled when GRAVITY changes mid-flight
+// (turning GRAVITY down fast lets particles shoot up, even out of the chamber - kept on purpose)
+function particleG(p, gNow) {
+    if (!p.g || !p.g0) return gNow;
+    return p.g * gNow / p.g0;
+}
+
 // x position where a thrown particle will land (walls reflect), for the scheduled main hit
 function landingX(p, frames) {
     var x = p.x, vx = p.vx, k;
@@ -165,14 +184,18 @@ function syncTick() {
         var p = S.ps[i];
         if (p.rest) {
             p.rest = false;
-            var m = throwSteps(p), v = throwSpeed(p, m), frames = m * gridStepSec() * FPS;
+            var m = throwSteps(p), frames = m * gridStepSec() * FPS, vn = throwSpeed(p, m);
+            p.g = throwGravity(p, m);
+            p.g0 = gravityPx();
+            var v = p.g * (frames + 1) / 2;
             p.vy = -v;
             p.tv = v;
+            p.tvn = vn; // nominal speed (global gravity): sets the loudness as before
             p.vx = (p.vx < 0 ? -1 : 1) * (p.side || 2);
             // main hit: scheduled now, sample-accurate, exactly m grid steps ahead (the frame-
             // based physics would land it up to one frame late); physics only draws it
             var lx = landingX(p, frames) / CW;
-            emitGrain(Math.max(0, Math.min(1, lx)), impactAmp(v, v), Math.max(0, Math.min(1, lx)), m * gridStepSec() * 1000);
+            emitGrain(Math.max(0, Math.min(1, lx)), impactAmp(v, v, vn), Math.max(0, Math.min(1, lx)), m * gridStepSec() * 1000);
             p.skipHit = true;
         }
         if (P.sync && p.q) fireGrain(p, 0);
@@ -210,13 +233,13 @@ function readOverview() {
     try { a = ovBuf.peek(1, 0, OVN * 4 + 1); } catch (e) { a = null; }
     if (!a || a.length < OVN * 4 + 1) { if (++ovFails > 10) { ovBuf = null; ovName = null; } return false; }
     for (i = 0; i < OVN; i++) {
-        o.fp[i] = a[i * 4]; o.wp[i] = a[i * 4 + 1]; o.wr[i] = a[i * 4 + 2]; o.we[i] = a[i * 4 + 3];
-        if (o.fp[i] > mx) mx = o.fp[i];
+        o.rfp[i] = a[i * 4]; o.rwp[i] = a[i * 4 + 1]; o.rwr[i] = a[i * 4 + 2]; o.rwe[i] = a[i * 4 + 3];
+        if (o.rfp[i] > mx) mx = o.rfp[i];
     }
-    o.head = a[OVN * 4];
+    o.rhead = a[OVN * 4];
     o.ok = mx > 0.0001;
     // display gain: the loudest column fills ~90 % of the height (quiet material stays readable)
-    o.gain += (0.9 / Math.max(0.02, mx) - o.gain) * 0.3;
+    o.rgain = 0.9 / Math.max(0.02, mx);
     return true;
 }
 
@@ -225,11 +248,29 @@ function modelOverview() {
     var o = S.ov, i;
     for (i = 0; i < OVN; i++) {
         var c = Math.min(CELLS - 1, Math.floor(i / OVN * CELLS)), w = S.wear[c], a = S.amp[c];
-        o.fp[i] = a; o.wp[i] = a * (1 - 0.35 * w); o.wr[i] = o.wp[i] * 0.4; o.we[i] = w;
+        o.rfp[i] = a; o.rwp[i] = a * (1 - 0.35 * w); o.rwr[i] = o.rwp[i] * 0.4; o.rwe[i] = w;
     }
-    o.head = S.head / CELLS;
-    o.gain = 0.9;
+    o.rhead = S.head / CELLS;
+    o.rgain = 0.9;
     o.ok = false;
+}
+
+// display values ease toward the latest data every frame (0.2.8: no steps): columns fast,
+// the display gain slowly down / quickly up (loud hits never clip), the write head moves
+// continuously between reads
+function easeOverview() {
+    var o = S.ov, i, k = 0.45;
+    for (i = 0; i < OVN; i++) {
+        o.fp[i] += (o.rfp[i] - o.fp[i]) * k;
+        o.wp[i] += (o.rwp[i] - o.wp[i]) * k;
+        o.wr[i] += (o.rwr[i] - o.wr[i]) * k;
+        o.we[i] += (o.rwe[i] - o.we[i]) * 0.25;
+    }
+    o.gain += (o.rgain - o.gain) * (o.rgain < o.gain ? 0.5 : 0.04);
+    if (!S.frozen) o.head = (o.head + 1 / (2 * secPerBar() * FPS)) % 1;
+    var dh = o.rhead - o.head;
+    if (dh > 0.5) dh -= 1; else if (dh < -0.5) dh += 1;
+    o.head = (o.head + dh * 0.3 + 1) % 1;
 }
 
 // song tempo and time signature from [live.observer]
@@ -286,14 +327,16 @@ function emitGrain(pos, amp, x, delayMs) {
 }
 
 // grain level: higher throws are louder (0.5 .. 1), bounce tails fall with sqrt(impact / throw)
-function impactAmp(imp, tv) {
+function impactAmp(imp, tv, tvn) {
     tv = Math.max(0.5, tv || 8 * PHYS_SCALE);
-    var main = 0.5 + 0.5 * Math.min(1, tv / (10 * PHYS_SCALE));
+    // loudness of the main hit from the nominal throw speed (global gravity, as up to 0.2.7);
+    // bounce tails relative to the particle's own throw
+    var main = 0.5 + 0.5 * Math.min(1, (tvn || tv) / (10 * PHYS_SCALE));
     return Math.max(0.12, main * Math.sqrt(Math.max(0, Math.min(1, imp / tv))));
 }
 
 function fireGrain(p, delayMs) {
-    emitGrain(Math.max(0, Math.min(1, p.x / CW)), impactAmp(p.imp || 4, p.tv), Math.max(0, Math.min(1, p.x / CW)),
+    emitGrain(Math.max(0, Math.min(1, p.x / CW)), impactAmp(p.imp || 4, p.tv, p.tvn), Math.max(0, Math.min(1, p.x / CW)),
               delayMs || 0);
     markGrain(p);
 }
@@ -307,7 +350,9 @@ function markGrain(p) {
     var idx = Math.min(CELLS - 1, Math.max(0, Math.floor(p.x / CW * CELLS)));
     var inc = (0.02 + 0.15 * P.erosion / 100) * (P.target != 1 ? (1 + S.dose) : 1);
     S.wear[idx] = Math.min(1, S.wear[idx] + inc);
-    S.reads.push({ x: Math.max(0, Math.min(1, p.x / CW)), a: 1 });
+    // footprint: the grain wears max(80 ms, GRAIN) from its start (gen~), 2 bars long buffer
+    var fw = Math.max(0.08, P.grain / 1000) / Math.max(0.5, 2 * secPerBar());
+    S.reads.push({ x: Math.max(0, Math.min(1, p.x / CW)), w: Math.min(0.25, fw), a: 1 });
     if (S.reads.length > 24) S.reads.shift();
 }
 
@@ -360,8 +405,8 @@ function stepEngine() {
             if (p.flash > 0) p.flash--;
             continue;
         }
-        var y0 = p.y;
-        p.vy += g; p.x += p.vx; p.y += p.vy;
+        var y0 = p.y, pg = particleG(p, g);
+        p.vy += pg; p.x += p.vx; p.y += p.vy;
         if (p.x < 5) { p.x = 5; p.vx = -p.vx; }
         if (p.x > CW - 10) { p.x = CW - 10; p.vx = -p.vx; }
         if (p.y > CH - 18) {
@@ -372,7 +417,7 @@ function stepEngine() {
             p.vy = -impact * rest;
             // a particle on the floor gets at least "g" impact per frame: thresholds must stay
             // above that, else it micro-bounces every frame (0.2.4 test: 122 grains/s)
-            if (impact > Math.max(0.1 * tv, 2.2 * g)) {
+            if (impact > Math.max(0.1 * tv, 2.2 * pg)) {
                 p.imp = impact;
                 if (p.skipHit) {
                     // main hit was already scheduled at the throw: only flash and wear display
@@ -380,7 +425,7 @@ function stepEngine() {
                     markGrain(p);
                 } else if (P.sync) p.q = true; else fireGrain(p, frac * 1000 / FPS);
             }
-            if (impact * rest < 1.6 * g || impact < 0.08 * tv) {
+            if (impact * rest < 1.6 * pg || impact < 0.08 * tv) {
                 // came to rest: wait for the next grid tick (syncTick) for the next throw
                 p.vy = 0;
                 p.rest = true;
@@ -412,15 +457,17 @@ function stepEngine() {
 
     // read heads fade out in ~0.6 s
     for (i = S.reads.length - 1; i >= 0; i--) {
-        S.reads[i].a -= 1 / (0.6 * FPS);
+        S.reads[i].a -= 1 / (0.9 * FPS);
         if (S.reads[i].a <= 0) S.reads.splice(i, 1);
     }
 
-    // buffer overview: real data from gen~ every 8 frames, else the JS model
-    if (frame % 8 === 0) {
+    // buffer overview: real data from gen~ every 2nd frame (0.2.8, was every 8th), else the
+    // JS model; the display eases toward it every frame
+    if (frame % 2 === 0) {
         if (!ovBuf && frame % 64 === 0) outlet(0, "ovreq");
         if (!readOverview() || !S.ov.ok) modelOverview();
     }
+    easeOverview();
 }
 
 // ---------------------------------------------------------------- formatting
@@ -695,13 +742,22 @@ function drawChamber(x0, y0, w, h, st, big) {
     for (i = 0; i < st.n; i++) {
         p = st.ps[i];
         var px = x0 + p.x * sx, py = y0 + p.y * yScale - pr;
+        if (py < y0 + pr + 2) {
+            // above the chamber: small marker at the top edge, the particle falls back in
+            rgba(COL.cyan, 0.8);
+            mgraphics.rectangle(px - (big ? 4 : 2), y0 + 1, big ? 8 : 4, 2);
+            mgraphics.fill();
+            continue;
+        }
         // trail: the last positions as a fading line (the parabola of the flight)
         if (p.tr.length > 2 && !p.rest) {
             mgraphics.set_line_width(big ? 1.5 : 1);
             for (var k = 1; k < p.tr.length; k++) {
+                var ty1 = y0 + p.tr[k - 1][1] * yScale - pr, ty2 = y0 + p.tr[k][1] * yScale - pr;
+                if (ty1 < y0 + 2 || ty2 < y0 + 2) continue;
                 mgraphics.set_source_rgba(1, 1, 1, 0.28 * (1 - k / p.tr.length));
-                mgraphics.move_to(x0 + p.tr[k - 1][0] * sx, y0 + p.tr[k - 1][1] * yScale - pr);
-                mgraphics.line_to(x0 + p.tr[k][0] * sx, y0 + p.tr[k][1] * yScale - pr);
+                mgraphics.move_to(x0 + p.tr[k - 1][0] * sx, ty1);
+                mgraphics.line_to(x0 + p.tr[k][0] * sx, ty2);
                 mgraphics.stroke();
             }
         }
@@ -838,6 +894,16 @@ function drawMemory(x0, y0, w, h, st, big) {
         for (j = 0; j < lc && i + j < n; j++) we = Math.max(we, wd[i + j]);
         rgba(mixc(LANE0, COL.orange, we));
         mgraphics.rectangle(wx + i * dx, laneY, Math.max(0.6, lw - 0.6), laneH);
+        mgraphics.fill();
+    }
+    // footprint glow (0.2.8): the part a grain wears, orange, fading - wear is visible at once
+    for (i = 0; i < st.reads.length; i++) {
+        var fr = st.reads[i], fx = wx + fr.x * ww, fwd = Math.max(2, (fr.w || 0.02) * ww);
+        rgba(COL.orange, 0.32 * fr.a);
+        mgraphics.rectangle(fx, top, Math.min(fwd, wx + ww - fx), bot - top);
+        mgraphics.fill();
+        rgba(COL.orange, 0.9 * fr.a);
+        mgraphics.rectangle(fx, laneY, Math.min(fwd, wx + ww - fx), laneH);
         mgraphics.fill();
     }
     for (i = 0; i < st.reads.length; i++) {

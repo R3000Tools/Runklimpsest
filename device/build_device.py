@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.7"
+VERSION = "0.2.8"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
@@ -48,7 +48,7 @@ PARAMS = [
     dict(name="swarm", label="Swarm", kind="dial", lo=1, hi=24, init=4, style=0, ptype=1, fmt="int", colname="cyan"),
     dict(name="erosion", label="Erosion", kind="dial", lo=0.0, hi=100.0, init=65.0, style=5, fmt="pct", colname="orange"),
     dict(name="mix", label="Mix", kind="dial", lo=0.0, hi=100.0, init=50.0, style=5, fmt="pct", colname="cyan"),
-    dict(name="grain", label="Grain", kind="dial", lo=5.0, hi=500.0, init=5.0, style=2, exponent=2.0, fmt="ms", colname="cyan"),
+    dict(name="grain", label="Grain", kind="dial", lo=5.0, hi=500.0, init=30.0, style=2, exponent=2.0, fmt="ms", colname="cyan"),
     dict(name="heal", label="Heal", kind="dial", lo=0.5, hi=60.0, init=40.0, style=9, units="%.1f s", exponent=2.0, fmt="s", colname="orange"),
     dict(name="rate", label="Dose Rate", short="RATE", kind="dial", lo=1.0, hi=32.0, init=8.0, style=9, units="%.0f bars", fmt="bars", colname="magenta"),
     dict(name="recover", label="Dose Recover", short="RECOVER", kind="dial", lo=1.0, hi=64.0, init=16.0, style=9, units="%.0f bars", fmt="bars", colname="magenta"),

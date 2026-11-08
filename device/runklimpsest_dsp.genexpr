@@ -16,7 +16,7 @@
 
 Param p_mix(50);
 Param p_out(0);
-Param p_grain(5);
+Param p_grain(30);
 Param p_erosion(65);
 Param p_weartype(0);
 Param p_heal(40);
@@ -30,7 +30,7 @@ Buffer ev("rkev");
 Buffer ov("rkov");
 Data fresh(800000, 2);
 Data worn(800000, 2);
-Data vs(32, 15);
+Data vs(32, 19);
 Data wdl(64, 2);
 History wpos(0);
 History healpos(0);
@@ -56,6 +56,10 @@ History aws(0);
 History afs(0);
 History ads(0);
 History acnt(0);
+History hcol(-1);
+History hfp(0);
+History hss(0);
+History hn(0);
 
 // ---------------------------------------------------------------- constants
 cap = 800000;
@@ -74,6 +78,23 @@ if (p_freeze < 0.5) {
 	poke(worn, in1, wi, 0);
 	poke(worn, in2, wi, 1);
 	wpos = wi + 1;
+	// display: the column under the write head is rebuilt live from the incoming audio
+	// (0.2.8: the background scan alone took up to 1 s per pass - MEMORY built up in steps)
+	wcol = floor(wi * 256 / blen);
+	wm = (in1 + in2) * 0.5;
+	if (wcol != hcol) {
+		hfp = 0;
+		hss = 0;
+		hn = 0;
+		hcol = wcol;
+	}
+	hfp = max(hfp, abs(wm));
+	hss = hss + wm * wm;
+	hn = hn + 1;
+	poke(ov, hfp, wcol * 4, 0);
+	poke(ov, hfp, wcol * 4 + 1, 0);
+	poke(ov, sqrt(hss / hn), wcol * 4 + 2, 0);
+	poke(ov, 0, wcol * 4 + 3, 0);
 }
 
 // ---------------------------------------------------------------- heal sweep
@@ -213,6 +234,11 @@ if (head != lasthead) {
 			// wear footprint: an impact dents at least 80 ms of the buffer, even when the audible
 			// grain is shorter (0.2.6: 5 ms grains wore only 0.1 % of the loop per read)
 			poke(vs, max(glen, floor(mstosamps(80))), best, 14);
+			// display: wear of the columns this voice wears (sum diff^2, sum fresh^2, count, column)
+			poke(vs, 0, best, 15);
+			poke(vs, 0, best, 16);
+			poke(vs, 0, best, 17);
+			poke(vs, -1, best, 18);
 		}
 	}
 	lasthead = head;
@@ -308,13 +334,42 @@ for (v = 0; v < maxv; v += 1) {
 					}
 				}
 				wk = perread * winw;
-				poke(worn, xl + (dl - xl) * wk, vidx, 0);
-				poke(worn, xr + (dr - xr) * wk, vidx, 1);
+				nwl = xl + (dl - xl) * wk;
+				nwr = xr + (dr - xr) * wk;
+				poke(worn, nwl, vidx, 0);
+				poke(worn, nwr, vidx, 1);
+				// display: the worn columns update right away (0.2.8), the scan confirms later;
+				// wear is scaled to the whole column (a voice may cover only part of it)
+				vcol = floor(vidx * ovn / blen);
+				if (vcol != peek(vs, v, 18)) {
+					vcn = peek(vs, v, 17);
+					if (vcn > 0) {
+						vwear = clamp(sqrt(peek(vs, v, 15) / max(vcn, blen / ovn)) / max(sqrt(peek(vs, v, 16) / vcn), 0.003), 0, 1);
+						vci = peek(vs, v, 18) * 4 + 3;
+						poke(ov, max(peek(ov, vci, 0), vwear), vci, 0);
+					}
+					poke(vs, 0, v, 15);
+					poke(vs, 0, v, 16);
+					poke(vs, 0, v, 17);
+					poke(vs, vcol, v, 18);
+				}
+				vfm = (peek(fresh, vidx, 0) + peek(fresh, vidx, 1)) * 0.5;
+				vdm = (nwl + nwr) * 0.5 - vfm;
+				poke(vs, peek(vs, v, 15) + vdm * vdm, v, 15);
+				poke(vs, peek(vs, v, 16) + vfm * vfm, v, 16);
+				poke(vs, peek(vs, v, 17) + 1, v, 17);
 			}
 			vph = vph + 1;
 			poke(vs, vph, v, 2);
 			if (vph >= wlen) {
 				poke(vs, 0, v, 0);
+				// last worn column of this voice into the display
+				vcn = peek(vs, v, 17);
+				if (vcn > 0) {
+					vwear = clamp(sqrt(peek(vs, v, 15) / max(vcn, blen / ovn)) / max(sqrt(peek(vs, v, 16) / vcn), 0.003), 0, 1);
+					vci = peek(vs, v, 18) * 4 + 3;
+					poke(ov, max(peek(ov, vci, 0), vwear), vci, 0);
+				}
 			}
 		}
 	}

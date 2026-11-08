@@ -90,6 +90,9 @@ ch.Buffer = function (n) { this.n = n; };
 ch.Buffer.prototype.peek = function (c, s0, n) { const a = []; for (let i = 0; i < n; i++) a.push(i === n - 1 ? 0.25 : ((i % 4 === 3) ? 0.5 : 0.3)); return a; };
 send(ch, 'ovname', '123rkov', 'bang');
 for (let f = 0; f < 16; f++) send(ch, 'bang');
-if (!st.ov.ok || Math.abs(st.ov.head - 0.25) > 1e-9 || st.ov.we[10] !== 0.5) throw new Error('overview not read from buffer');
+if (!st.ov.ok || Math.abs(st.ov.rhead - 0.25) > 1e-9 || st.ov.rwe[10] !== 0.5) throw new Error('overview not read from buffer');
+// 0.2.8: display eases toward the data (no steps) and gets there within a few frames
+for (let f = 0; f < 20; f++) send(ch, 'bang');
+if (Math.abs(st.ov.we[10] - 0.5) > 0.01 || Math.abs(st.ov.wp[10] - 0.3) > 0.01) throw new Error('display did not converge to the overview');
 paint(ch); paint(large);
-console.log('overview: ovreq sent, buffer read ok, head', st.ov.head, 'most worn', vm.runInContext('wearStats(sharedState())', ch).most);
+console.log('overview: ovreq sent, buffer read ok, head', st.ov.rhead, 'most worn', vm.runInContext('wearStats(sharedState())', ch).most);

@@ -25,7 +25,7 @@ Abgrenzung: Zufall+Freeze-Wolken, tempo-synchrone Grain-Sequencer (inkl. euklidi
 | Freeze | aus/an | aus | Gerät + Large View |
 | Sync | aus/an | an | Gerät + Large View |
 | Division | 1/4, 1/8, 1/16, 1/32 | 1/16 | Gerät + Large View |
-| Grain | 5–500 ms | 5 ms | nur Large View |
+| Grain | 5–500 ms | 30 ms | nur Large View |
 | Heal | 0,5–60 s | 40 s | nur Large View |
 | Dose Rate | 1–32 Takte | 8 | nur Large View |
 | Dose Recover | 1–64 Takte | 16 | nur Large View |
@@ -56,4 +56,5 @@ Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeic
 - Rhythmus (0.2.2): Teilchen werfen auf dem DIVISION-Raster, der Hauptschlag landet ein ganzzahliges Vielfaches später (samplegenau vorgemerkt), Nachsprünge frei; SYNC rastet zusätzlich alle Aufpralle ein.
 - Abnutzung (0.2.2): relativ zur Grain-Hüllkurve; SAT → Fuzz, TAPE → dunkel + Rauschen, BIT → grob; EROSION² × 0,25 pro Lesedurchgang, HEAL 30 s.
 - Physik (0.2.4): Schwerkraft so skaliert, dass der längste Wurf ~80 % der Kammer erreicht (GRAVITY = Flugzeit); BOUNCE = Elastizität 0,3–0,9 mit Schwellen relativ zur Wurfgeschwindigkeit; DOSE vervielfacht SWARM bis ×2 (TARGET ALL/SWARM).
+- Physik (0.2.8): Schwerkraft pro Wurf, jeder Hauptwurf erreicht 55–90 % der Kammer; GRAVITY bestimmt weiter die Flugzeit, Änderungen während des Flugs wirken sofort (schnell herunterdrehen = Teilchen schießen hoch, gewollt).
 - Abnutzungs-Fußabdruck (0.2.6): mindestens 80 ms pro Aufprall, unabhängig von GRAIN; Pegelabgleich misst nur, während Grains klingen.

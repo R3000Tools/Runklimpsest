@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.8
+Nach Nutzertest 0.2.7 (echte Wellenform in Live bestätigt). Info-Tipps folgen in einer späteren Version.
+- **MEMORY flüssig:** Die Spalte am Schreibkopf wird aus dem Eingang live mitgeschrieben, abgenutzte Spalten werden beim Lesen sofort nachgeführt (der Hintergrund-Durchlauf bestätigt später); die jsui liest jedes 2. Bild (vorher jedes 8.) und blendet die Werte weich über, der Schreibkopf läuft stufenlos. Messung (Drums, 2 Takte bei 120 BPM): aufgenommene Spalten sofort richtig angezeigt (100 %), vorher 0–94 % mit bis zu 1 s Verzögerung.
+- **Abnutzungs-Fleck:** Jeder Aufprall glüht in MEMORY ca. 1 s orange nach, so breit wie die tatsächlich abgenutzte Stelle (max(80 ms, GRAIN)) – Abnutzung auch bei SWARM 1 sofort sichtbar.
+- **Höhere Würfe:** Jedes Teilchen bekommt beim Wurf seine eigene Schwerkraft, sodass jeder Hauptwurf 55–90 % der Kammer erreicht; Flugzeit und Raster-Timing bleiben gleich, die Lautstärke der Hauptschläge wie bisher. Messung (Standardwerte, 40 s): Bogenhöhe Median 3 % → 18 %, 90. Perzentil 20 % → 63 %, höchster 59 % → 85 %; Grains/s unverändert (7,6).
+- **GRAVITY schnell herunterdrehen:** Teilchen schießen weiterhin hoch (bewusst beibehalten); über der Kammer zeigt ein cyan Strich an der Oberkante, wo sie sind, dann fallen sie wieder ein (vorher über die Kopfzeile gezeichnet).
+- **GRAIN-Standard 30 ms** (vorher 5 ms), auch beim Laden neuer Instanzen. Gespeicherte Sets behalten ihren Wert. Messung Drums MIX 100 %: mittlere Lautheit −29,5 dB (0.2.7: −34,5 dB), Spitzen −1,9 dBFS; MIX 50 %: −23,4 dB (−24,1 dB).
+- gen~ rechnet für die Anzeige etwas mehr (Spalte am Schreibkopf, Abnutzung je Stimme); in der Simulation ca. +35 % Rechenzeit der Codebox (Richtwert, in Live prüfen).
+
 ## 0.2.7
 GUI-Iteration 13 (Nutzerwahl): Layout A, Farbschema „Cyan → Orange“, Hintergrund im Kartenton. Klangverarbeitung unverändert.
 - **Echte Wellenform in MEMORY:** gen~ schreibt eine Übersicht des Puffers (256 Spalten: Spitze frisch, Spitze abgenutzt, mittlere Lautstärke, Abnutzung) und die Position des Schreibkopfs in `buffer~ ---rkov`; die Geräte-jsui liest sie (JS-Buffer-Objekt, gerätelokaler Name über `[prepend ovname ---rkov]`). Ohne Puffer zeigt die Anzeige wie bisher das JS-Modell. **In Live ungetestet.**

@@ -1,4 +1,4 @@
-# Runklimpsest – 0.2.7 (Max for Live)
+# Runklimpsest – 0.2.8 (Max for Live)
 
 Granular Particle Memory: Teilchen fallen in der Chamber, jeder Aufprall spielt ein Grain aus den letzten 2 Takten. Jedes Abspielen nutzt die gespielte Stelle ab (Palimpsest).
 Latenz: 0 Samples.
@@ -36,7 +36,7 @@ Latenz: 0 Samples.
 | EROSION | wie stark ein Aufprall die Stelle abnutzt |
 | DOSE (Ring) | steigt bei Signal, sinkt in Stille. **Klick auf den Ring = Reset** |
 | MIX | Original ↔ Grains (gleiche Leistung), Standard 50 % |
-| GRAIN (Large View) | Grain-Länge 5–500 ms: kurz = Körnung/Klicks, lang = Fetzen/Flächen |
+| GRAIN (Large View) | Grain-Länge 5–500 ms (Standard 30 ms): kurz = Körnung/Klicks, lang = Fetzen/Flächen |
 | EROSION / WEAR TYPE | wie stark und wie jedes Abspielen die Stelle abnutzt: SAT (Sättigung), TAPE (dumpf, Rauschen), BIT (körnig) |
 | HEAL (Large View) | wie schnell sich der Puffer erholt |
 | STEREO / MONO (Large View) | Grains nach X-Position verteilt (±70 %) oder mittig |
@@ -57,6 +57,10 @@ Magenta-Schimmer oben in CHAMBER/MEMORY = Dosis, dort wo sie wirkt (TARGET). DOS
 6. Automation: Gibt es pro Funktion genau **eine** Spur (16 Parameter, keine doppelten)?
 7. Projekt speichern, neu laden: sind alle Werte wieder da?
 8. CPU-Anzeige von Live mit offener Large View (MEMORY zeichnet jetzt deutlich mehr).
+9. MEMORY: baut sich die Wellenform am Schreibkopf flüssig auf? Glüht jeder Aufprall orange nach (auch bei SWARM 1)?
+10. CHAMBER: Gehen die Würfe jetzt in die obere Hälfte? Klingt der Rhythmus mit SYNC wie vorher?
+11. GRAVITY schnell von 1 auf 0: schießen die Teilchen hoch, Strich an der Oberkante, fallen sie wieder ein?
+12. Neue Instanz: GRAIN steht auf 30 ms. Bass und Drums: besser als mit 5 ms?
 
 ## Bekannte Grenzen (Prototyp)
 
