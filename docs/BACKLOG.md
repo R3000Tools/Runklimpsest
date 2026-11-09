@@ -34,6 +34,11 @@
 - [x] (0.2.9: EROSION^1,5 × 0,4, ca. doppelt; Hörtest offen) **Abnutzung auf Drums kaum messbar** (Standard SWARM 4, GRAIN 30 ms, EROSION 65 %, FREEZE ab Takt 3): Spektrum der späten Takte meist innerhalb der Streuung (±2–3 dB) zur Referenz ohne Abnutzung; nur TAPE (−3…−6 dB über 1 kHz) und SAT 100 %/HEAL 60 s (−7 dB über 4 kHz) zeigen eine Richtung. Passt zur Anzeige (MOST WORN niedrig). Entscheidung nach Hörurteil des Nutzers: Abnutzung kräftiger (z. B. EROSION-Kurve, Fußabdruck 80 → 150 ms, HEAL-Standard länger)?
 - [ ] Automation von FREEZE in Live: Ergebnis der Prüfung (lief der Transport?) offen
 
+## Konzept 0.3 – offen (Nutzer nach 0.2.8: „simpler, das Gute fett machen“)
+- Nutzerbefund: musikalisch gut sind Drums mit SYNC (zusätzliche Hits, „funkiger“), Bass (mehr Bewegung), Gesang (psychedelisch, verspult); DOSE ohne erkennbaren Einsatzzweck, Abnutzung kaum hörbar (vor 0.2.9)
+- Vorschlag: DOSE streichen (RATE, RECOVER, TARGET, RESET: 17 → 13 Parameter); Palimpsest hörbar machen durch OVERWRITE (Grains werden in den Puffer zurückgeschrieben, Rückkopplung mit Begrenzung) statt nur feiner Abnutzung; höchstens 1–2 neue Regler für die drei Anwendungsfälle (z. B. PITCH je Grain, REVERSE-Anteil)
+- Entscheidung nach Hörtest 0.2.9 (stärkere EROSION); Name Runklimpsest bleibt, solange das Überschreiben/Abnutzen des Puffers hörbar ist
+
 ## Klang (seit 0.2.1)
 - [x] 0.2.6 Standardwerte PHYSICS (Nutzer): GRAVITY 0, BOUNCE 50 %, SWARM 4, GRAIN 5,0 ms
 - [x] 0.2.6 Standardwerte MEMORY / DOSE: EROSION 65 %, HEAL 40 s, SAT, TARGET WEAR, RATE 8, RECOVER 16
