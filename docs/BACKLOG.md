@@ -34,6 +34,15 @@
 - [x] (0.2.9: EROSION^1,5 × 0,4, ca. doppelt; Hörtest offen) **Abnutzung auf Drums kaum messbar** (Standard SWARM 4, GRAIN 30 ms, EROSION 65 %, FREEZE ab Takt 3): Spektrum der späten Takte meist innerhalb der Streuung (±2–3 dB) zur Referenz ohne Abnutzung; nur TAPE (−3…−6 dB über 1 kHz) und SAT 100 %/HEAL 60 s (−7 dB über 4 kHz) zeigen eine Richtung. Passt zur Anzeige (MOST WORN niedrig). Entscheidung nach Hörurteil des Nutzers: Abnutzung kräftiger (z. B. EROSION-Kurve, Fußabdruck 80 → 150 ms, HEAL-Standard länger)?
 - [ ] Automation von FREEZE in Live: Ergebnis der Prüfung (lief der Transport?) offen
 
+## 0.3.0 – vorgemerkt (Nutzerentscheidung, noch nicht umsetzen)
+- [ ] DOSE entfällt komplett (RATE, RECOVER, TARGET, RESET, Ring, Schimmer, Engine-Teil); CHANGELOG-Hinweis: Automation dieser Parameter geht in alten Sets verloren
+- [ ] Neue Parameter: PITCH −12…+12 st (Standard 0, Bogen von der Mitte), REVERSE 0–100 % (Standard 0 %), PITCH MODE FIXED / RANDOM / IMPACT → 16 Parameter
+- [ ] Gerät (GUI-Iteration 16): oben GRAVITY · BOUNCE · SWARM, unten GRAIN · EROSION · MIX (+ SYNC/Teilung, FREEZE, LARGE VIEW) – offen: Variante 4 × 2 mit PITCH und REVERSE (Frage des Nutzers, siehe Antwort)
+- [ ] Large View: Karten PHYSICS (GRAVITY, BOUNCE, SWARM, SYNC/Teilung) · GRAIN (GRAIN, PITCH, REVERSE, MODE) · MEMORY (EROSION, HEAL, FREEZE, SAT/TAPE/BIT) · OUTPUT (MIX, OUTPUT, STEREO/MONO); Farben: PHYSICS cyan, GRAIN magenta, MEMORY orange, OUTPUT cyan
+- [ ] MEMORY: rückwärts gelesene Grains als magenta Lesekopf „REV“
+- [ ] Push-Bank „Main“ = Regler des Geräts
+- [ ] Regel: Ist EROSION nach Hörtest 0.2.9 trotz FREEZE zu schwach → im Gerät gegen PITCH tauschen oder OVERWRITE ergänzen
+
 ## Konzept 0.3 – offen (Nutzer nach 0.2.8: „simpler, das Gute fett machen“)
 - Nutzerbefund: musikalisch gut sind Drums mit SYNC (zusätzliche Hits, „funkiger“), Bass (mehr Bewegung), Gesang (psychedelisch, verspult); DOSE ohne erkennbaren Einsatzzweck, Abnutzung kaum hörbar (vor 0.2.9)
 - Vorschlag: DOSE streichen (RATE, RECOVER, TARGET, RESET: 17 → 13 Parameter); Palimpsest hörbar machen durch OVERWRITE (Grains werden in den Puffer zurückgeschrieben, Rückkopplung mit Begrenzung) statt nur feiner Abnutzung; höchstens 1–2 neue Regler für die drei Anwendungsfälle (z. B. PITCH je Grain, REVERSE-Anteil)
