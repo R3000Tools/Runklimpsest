@@ -16,15 +16,15 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.9"
+VERSION = "0.3.0"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)
 
-# live.* parameter -> gen~ param (audio engine). Dose and bar length come from the jsui.
-GEN_PARAM = {"mix": "p_mix", "output": "p_out", "grain": "p_grain", "erosion": "p_erosion",
-             "weartype": "p_weartype", "heal": "p_heal", "freeze": "p_freeze", "stereo": "p_stereo",
-             "target": "p_target"}
+# live.* parameter -> gen~ param (audio engine). Bar length, pitch and direction per grain
+# come from the jsui (event ring).
+GEN_PARAM = {"mix": "p_mix", "output": "p_out", "gsize": "p_size", "erosion": "p_erosion",
+             "weartype": "p_weartype", "heal": "p_heal", "freeze": "p_freeze", "stereo": "p_stereo"}
 
 # ------------------------------------------------------------------ colours
 
@@ -42,23 +42,26 @@ FONT, FONT_BOLD = "Ableton Sans Medium", "Ableton Sans Bold"
 # label = parameter_longname (never rename: automation in projects would be lost)
 # short = parameter_shortname (shown in Live), uppercase since 0.1.3
 # fmt/colname feed the jsui drawing (generated block in runklimpsest_ui.js)
+# 0.3.0: DOSE removed (Dose Rate, Dose Recover, Dose Target, Dose Reset); "Grain" renamed "Size"
+# (internal name gsize: "size" may be taken by the jsui box itself); new Pitch, Reverse, Pitch Mode.
+# colname = colour of the card in the large view (PHYSICS cyan, GRAIN magenta, MEMORY orange,
+# OUTPUT cyan) - the device uses the same colours (GUI iteration 18, variant A)
 PARAMS = [
     dict(name="gravity", label="Gravity", kind="dial", lo=0.0, hi=1.0, init=0.0, style=9, units="%.2f g", fmt="g", colname="cyan"),
     dict(name="bounce", label="Bounce", kind="dial", lo=0.0, hi=100.0, init=50.0, style=5, fmt="pct", colname="cyan"),
     dict(name="swarm", label="Swarm", kind="dial", lo=1, hi=24, init=4, style=0, ptype=1, fmt="int", colname="cyan"),
+    dict(name="gsize", label="Size", kind="dial", lo=5.0, hi=500.0, init=30.0, style=2, exponent=2.0, fmt="ms", colname="magenta"),
+    dict(name="pitch", label="Pitch", kind="dial", lo=-12, hi=12, init=0, style=9, ptype=1, units="%d st", fmt="st", colname="magenta"),
+    dict(name="reverse", label="Reverse", kind="dial", lo=0.0, hi=100.0, init=0.0, style=5, fmt="pct", colname="magenta"),
     dict(name="erosion", label="Erosion", kind="dial", lo=0.0, hi=100.0, init=65.0, style=5, fmt="pct", colname="orange"),
     dict(name="mix", label="Mix", kind="dial", lo=0.0, hi=100.0, init=50.0, style=5, fmt="pct", colname="cyan"),
-    dict(name="grain", label="Grain", kind="dial", lo=5.0, hi=500.0, init=30.0, style=2, exponent=2.0, fmt="ms", colname="cyan"),
     dict(name="heal", label="Heal", kind="dial", lo=0.5, hi=60.0, init=40.0, style=9, units="%.1f s", exponent=2.0, fmt="s", colname="orange"),
-    dict(name="rate", label="Dose Rate", short="RATE", kind="dial", lo=1.0, hi=32.0, init=8.0, style=9, units="%.0f bars", fmt="bars", colname="magenta"),
-    dict(name="recover", label="Dose Recover", short="RECOVER", kind="dial", lo=1.0, hi=64.0, init=16.0, style=9, units="%.0f bars", fmt="bars", colname="magenta"),
     dict(name="output", label="Output", kind="dial", lo=-24.0, hi=12.0, init=0.0, style=4, fmt="db", colname="cyan"),
     dict(name="freeze", label="Freeze", kind="toggle", text="FREEZE", init=0, colname="cyan"),
     dict(name="sync", label="Sync", kind="toggle", text="SYNC", init=1, colname="cyan"),
     dict(name="division", label="Division", kind="menu", items=["1/4", "1/8", "1/16", "1/32"], init=2, colname="cyan"),
+    dict(name="pitchmode", label="Pitch Mode", short="PITCH MODE", kind="tab", items=["FIXED", "RANDOM", "IMPACT"], init=0, colname="magenta"),
     dict(name="weartype", label="Wear Type", short="WEAR TYPE", kind="tab", items=["SAT", "TAPE", "BIT"], init=0, colname="orange"),
-    dict(name="target", label="Dose Target", short="DOSE TARGET", kind="tab", items=["ALL", "SWARM", "WEAR"], init=2, colname="magenta"),
-    dict(name="resetdose", label="Dose Reset", short="DOSE RESET", kind="button", text="RESET DOSE", init=0, colname="magenta"),
     # 0.1.13: grains panned by their X position (+-70 %, -3 dB pan law) or all centred
     dict(name="stereo", label="Stereo", short="STEREO", kind="tab", items=["STEREO", "MONO"], init=0, colname="cyan"),
 ]
@@ -66,10 +69,10 @@ for _p in PARAMS:
     _p.setdefault("short", _p["label"].upper())
 P = {p["name"]: p for p in PARAMS}
 
-# device (1x, 580 x 169, no title row - Live shows the device name in its title bar).
+# device (1x, 634 x 169 since 0.3.0, no title row - Live shows the device name in its title bar).
 # The jsui "device" draws everything; live.* parameters sit transparent on top of
 # these rects. Parameters without a rect live hidden in the device.
-DEVICE_W, DEVICE_H = 580, 169   # drawn panel (jsui)
+DEVICE_W, DEVICE_H = 634, 169   # drawn panel (jsui); 0.3.0: controls 4 x 2 (+54 px)
 
 # OVERLAY_CONTROLS (test 0.1.11): the parameters of the device controls lie transparent on
 # top of the drawn panel so Ctrl+M / right-click / macro mapping work on them directly.
@@ -79,21 +82,21 @@ DEVICE_W, DEVICE_H = 580, 169   # drawn panel (jsui)
 OVERLAY_CONTROLS = False   # 0.1.11 test failed in Live (knobs not draggable, Ctrl+M not possible)
 
 # Parameter banks for Push / controllers with device control (internal, no GUI).
+# 0.3.0: bank 1 = the 8 device knobs, bank 2 = the rest (16 parameters = 2 full banks)
 BANKS = [
-    ("Main", ["gravity", "bounce", "swarm", "erosion", "mix", "freeze", "sync", "division"]),
-    ("Detail", ["grain", "heal", "rate", "recover", "output", "weartype", "target", "stereo"]),
-    ("Reset", ["resetdose"]),
+    ("Main", ["gravity", "bounce", "swarm", "gsize", "pitch", "reverse", "erosion", "mix"]),
+    ("Detail", ["sync", "division", "freeze", "heal", "weartype", "pitchmode", "output", "stereo"]),
 ]
-# layout 0.1.13: 3 columns (CHAMBER | MEMORY | CONTROLS 3x2) + meters, header row y 4-15,
-# content y 18-138, button row y 144-162
+# layout 0.3.0 (GUI iteration 18): 3 columns (CHAMBER | MEMORY | CONTROLS 4x2) + meters,
+# header row y 4-15, content y 18-138, button row y 144-162
 DEVICE_RECT = {
-    "gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60],
-    "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60],
+    "gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "gsize": [540, 18, 54, 60],
+    "pitch": [378, 78, 54, 60], "reverse": [432, 78, 54, 60], "erosion": [486, 78, 54, 60], "mix": [540, 78, 54, 60],
     "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18],
 }
 DEVICE_AREAS = {
-    "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120],
-    "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120],
+    "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 216, 120],
+    "more": [378, 144, 216, 18], "meters": [602, 18, 24, 120],
 }
 # large view (960 x 456, 0.2.7: smaller chamber, no wear history)
 WIN_W, WIN_H = 960, 456
@@ -333,8 +336,6 @@ def build_device():
     orig = {}
     for p in PARAMS:
         rect = DEVICE_RECT.get(p["name"]) if OVERLAY_CONTROLS else None
-        if OVERLAY_CONTROLS and p["name"] == "resetdose":
-            rect = DEVICE_AREAS["dose"]
         orig[p["name"]] = control(d, p, rect)
     widget_route = d.obj("route " + " ".join(p["name"] for p in PARAMS), ins=1, outs=len(PARAMS) + 1,
                          outtype=[""] * (len(PARAMS) + 1))

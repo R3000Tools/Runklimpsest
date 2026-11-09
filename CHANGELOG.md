@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0
+Konzept vereinfacht (Nutzerentscheidung nach 0.2.9): DOSE entfällt, dafür klingt jedes Grain anders – Tonhöhe und Richtung. GUI-Iteration 18.
+
+**Achtung, alte Sets:** Die Parameter *Dose Rate*, *Dose Recover*, *Dose Target* und *Dose Reset* gibt es nicht mehr; ihre Automation geht verloren. *Grain* heißt jetzt **Size**: Automation und gespeicherter Wert von *Grain* werden nicht übernommen (alte Sets laden mit SIZE 30 ms).
+
+- **Neu PITCH** (−12…+12 Halbtöne, rastet auf ganze Halbtöne, Standard 0): Tonhöhe = Lesegeschwindigkeit, linear interpoliert; höher = kürzer. Messung (Sinus 220 Hz, ein Grain): −12/−7/0/+7/+12 st → 110,1/146,8/220,0/329,6/440,0 Hz (Soll 110,0/146,8/220,0/329,6/440,0).
+- **Neu PITCH MODE:** FIXED (alle Grains gleich), RANDOM (jedes Grain zufällig zwischen −PITCH und +PITCH, stufenlos), IMPACT (Hauptschlag voller PITCH, Nachsprünge abgestuft weniger).
+- **Neu REVERSE** (0–100 %, Standard 0 %): Anteil rückwärts gelesener Grains. Messung (Sweep 200→800 Hz, ein Grain): vorwärts 522 → 537 Hz steigend, rückwärts 476 → 460 Hz fallend; 25 % eingestellt → 24–25 % der Grains rückwärts. Rückwärts-Grains starten so, dass sie den Schreibkopf nicht kreuzen.
+- **DOSE entfernt** (Ring, Schimmer, Teilchen-Vervielfachung, Abnutzungs-Verstärkung). Die Teilchenzahl ist immer SWARM. EROSION-Kurve angepasst (EROSION^1,5 × 0,9), damit die Abnutzung so stark bleibt wie in 0.2.9 mit DOSE: Fläche, FREEZE, 20 s (30/55/80 %): SAT 0,21/0,53/0,88, TAPE 0,15/0,34/0,52, BIT 0,13/0,29/0,49 (0.2.9: SAT 0,20/0,51/0,86).
+- **Gerät 634 × 169** (vorher 580): CONTROLS 4 × 2 – oben GRAVITY · BOUNCE · SWARM · SIZE, unten PITCH · REVERSE · EROSION · MIX. Farben wie die Karten der Large View; PITCH zeigt seinen Bogen von der Mitte.
+- **Large View** (Größe unverändert): Karten PHYSICS · GRAIN (SIZE, PITCH, REVERSE, MODE) · MEMORY · OUTPUT. MEMORY zeigt rückwärts gelesene Grains als magenta Lesekopf „REV“, der Abnutzungs-Fleck liegt bei ihnen links vom Start.
+- **Push:** Bank 1 = die 8 Regler des Geräts, Bank 2 = SYNC, Division, FREEZE, HEAL, Wear Type, Pitch Mode, Output, Stereo.
+- Messung (Simulation, alle Szenarien): Spitzen ≤ −0,7 dBFS, Klickwert 0,5–1,4 (wie 0.2.9), PITCH ±12 und REVERSE ohne Pegelsprünge (Effektanteil −27…−28 dB wie ohne).
+- Neu: `tests/pitch_test.js` (Tonhöhe und Richtung direkt an der Codebox).
+
 ## 0.2.9
 Nach Live-Test 0.2.8 (Drum-Loop, Aufnahmen des Nutzers; Simulation trifft Live: Pegel ±0,8 dB).
 - **Fix: eingefrorener Loop wurde nach Stopp des Eingangs ca. 20 dB leiser.** Der Eingangs-Mittelwert der Pegelregelung folgt nur noch bei Signal, die Regelung arbeitet nur bei aktivem Eingang (Spitze > −60 dB, 0,2 s). Simulation (Drums, FREEZE, MIX 100 %, Takte nach dem Stopp): −31…−44 dB statt −52…−59 dB; beim Wiedereinsetzen kein Pegelsprung (Spitzen −2…−16 dBFS).

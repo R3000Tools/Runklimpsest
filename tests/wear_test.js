@@ -17,8 +17,8 @@ const pad = A.pad(24);
 const rows = [];
 for (const wt of [0, 1, 2]) {
     for (const er of [30, 55, 80]) {
-        const r = seeded(11, () => A.simulate(pad, { mix: 100, erosion: er, weartype: wt, grain: 200 }, { schedule: [[4, 'freeze', 1]] }));
-        const ref = seeded(11, () => A.simulate(pad, { mix: 100, erosion: 0, weartype: wt, grain: 200 }, { schedule: [[4, 'freeze', 1]] }));
+        const r = seeded(11, () => A.simulate(pad, { mix: 100, erosion: er, weartype: wt, gsize: 200 }, { schedule: [[4, 'freeze', 1]] }));
+        const ref = seeded(11, () => A.simulate(pad, { mix: 100, erosion: 0, weartype: wt, gsize: 200 }, { schedule: [[4, 'freeze', 1]] }));
         // output difference vs. erosion 0 in the last 4 s (rms of difference relative to reference)
         const n = r.L.length, a = n - 4 * SR;
         let d = 0, s = 0;

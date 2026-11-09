@@ -87,13 +87,13 @@ function makeUi(onOut, ovbuf) {
     };
 }
 
-const GEN_PARAM = { mix: 'p_mix', output: 'p_out', grain: 'p_grain', erosion: 'p_erosion', weartype: 'p_weartype',
-    heal: 'p_heal', freeze: 'p_freeze', stereo: 'p_stereo', target: 'p_target' };
+const GEN_PARAM = { mix: 'p_mix', output: 'p_out', gsize: 'p_size', erosion: 'p_erosion', weartype: 'p_weartype',
+    heal: 'p_heal', freeze: 'p_freeze', stereo: 'p_stereo' };
 
 function simulate(input, settings, opts) {
     opts = opts || {};
     const g = gen.load(path.join(ROOT, 'runklimpsest_dsp.genexpr'), SR);
-    const evbuf = new Float64Array(512), ovbuf = new Float64Array(1025);
+    const evbuf = new Float64Array(64 * 6), ovbuf = new Float64Array(1025);
     g.bind('ev', evbuf);
     g.bind('ov', ovbuf);
     let events = 0, ui = null;
@@ -104,7 +104,7 @@ function simulate(input, settings, opts) {
     }, ovbuf);
     const setP = (k, v) => { ui.send(k, v); if (GEN_PARAM[k]) g.set(GEN_PARAM[k], v); };
     const spec = ui.get('SPEC');
-    for (const k in spec) if (k !== 'resetdose') setP(k, spec[k].def);
+    for (const k in spec) setP(k, spec[k].def);
     ui.send('tempo', opts.bpm || 120); ui.send('signum', 4); ui.send('sigden', 4);
     for (const k in settings) setP(k, settings[k]);
 
@@ -184,20 +184,27 @@ if (require.main === module) {
         ['01_drums_default', D, {}],
         ['02_drums_wet100', D, { mix: 100 }],
         ['03_drums_wet100_nosync', D, { mix: 100, sync: 0 }],
-        ['04_drums_grain15ms', D, { mix: 100, grain: 15 }],
-        ['05_drums_grain300ms', D, { mix: 100, grain: 300, swarm: 6 }],
+        ['04_drums_grain15ms', D, { mix: 100, gsize: 15 }],
+        ['05_drums_grain300ms', D, { mix: 100, gsize: 300, swarm: 6 }],
         ['06_drums_lowgravity_highbounce', D, { mix: 100, gravity: 0.2, bounce: 95 }],
         ['07_drums_highgravity_swarm24', D, { mix: 100, gravity: 1, swarm: 24 }],
-        ['08_pad_sat_freeze', Pd, { mix: 100, erosion: 80, weartype: 0, grain: 200 }, [[4, 'freeze', 1]]],
-        ['09_pad_tape_freeze', Pd, { mix: 100, erosion: 80, weartype: 1, grain: 200 }, [[4, 'freeze', 1]]],
-        ['10_pad_bit_freeze', Pd, { mix: 100, erosion: 80, weartype: 2, grain: 200 }, [[4, 'freeze', 1]]],
-        ['11_pad_erosion0_freeze', Pd, { mix: 100, erosion: 0, grain: 200 }, [[4, 'freeze', 1]]],
-        ['15_pad_sat30_freeze', Pd, { mix: 100, erosion: 30, weartype: 0, grain: 200 }, [[4, 'freeze', 1]]],
-        ['16_pad_tape55_freeze', Pd, { mix: 100, erosion: 55, weartype: 1, grain: 200 }, [[4, 'freeze', 1]]],
-        ['17_pad_bit55_freeze', Pd, { mix: 100, erosion: 55, weartype: 2, grain: 200 }, [[4, 'freeze', 1]]],
+        ['08_pad_sat_freeze', Pd, { mix: 100, erosion: 80, weartype: 0, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['09_pad_tape_freeze', Pd, { mix: 100, erosion: 80, weartype: 1, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['10_pad_bit_freeze', Pd, { mix: 100, erosion: 80, weartype: 2, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['11_pad_erosion0_freeze', Pd, { mix: 100, erosion: 0, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['15_pad_sat30_freeze', Pd, { mix: 100, erosion: 30, weartype: 0, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['16_pad_tape55_freeze', Pd, { mix: 100, erosion: 55, weartype: 1, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['17_pad_bit55_freeze', Pd, { mix: 100, erosion: 55, weartype: 2, gsize: 200 }, [[4, 'freeze', 1]]],
         ['12_pluck_default', Pl, {}],
         ['18_pad_defaults_freeze', Pd, {}, [[4, 'freeze', 1]]],
-        ['19_pad_defaults_grain40_freeze', Pd, { grain: 40 }, [[4, 'freeze', 1]]],
+        ['19_pad_defaults_grain40_freeze', Pd, { gsize: 40 }, [[4, 'freeze', 1]]],
+        ['20_drums_pitch+12', D, { mix: 100, pitch: 12 }],
+        ['21_drums_pitch-12', D, { mix: 100, pitch: -12 }],
+        ['22_drums_pitch12_random', D, { mix: 100, pitch: 12, pitchmode: 1 }],
+        ['23_drums_pitch7_impact', D, { mix: 100, pitch: 7, pitchmode: 2 }],
+        ['24_drums_reverse50', D, { mix: 100, reverse: 50 }],
+        ['25_pad_reverse100_freeze', Pd, { mix: 100, reverse: 100, gsize: 200 }, [[4, 'freeze', 1]]],
+        ['26_pad_pitch+12_size5', Pd, { mix: 100, pitch: 12, gsize: 5 }],
         ['13_pluck_mono', Pl, { mix: 100, stereo: 1 }],
         ['14_pluck_stereo', Pl, { mix: 100, stereo: 0 }]
     ];

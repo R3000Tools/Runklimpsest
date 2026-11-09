@@ -1,7 +1,7 @@
 // Runklimpsest - UI prototype (no audio processing)
 // One file, jsui modes (first jsui argument):
 //   device   : runs the particle engine, draws the whole device panel and handles
-//              all its clicks (knobs, SYNC, division, FREEZE, MORE, DOSE reset).
+//              all its clicks (knobs, SYNC, division, FREEZE, MORE).
 //              Values go out as "<name> <value>" to the hidden live.* parameters.
 //              Overlapping objects did not work in Live (0.1.3-0.1.6), so the
 //              device has no objects on top of this jsui except the meters.
@@ -31,10 +31,10 @@ var NAME = jsarguments.length > 2 ? String(jsarguments[2]) : "";
 if (MODE === "chamber") MODE = "device"; // 0.1.x name
 
 // BEGIN GENERATED - written by build_device.py from its PARAMS / layout tables, do not edit
-var VERSION = "0.2.9";
+var VERSION = "0.3.0";
 var NATIVE_MENU = false;
-var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 4, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "erosion": {"label": "EROSION", "def": 65.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "grain": {"label": "GRAIN", "def": 30.0, "col": "cyan", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "heal": {"label": "HEAL", "def": 40.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "rate": {"label": "RATE", "def": 8.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 32.0, "exp": 1.0, "fmt": "bars"}, "recover": {"label": "RECOVER", "def": 16.0, "col": "magenta", "kind": "dial", "lo": 1.0, "hi": 64.0, "exp": 1.0, "fmt": "bars"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "target": {"label": "DOSE TARGET", "def": 2, "col": "magenta", "kind": "tab", "items": ["ALL", "SWARM", "WEAR"]}, "resetdose": {"label": "DOSE RESET", "def": 0, "col": "magenta", "kind": "button"}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
-var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "erosion": [378, 78, 54, 60], "mix": [486, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 162, 120], "dose": [432, 78, 54, 60], "more": [378, 144, 162, 18], "meters": [548, 18, 24, 120]};
+var SPEC = {"gravity": {"label": "GRAVITY", "def": 0.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 1.0, "exp": 1.0, "fmt": "g"}, "bounce": {"label": "BOUNCE", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "swarm": {"label": "SWARM", "def": 4, "col": "cyan", "kind": "dial", "lo": 1, "hi": 24, "exp": 1.0, "fmt": "int", "integer": true}, "gsize": {"label": "SIZE", "def": 30.0, "col": "magenta", "kind": "dial", "lo": 5.0, "hi": 500.0, "exp": 2.0, "fmt": "ms"}, "pitch": {"label": "PITCH", "def": 0, "col": "magenta", "kind": "dial", "lo": -12, "hi": 12, "exp": 1.0, "fmt": "st", "integer": true}, "reverse": {"label": "REVERSE", "def": 0.0, "col": "magenta", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "erosion": {"label": "EROSION", "def": 65.0, "col": "orange", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "mix": {"label": "MIX", "def": 50.0, "col": "cyan", "kind": "dial", "lo": 0.0, "hi": 100.0, "exp": 1.0, "fmt": "pct"}, "heal": {"label": "HEAL", "def": 40.0, "col": "orange", "kind": "dial", "lo": 0.5, "hi": 60.0, "exp": 2.0, "fmt": "s"}, "output": {"label": "OUTPUT", "def": 0.0, "col": "cyan", "kind": "dial", "lo": -24.0, "hi": 12.0, "exp": 1.0, "fmt": "db"}, "freeze": {"label": "FREEZE", "def": 0, "col": "cyan", "kind": "toggle"}, "sync": {"label": "SYNC", "def": 1, "col": "cyan", "kind": "toggle"}, "division": {"label": "DIVISION", "def": 2, "col": "cyan", "kind": "menu", "items": ["1/4", "1/8", "1/16", "1/32"]}, "pitchmode": {"label": "PITCH MODE", "def": 0, "col": "magenta", "kind": "tab", "items": ["FIXED", "RANDOM", "IMPACT"]}, "weartype": {"label": "WEAR TYPE", "def": 0, "col": "orange", "kind": "tab", "items": ["SAT", "TAPE", "BIT"]}, "stereo": {"label": "STEREO", "def": 0, "col": "cyan", "kind": "tab", "items": ["STEREO", "MONO"]}};
+var LAYOUT = {"gravity": [378, 18, 54, 60], "bounce": [432, 18, 54, 60], "swarm": [486, 18, 54, 60], "gsize": [540, 18, 54, 60], "pitch": [378, 78, 54, 60], "reverse": [432, 78, 54, 60], "erosion": [486, 78, 54, 60], "mix": [540, 78, 54, 60], "sync": [8, 144, 98, 18], "division": [110, 144, 98, 18], "freeze": [218, 144, 150, 18], "chamber": [8, 18, 200, 120], "wave": [218, 18, 150, 120], "controls": [378, 18, 216, 120], "more": [378, 144, 216, 18], "meters": [602, 18, 24, 120]};
 // END GENERATED
 
 // virtual chamber size used by the physics (rendering scales it)
@@ -65,9 +65,9 @@ function secPerBar() {
 }
 
 function makeState() {
-    var s = { ps: [], wear: [], amp: [], head: 0, step: 0, dose: 0, rising: false,
+    var s = { ps: [], wear: [], amp: [], head: 0, step: 0,
               n: 0, queued: 0, flashing: 0, resetReq: false, frozen: false, sync: true,
-              tempo: 120, num: 4, den: 4, target: 2, reads: [], meters: [0, 0, 0, 0],
+              tempo: 120, num: 4, den: 4, reads: [], meters: [0, 0, 0, 0],
               ov: { ok: false, fp: [], wp: [], wr: [], we: [], head: 0, gain: 1,
                     rfp: [], rwp: [], rwr: [], rwe: [], rhead: 0, rgain: 1 } };
     var i;
@@ -195,8 +195,9 @@ function syncTick() {
             // main hit: scheduled now, sample-accurate, exactly m grid steps ahead (the frame-
             // based physics would land it up to one frame late); physics only draws it
             var lx = landingX(p, frames) / CW;
-            emitGrain(Math.max(0, Math.min(1, lx)), impactAmp(v, v, vn), Math.max(0, Math.min(1, lx)), m * gridStepSec() * 1000);
+            emitGrain(Math.max(0, Math.min(1, lx)), impactAmp(v, v, vn), Math.max(0, Math.min(1, lx)), m * gridStepSec() * 1000, 1);
             p.skipHit = true;
+            p.next = lastGrain; // shown at the physical impact (read head, REV)
         }
         if (P.sync && p.q) fireGrain(p, 0);
     }
@@ -288,10 +289,6 @@ function winpos(mx, my) {
     outlet(0, "win", "window", "exec");
 }
 
-function resetdose(v) {
-    if (S && (arguments.length === 0 || v)) S.resetReq = true;
-}
-
 function anything() {
     if (P.hasOwnProperty(messagename) && arguments.length > 0) {
         P[messagename] = arguments[0];
@@ -313,18 +310,38 @@ function params() {
 
 // ---------------------------------------------------------------- grain events -> gen~
 // Every grain is written into the event ring buffer~ ---rkev (slot k: pos, amp, pan x,
-// delay ms at k*4 .. k*4+3) via [peek~], then the head index goes to gen~ (p_evhead).
-var EV_SLOTS = 64, evCount = 0, sentDose = -1, sentBar = -1;
+// delay ms, pitch ratio, direction at k*6 .. k*6+5) via [peek~], then the head index goes to
+// gen~ (p_evhead). 0.3.0: pitch and direction per grain (6 fields, was 4).
+var EV_SLOTS = 64, EV_FIELDS = 6, evCount = 0, sentBar = -1;
 
-function emitGrain(pos, amp, x, delayMs) {
+// pitch of one grain in semitones (PITCH -12..+12, whole steps): FIXED = PITCH,
+// RANDOM = anywhere between -PITCH and +PITCH (continuous), IMPACT = PITCH scaled by the
+// impact (main hit full, bounce tails less; continuous)
+function grainSemis(force) {
+    var st = Math.max(-12, Math.min(12, Math.round(P.pitch || 0)));
+    var mode = P.pitchmode | 0;
+    if (mode === 1) return (Math.random() * 2 - 1) * st;
+    if (mode === 2) return st * Math.max(0, Math.min(1, force));
+    return st;
+}
+
+// returns the grain's direction (+1 forward, -1 reverse: REVERSE % of the grains)
+function emitGrain(pos, amp, x, delayMs, force) {
+    var semis = grainSemis(force === undefined ? 1 : force);
+    var dir = (Math.random() * 100 < (P.reverse || 0)) ? -1 : 1;
     evCount = (evCount + 1) % EV_SLOTS;
-    var b = evCount * 4;
+    var b = evCount * EV_FIELDS;
     outlet(0, "evw", b, pos);
     outlet(0, "evw", b + 1, amp);
     outlet(0, "evw", b + 2, x);
     outlet(0, "evw", b + 3, delayMs);
+    outlet(0, "evw", b + 4, Math.pow(2, semis / 12));
+    outlet(0, "evw", b + 5, dir);
     outlet(0, "gen", "p_evhead", evCount);
+    lastGrain = { ratio: Math.pow(2, semis / 12), dir: dir };
+    return dir;
 }
+var lastGrain = { ratio: 1, dir: 1 };
 
 // grain level: higher throws are louder (0.5 .. 1), bounce tails fall with sqrt(impact / throw)
 function impactAmp(imp, tv, tvn) {
@@ -336,23 +353,27 @@ function impactAmp(imp, tv, tvn) {
 }
 
 function fireGrain(p, delayMs) {
+    var tv = Math.max(0.5, p.tv || 8 * PHYS_SCALE);
     emitGrain(Math.max(0, Math.min(1, p.x / CW)), impactAmp(p.imp || 4, p.tv, p.tvn), Math.max(0, Math.min(1, p.x / CW)),
-              delayMs || 0);
+              delayMs || 0, Math.sqrt(Math.max(0, Math.min(1, (p.imp || 4) / tv))));
+    p.next = lastGrain;
     markGrain(p);
 }
 
 // display side of a grain: flash ring and wear model
 function markGrain(p) {
-    var flashLen = Math.round(4 + Math.min(1, P.grain / 300) * 10);
+    var flashLen = Math.round(4 + Math.min(1, P.gsize / 300) * 10);
     p.flash = flashLen;
     p.flashLen = flashLen;
     p.q = false;
     var idx = Math.min(CELLS - 1, Math.max(0, Math.floor(p.x / CW * CELLS)));
-    var inc = (0.02 + 0.15 * P.erosion / 100) * (P.target != 1 ? (1 + S.dose) : 1);
+    var inc = 0.02 + 0.15 * P.erosion / 100;
     S.wear[idx] = Math.min(1, S.wear[idx] + inc);
-    // footprint: the grain wears max(80 ms, GRAIN) from its start (gen~), 2 bars long buffer
-    var fw = Math.max(0.08, P.grain / 1000) / Math.max(0.5, 2 * secPerBar());
-    S.reads.push({ x: Math.max(0, Math.min(1, p.x / CW)), w: Math.min(0.25, fw), a: 1 });
+    // footprint: the grain wears max(80 ms, SIZE x pitch ratio) from its start (gen~), in its
+    // direction (reverse grains to the left); 2 bars long buffer
+    var g = p.next || { ratio: 1, dir: 1 };
+    var fw = Math.max(0.08, P.gsize / 1000 * g.ratio) / Math.max(0.5, 2 * secPerBar());
+    S.reads.push({ x: Math.max(0, Math.min(1, p.x / CW)), w: Math.min(0.25, fw), a: 1, rev: g.dir < 0 });
     if (S.reads.length > 24) S.reads.shift();
 }
 
@@ -361,30 +382,19 @@ function stepEngine() {
     frame++;
     S.tempo = songTempo; S.num = sigNum; S.den = sigDen;
 
-    // DOSE: builds while signal is present, recovers in silence (times in bars of the song)
-    var lin = inLevel * 0.5; // input is L+R
-    var active = lin > 0.01; // about -40 dBFS
-    if (S.resetReq) { S.dose = 0; S.resetReq = false; }
-    if (active) S.dose = Math.min(1, S.dose + dt / (Math.max(1, P.rate) * bar));
-    else S.dose = Math.max(0, S.dose - dt / (Math.max(1, P.recover) * bar));
-    S.rising = active;
+    var lin = inLevel * 0.5; // input is L+R (JS memory model, display fallback)
 
-    // 0.2.4: DOSE multiplies SWARM (up to x2, max 32) instead of adding up to 10 particles
-    // (SWARM 1 showed 11 particles); TARGET WEAR leaves SWARM exact
-    var nBase = Math.max(1, Math.round(P.swarm));
-    var n = (P.target != 2) ? Math.min(MAXP, Math.round(nBase * (1 + S.dose))) : nBase;
+    // particles = SWARM (0.3.0: DOSE no longer multiplies it)
+    var n = Math.max(1, Math.min(MAXP, Math.round(P.swarm)));
     S.n = n;
-    S.nBase = nBase;
     S.sync = !!P.sync;
     S.frozen = !!P.freeze;
-    S.target = P.target | 0;
 
     var g = gravityPx();
     // BOUNCE 0..100 % -> restitution 0.3..0.9: ~2 to ~20 rebounds above the grain threshold
     var rest = 0.3 + 0.6 * (P.bounce / 100);
 
     // parameters only the audio engine needs (sent when changed)
-    if (Math.abs(S.dose - sentDose) > 0.004) { sentDose = S.dose; outlet(0, "gen", "p_dose", S.dose); }
     if (Math.abs(bar - sentBar) > 0.0005) { sentBar = bar; outlet(0, "gen", "p_barsec", bar); }
 
     // fallback grid when the transport is stopped (no [metro] ticks for 1 s)
@@ -481,6 +491,7 @@ function fmtValue(spec, v) {
         case "s": return v.toFixed(1) + " s";
         case "bars": return v.toFixed(0) + " bars";
         case "db": return (v > 0 ? "+" : "") + v.toFixed(1) + " dB";
+        case "st": return (Math.round(v) > 0 ? "+" : "") + Math.round(v) + " st";
     }
     return String(v);
 }
@@ -548,6 +559,9 @@ function background(w, h) {
 function drawKnobAt(spec, v, cx, cy, r, labelY, valueY, labelSize, valueSize, valueText) {
     var col = COL[spec.col] || COL.cyan, n = toNorm(spec, v), t;
     var a0 = Math.PI * 0.75, a1 = a0 + Math.PI * 1.5 * n, aEnd = Math.PI * 2.25;
+    // bipolar range (PITCH -12..+12): the value arc starts at the centre (0.3.0)
+    var bip = spec.lo < 0 && spec.hi > 0, aC = a0 + Math.PI * 1.5 * toNorm(spec, 0);
+    var arcA = bip ? Math.min(aC, a1) : a0, arcB = bip ? Math.max(aC, a1) : a1;
     font(labelSize, true);
     rgba(col);
     text(spec.label, cx, labelY, "center");
@@ -564,14 +578,14 @@ function drawKnobAt(spec, v, cx, cy, r, labelY, valueY, labelSize, valueSize, va
     rgba(COL.track);
     mgraphics.arc(cx, cy, r, a0, aEnd);
     mgraphics.stroke();
-    if (n > 0.002) {
+    if (arcB - arcA > 0.01) {
         rgba(col, 0.18);
         mgraphics.set_line_width(lw * 2.3);
-        mgraphics.arc(cx, cy, r, a0, a1);
+        mgraphics.arc(cx, cy, r, arcA, arcB);
         mgraphics.stroke();
         rgba(col);
         mgraphics.set_line_width(lw);
-        mgraphics.arc(cx, cy, r, a0, a1);
+        mgraphics.arc(cx, cy, r, arcA, arcB);
         mgraphics.stroke();
     }
     var cr = r - lw - 1.5;
@@ -681,18 +695,6 @@ function panelBox(x, y, w, h, diam) {
     mgraphics.stroke();
 }
 
-// DOSE shimmer: magenta from the top edge, strength = dose; shown where DOSE acts
-// (chamber for TARGET ALL/SWARM, memory for ALL/WEAR) - at dose 0 every box looks the same
-function doseHaze(x0, y0, w, h, st, diam) {
-    if (st.dose < 0.01) return;
-    var pat = mgraphics.pattern_create_linear(0, y0, 0, y0 + h * 0.5);
-    pat.add_color_stop_rgba(0, 1.0, 0.310, 0.847, 0.12 * st.dose);
-    pat.add_color_stop_rgba(1, 1.0, 0.310, 0.847, 0);
-    mgraphics.set_source(pat);
-    mgraphics.rectangle_rounded(x0 + 0.5, y0 + 0.5, w - 1, h * 0.5, diam, diam);
-    mgraphics.fill();
-}
-
 // beats per bar and 16ths per beat of the song (2-bar buffer)
 function beatsPerBar(st) { return Math.max(1, st.num || 4); }
 function sixteenthsPerBeat(st) { return Math.max(1, Math.round(16 / Math.max(1, st.den || 4))); }
@@ -700,7 +702,6 @@ function sixteenthsPerBeat(st) { return Math.max(1, Math.round(16 / Math.max(1, 
 function drawChamber(x0, y0, w, h, st, big) {
     var sx = w / CW, i, p, diam = big ? 12 : 10;
     panelBox(x0, y0, w, h, diam);
-    if (st.target !== 2) doseHaze(x0, y0, w, h, st, diam);
 
     if (st.sync) {
         var gap = big ? 5 : 2, sw = (w - 16 - gap * 15) / 16;
@@ -800,7 +801,6 @@ var MEM_ICE = [0.769, 0.957, 1.0], LANE0 = [0.071, 0.149, 0.180];
 function drawMemory(x0, y0, w, h, st, big) {
     var o = st.ov, i, diam = big ? 12 : 10;
     panelBox(x0, y0, w, h, diam);
-    if (st.target !== 1) doseHaze(x0, y0, w, h, st, diam);
     if (!o || !o.fp.length) return;
     var meterW = big ? 22 : 0;
     var wx = x0 + 4, ww = w - 8 - meterW;
@@ -899,28 +899,35 @@ function drawMemory(x0, y0, w, h, st, big) {
     // footprint glow (0.2.8): the part a grain wears, orange, fading - wear is visible at once
     for (i = 0; i < st.reads.length; i++) {
         var fr = st.reads[i], fx = wx + fr.x * ww, fwd = Math.max(2, (fr.w || 0.02) * ww);
+        // reverse grains wear to the left of their start (0.3.0)
+        var fa = fr.rev ? Math.max(wx, fx - fwd) : fx, fb = fr.rev ? fx : Math.min(wx + ww, fx + fwd);
         rgba(COL.orange, 0.32 * fr.a);
-        mgraphics.rectangle(fx, top, Math.min(fwd, wx + ww - fx), bot - top);
+        mgraphics.rectangle(fa, top, fb - fa, bot - top);
         mgraphics.fill();
         rgba(COL.orange, 0.9 * fr.a);
-        mgraphics.rectangle(fx, laneY, Math.min(fwd, wx + ww - fx), laneH);
+        mgraphics.rectangle(fa, laneY, fb - fa, laneH);
         mgraphics.fill();
     }
     for (i = 0; i < st.reads.length; i++) {
-        var rd = st.reads[i], hx = wx + rd.x * ww;
-        mgraphics.set_source_rgba(1, 1, 1, 0.9 * rd.a);
+        var rd = st.reads[i], hx = wx + rd.x * ww, hc = rd.rev ? COL.magenta : [1, 1, 1], tw = big ? 16 : 8;
+        rgba(hc, 0.9 * rd.a);
         mgraphics.rectangle(hx - (big ? 4 : 2), laneY, big ? 8 : 4, laneH);
         mgraphics.fill();
-        // read head with a short afterglow to the left
-        var tail = mgraphics.pattern_create_linear(hx - (big ? 16 : 8), 0, hx, 0);
-        tail.add_color_stop_rgba(0, 1, 1, 1, 0);
-        tail.add_color_stop_rgba(1, 1, 1, 1, 0.16 * rd.a);
+        // read head with a short afterglow behind it (left; right for reverse grains, magenta)
+        var tail = rd.rev ? mgraphics.pattern_create_linear(hx + tw, 0, hx, 0) : mgraphics.pattern_create_linear(hx - tw, 0, hx, 0);
+        tail.add_color_stop_rgba(0, hc[0], hc[1], hc[2], 0);
+        tail.add_color_stop_rgba(1, hc[0], hc[1], hc[2], 0.18 * rd.a);
         mgraphics.set_source(tail);
-        mgraphics.rectangle(hx - (big ? 16 : 8), top, big ? 16 : 8, bot - top);
+        mgraphics.rectangle(rd.rev ? hx : hx - tw, top, tw, bot - top);
         mgraphics.fill();
-        mgraphics.set_source_rgba(1, 1, 1, rd.a);
-        mgraphics.rectangle(hx, top, 1, bot - top);
+        rgba(hc, rd.a);
+        mgraphics.rectangle(hx, top, rd.rev ? 1.5 : 1, bot - top);
         mgraphics.fill();
+        if (rd.rev && big) {
+            font(6.5, true);
+            rgba(COL.magenta, rd.a);
+            text("REV", hx + 3, top + 8);
+        }
     }
     // write head
     var whx = wx + Math.max(0, Math.min(1, o.head)) * ww;
@@ -974,56 +981,14 @@ function tempoText(st) {
     return (st.tempo || 120).toFixed(1) + " BPM · " + (st.num || 4) + "/" + (st.den || 4);
 }
 
-var resetFlashUntil = 0;
-function flashReset() { resetFlashUntil = new Date().getTime() + 350; }
-function resetFlashing() { return new Date().getTime() < resetFlashUntil; }
-
-function drawDose(x0, y0, w, h, st) {
-    var cx = x0 + w / 2, r = Math.min(w, h - 26) / 2 - 4, cy = y0 + 12 + r + 3;
-    if (resetFlashing()) {
-        rgba(COL.magenta, 0.35);
-        mgraphics.ellipse(cx - r - 6, cy - r - 6, (r + 6) * 2, (r + 6) * 2);
-        mgraphics.fill();
-    }
-    font(8, true);
-    rgba(COL.magenta);
-    text("DOSE", cx, y0 + 9, "center");
-    mgraphics.set_line_width(4);
-    rgba(COL.track);
-    mgraphics.arc(cx, cy, r, 0, Math.PI * 2);
-    mgraphics.stroke();
-    var a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * Math.max(0.005, st.dose);
-    rgba(COL.magenta, 0.18);
-    mgraphics.set_line_width(8);
-    mgraphics.arc(cx, cy, r, a0, a1);
-    mgraphics.stroke();
-    rgba(mixc(COL.purple, COL.magenta, st.dose));
-    mgraphics.set_line_width(4);
-    mgraphics.arc(cx, cy, r, a0, a1);
-    mgraphics.stroke();
-    font(9, true);
-    rgba(COL.text);
-    text(Math.round(st.dose * 100) + "%", cx, cy + 3, "center");
-    font(7, false);
-    if (st.rising) rgba(COL.magenta); else rgba(COL.dim);
-    text(st.rising ? "BUILDING" : "RECOVERING", cx, y0 + h - 2, "center");
-}
-
-var DEVICE_KNOBS = ["gravity", "bounce", "swarm", "erosion", "mix"];
-
-// layout 0.1.13: 3 columns (CHAMBER | MEMORY | CONTROLS 3x2) + meters, one header row,
-// one button row; knob cells 54 x 60
-// SWARM shows "base -> effective" while DOSE adds particles
-function swarmText() {
-    var st = sharedState();
-    if (!st || !st.nBase || st.n === st.nBase) return null;
-    return st.nBase + " \u2192 " + st.n;
-}
+// layout 0.3.0 (GUI iteration 18): 3 columns (CHAMBER | MEMORY | CONTROLS 4x2) + meters,
+// one header row, one button row; knob cells 54 x 60. Top row: what plays when and how long,
+// bottom row: how the effect sounds. Colours = cards of the large view.
+var DEVICE_KNOBS = ["gravity", "bounce", "swarm", "gsize", "pitch", "reverse", "erosion", "mix"];
 
 function drawDeviceKnob(name) {
     var r = LAYOUT[name];
-    drawKnobAt(SPEC[name], valueOf(name), r[0] + r[2] / 2, r[1] + 31, 12, r[1] + 9, r[1] + 57, 8, 8.5,
-               name === "swarm" ? swarmText() : null);
+    drawKnobAt(SPEC[name], valueOf(name), r[0] + r[2] / 2, r[1] + 31, 12, r[1] + 9, r[1] + 57, 8, 8.5, null);
 }
 
 function drawDevice(w, h, st) {
@@ -1045,7 +1010,7 @@ function drawDevice(w, h, st) {
     drawChamber(L.chamber[0], L.chamber[1], L.chamber[2], L.chamber[3], st, false);
     drawMemory(L.wave[0], L.wave[1], L.wave[2], L.wave[3], st, false);
 
-    // controls block (3 x 2)
+    // controls block (4 x 2)
     r = L.controls;
     mgraphics.rectangle_rounded(r[0], r[1], r[2], r[3], 10, 10);
     mgraphics.set_source_rgba(0, 0, 0, 0.22);
@@ -1054,7 +1019,6 @@ function drawDevice(w, h, st) {
     mgraphics.set_line_width(1);
     mgraphics.stroke();
     for (i = 0; i < DEVICE_KNOBS.length; i++) drawDeviceKnob(DEVICE_KNOBS[i]);
-    drawDose(L.dose[0], L.dose[1], L.dose[2], L.dose[3], st);
 
     // button row
     var div = SPEC.division, dv = valueOf("division") | 0;
@@ -1159,31 +1123,29 @@ function drawLarge(w, h, st) {
 // name, units and item lists. Every change is sent out as "<name> <value>" and
 // reaches the one real parameter in the device via [route] -> [s ---<name>_c].
 
-// layout 0.1.13: four cards by function, knobs row + buttons row, contents centred
+// layout 0.3.0 (GUI iteration 18): four cards by function - PHYSICS (when / where),
+// GRAIN (how a grain sounds), MEMORY (what happens to the buffer), OUTPUT
 var CARDS = [
-    { label: "PHYSICS", col: "cyan", rect: [0, 0, 280, 160] },
-    { label: "MEMORY", col: "orange", rect: [289, 0, 228, 160] },
-    { label: "DOSE", col: "magenta", rect: [526, 0, 250, 160] },
-    { label: "OUTPUT", col: "cyan", rect: [785, 0, 135, 160] }
+    { label: "PHYSICS", col: "cyan", rect: [0, 0, 240, 160] },
+    { label: "GRAIN", col: "magenta", rect: [249, 0, 286, 160] },
+    { label: "MEMORY", col: "orange", rect: [544, 0, 220, 160] },
+    { label: "OUTPUT", col: "cyan", rect: [773, 0, 147, 160] }
 ];
 var KNOB_CY = 64, KNOB_R = 15, KNOB_LABEL_Y = 36, KNOB_VALUE_Y = 99;
 var KNOBS = [
-    { name: "gravity", x: 10, dev: true }, { name: "bounce", x: 76, dev: true },
-    { name: "swarm", x: 142, dev: true }, { name: "grain", x: 208 },
-    { name: "erosion", x: 339, dev: true }, { name: "heal", x: 405 },
-    { name: "rate", x: 620 }, { name: "recover", x: 686 },
-    { name: "mix", x: 788, dev: true }, { name: "output", x: 854 }
+    { name: "gravity", x: 23, dev: true }, { name: "bounce", x: 89, dev: true }, { name: "swarm", x: 155, dev: true },
+    { name: "gsize", x: 295, dev: true }, { name: "pitch", x: 361, dev: true }, { name: "reverse", x: 427, dev: true },
+    { name: "erosion", x: 590, dev: true }, { name: "heal", x: 656 },
+    { name: "mix", x: 783, dev: true }, { name: "output", x: 849 }
 ];
 var BUTTONS = [
-    { name: "sync", label: "SYNC", type: "toggle", rect: [12, 118, 72, 26], col: "cyan", dev: true },
-    { name: "division", type: "seg", rect: [90, 118, 182, 26], col: "cyan", dev: true },
-    { name: "freeze", label: "FREEZE", type: "toggle", rect: [296, 118, 84, 26], col: "cyan", dev: true },
-    { name: "weartype", type: "seg", rect: [386, 118, 124, 26], col: "orange" },
-    { name: "target", type: "seg", rect: [536, 118, 160, 26], col: "magenta" },
-    { name: "resetdose", label: "RESET", type: "action", rect: [702, 118, 64, 26], col: "magenta" },
-    { name: "stereo", type: "seg", rect: [795, 118, 114, 26], col: "cyan" }
+    { name: "sync", label: "SYNC", type: "toggle", rect: [8, 118, 70, 26], col: "cyan", dev: true },
+    { name: "division", type: "seg", rect: [84, 118, 150, 26], col: "cyan", dev: true },
+    { name: "pitchmode", type: "seg", rect: [300, 118, 184, 26], col: "magenta" },
+    { name: "freeze", label: "FREEZE", type: "toggle", rect: [550, 118, 82, 26], col: "cyan", dev: true },
+    { name: "weartype", type: "seg", rect: [638, 118, 120, 26], col: "orange" },
+    { name: "stereo", type: "seg", rect: [789, 118, 114, 26], col: "cyan" }
 ];
-var DOSE_RECT = [554, 26, 62, 80];
 var drag = null, localVal = {};
 
 function knobCenter(k) { return [k.x + 31, KNOB_CY]; }
@@ -1213,14 +1175,6 @@ function deviceKnobAt(x, y) {
     return null;
 }
 
-function doReset() {
-    outlet(0, "resetdose", 1);
-    var st = sharedState();
-    if (st) st.resetReq = true;
-    flashReset();
-    mgraphics.redraw();
-}
-
 // division dropdown, drawn by the device jsui itself (no native popup possible here)
 var menuOpen = false, MENU_ITEM_H = 14;
 function menuItemRect(i) {
@@ -1246,7 +1200,6 @@ function deviceClick(x, y, shift) {
     if (inRect(x, y, L.freeze)) { sendParam("freeze", P.freeze ? 0 : 1); delete localVal.freeze; return; }
     if (inRect(x, y, L.division)) { menuOpen = true; mgraphics.redraw(); return; }
     if (inRect(x, y, L.more)) { outlet(0, "open"); return; }
-    if (inRect(x, y, L.dose)) { doReset(); return; }
 }
 
 function singleValue() {
@@ -1267,7 +1220,6 @@ function onclick(x, y, but, cmd, shift) {
         delete localVal[NAME];
         return;
     }
-    if (MODE === "controls" && inRect(x, y, DOSE_RECT)) { doReset(); return; }
     if (MODE !== "controls") return;
     var i;
     for (i = 0; i < KNOBS.length; i++) {
@@ -1285,8 +1237,6 @@ function onclick(x, y, but, cmd, shift) {
         else if (b.type === "seg") {
             var items = SPEC[b.name].items;
             sendParam(b.name, Math.min(items.length - 1, Math.floor((x - r[0]) / (r[2] / items.length))));
-        } else if (b.type === "action") {
-            doReset();
         }
         return;
     }
@@ -1347,23 +1297,16 @@ function drawControls(w, h) {
     }
     for (i = 0; i < KNOBS.length; i++) {
         var k = KNOBS[i], c = knobCenter(k), sp = SPEC[k.name];
-        drawKnobAt(sp, knobValue(k), c[0], c[1], KNOB_R, KNOB_LABEL_Y, KNOB_VALUE_Y, 8, 9,
-                   k.name === "swarm" ? swarmText() : null);
+        drawKnobAt(sp, knobValue(k), c[0], c[1], KNOB_R, KNOB_LABEL_Y, KNOB_VALUE_Y, 8, 9, null);
         if (k.dev) {
             font(8, true);
             drawLegendDot(c[0] - mgraphics.text_measure(sp.label)[0] / 2 - 6, KNOB_LABEL_Y - 3);
         }
     }
-    var st = sharedState();
-    if (st) {
-        drawDose(DOSE_RECT[0], DOSE_RECT[1], DOSE_RECT[2], DOSE_RECT[3], st);
-        font(8, true);
-        drawLegendDot(DOSE_RECT[0] + DOSE_RECT[2] / 2 - mgraphics.text_measure("DOSE")[0] / 2 - 6, DOSE_RECT[1] + 6);
-    }
     for (i = 0; i < BUTTONS.length; i++) {
         var b = BUTTONS[i], col = COL[b.col];
         if (b.type === "seg") drawSeg(b.rect, SPEC[b.name].items, pv[b.name] | 0, col, null);
-        else drawLedButton(b.rect, b.label, (b.type === "toggle" && !!pv[b.name]) || (b.type === "action" && resetFlashing()), col, 8);
+        else drawLedButton(b.rect, b.label, !!pv[b.name], col, 8);
     }
 }
 

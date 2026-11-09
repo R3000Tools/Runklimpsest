@@ -35,13 +35,14 @@ function make(mode,ctx,ox,oy,w,h,name){
   return {api,paint(){ctx.save();ctx.translate(ox,oy);ctx.beginPath();api.paint.call({box:{rect:[0,0,w,h]}});ctx.restore();},out};
 }
 const c=document.getElementById('c').getContext('2d');
-const ch=make('device',c,10,10,580,169), lg=make('large',c,20,200,920,276), ctl=make('controls',c,20,482,920,160);
+const ch=make('device',c,10,10,634,169), lg=make('large',c,20,200,920,276), ctl=make('controls',c,20,482,920,160);
 let uid=null;ch.api.ovname('rkov_test');
+for(const [k,v] of [['pitch',7],['reverse',30]]){ch.api.setmsg(k);ch.api.anything(v);}
 for(let f=0;f<240;f++){ch.api.level(0.5);if(f%4==0)ch.api.tick();ch.api.bang();for(const o of ch.out.splice(0))if(o[1]=='uid')uid=o[2];}
 ctl.api.uid(uid);lg.api.uid(uid);
 ch.api.meters(0.4,0.3);const DLr=new Function(SRC.slice(SRC.indexOf('// BEGIN GENERATED'),SRC.indexOf('// END GENERATED'))+';return LAYOUT;')();ch.api.onclick(DLr.division[0]+5,DLr.division[1]+5,1,0,0);
 // interaction test: click SYNC (toggle), click division segment 4, drag gravity up
-ctl.api.onclick(40,130);ctl.api.onclick(246,130);ctl.api.onclick(41,64);ctl.api.ondrag(41,34,1);
+ctl.api.onclick(40,130);ctl.api.onclick(225,130);ctl.api.onclick(54,64);ctl.api.ondrag(54,34,1);
 window.sent=ctl.out.slice();
 ch.paint();lg.paint();ctl.paint();
 </script></body></html>`;

@@ -7,7 +7,8 @@
 // Signal flow
 //   input -> record (2 bars, "fresh" + "worn" copies) unless FREEZE
 //   grain events (from the particle engine via buffer~ ---rkev) -> 32 voices
-//   each voice reads "worn", outputs the grain and writes a degraded copy back
+//   each voice reads "worn" (pitch = read speed, 0.3.0; reverse = read backwards),
+//   outputs the grain and writes a degraded copy back
 //   (palimpsest: reading wears the source), HEAL sweeps worn back toward fresh
 //   grains: mono sum, constant-power pan from X (+-70 %) or centre (MONO)
 //   wet: density normalisation, DC blocker -> equal-power MIX -> OUTPUT -> soft clip
@@ -16,21 +17,19 @@
 
 Param p_mix(50);
 Param p_out(0);
-Param p_grain(30);
+Param p_size(30);
 Param p_erosion(65);
 Param p_weartype(0);
 Param p_heal(40);
 Param p_freeze(0);
 Param p_stereo(0);
-Param p_dose(0);
-Param p_target(0);
 Param p_barsec(2);
 Param p_evhead(0);
 Buffer ev("rkev");
 Buffer ov("rkov");
 Data fresh(800000, 2);
 Data worn(800000, 2);
-Data vs(32, 19);
+Data vs(32, 21);
 Data wdl(64, 2);
 History wpos(0);
 History healpos(0);
@@ -168,7 +167,8 @@ acnt = qn;
 poke(ov, wpos / blen, ovn * 4, 0);
 
 // ---------------------------------------------------------------- grain events
-// slot k (1..63, 0) holds pos, amp, pan x, delay ms at k*4 .. k*4+3
+// slot k (1..63, 0) holds pos, amp, pan x, delay ms, pitch ratio, direction (+1/-1)
+// at k*6 .. k*6+5 (0.3.0: 6 fields, was 4)
 head = floor(p_evhead);
 if (head != lasthead) {
 	ek = lasthead;
@@ -178,11 +178,20 @@ if (head != lasthead) {
 			if (ek >= evslots) {
 				ek = 0;
 			}
-			eb = ek * 4;
+			eb = ek * 6;
 			epos = peek(ev, eb, 0);
 			eamp = peek(ev, eb + 1, 0);
 			ex = peek(ev, eb + 2, 0);
 			edel = peek(ev, eb + 3, 0);
+			erat = peek(ev, eb + 4, 0);
+			if (erat <= 0) {
+				erat = 1;
+			}
+			erat = clamp(erat, 0.25, 4);
+			edir = 1;
+			if (peek(ev, eb + 5, 0) < 0) {
+				edir = -1;
+			}
 			// free voice first, else steal the one closest to its end
 			best = 0;
 			bestscore = -1;
@@ -197,20 +206,32 @@ if (head != lasthead) {
 					best = v;
 				}
 			}
-			glen = max(48, floor(mstosamps(p_grain * (1 + 0.08 * noise()))));
+			glen = max(48, floor(mstosamps(p_size * (1 + 0.08 * noise()))));
+			// buffer span the audible grain reads (pitch = read speed) and the wear footprint:
+			// at least 80 ms (0.2.6: 5 ms grains wore only 0.1 % of the loop per read)
+			gspan = ceil(glen * erat) + 2;
+			gwlen = max(gspan, floor(mstosamps(80)));
 			gstart = floor(clamp(epos, 0, 1) * (blen - 1));
-			// never read across the write head (newest meets oldest audio = click):
-			// such grains start right behind the head instead
+			// never read across the write head (newest meets oldest audio = click)
 			if (p_freeze < 0.5) {
 				gdist = wpos - gstart;
 				if (gdist < 0) {
 					gdist = gdist + blen;
 				}
-				if (gdist < glen + 64) {
-					gstart = wpos - glen - 64;
-					if (gstart < 0) {
-						gstart = gstart + blen;
+				if (edir > 0) {
+					// forward: the whole footprint must lie behind the head - else start behind it
+					if (gdist < gwlen + 64) {
+						gstart = wpos - gwlen - 64;
 					}
+				} else {
+					// reverse: reads toward older audio, where the advancing head overwrites;
+					// keep footprint + head travel clear - else start right behind the head
+					if (gdist < 2 || gdist > blen - gwlen - glen - 64) {
+						gstart = wpos - 2;
+					}
+				}
+				if (gstart < 0) {
+					gstart = gstart + blen;
 				}
 			}
 			gpan = 0;
@@ -232,30 +253,29 @@ if (head != lasthead) {
 			poke(vs, 0, best, 11);
 			poke(vs, 0, best, 12);
 			poke(vs, 0, best, 13);
-			// wear footprint: an impact dents at least 80 ms of the buffer, even when the audible
-			// grain is shorter (0.2.6: 5 ms grains wore only 0.1 % of the loop per read)
-			poke(vs, max(glen, floor(mstosamps(80))), best, 14);
+			poke(vs, gwlen, best, 14);
 			// display: wear of the columns this voice wears (sum diff^2, sum fresh^2, count, column)
 			poke(vs, 0, best, 15);
 			poke(vs, 0, best, 16);
 			poke(vs, 0, best, 17);
 			poke(vs, -1, best, 18);
+			// read speed (signed) for the audible grain, direction of the wear pass
+			poke(vs, erat * edir, best, 19);
+			poke(vs, edir, best, 20);
 		}
 	}
 	lasthead = head;
 }
 
 // ---------------------------------------------------------------- voices
-// erosion per read pass: EROSION^1.5 * 0.4, DOSE adds up to +150 % (TARGET ALL / WEAR).
+// erosion per read pass: EROSION^1.5 * 0.9 (0.3.0: DOSE removed - with TARGET WEAR it added up
+// to +150 % within a few bars, so 0.2.9 measured EROSION^1.5 * 0.4 * ~2.2; the factor keeps the
+// 0.2.9 wear level without DOSE).
 // 0.2.2: 0.2.1 (EROSION^2 * 0.18, level-dependent targets) was inaudible on pads (user test);
 // 0.2.9: EROSION^2 * 0.25 was barely audible on drums (live test 0.2.8) -> about 2x at 65 %,
 // 3x at 30 %, 1.6x at 100 %
 er = p_erosion * 0.01;
-dosek = 0;
-if (p_target != 1) {
-	dosek = 1.5;
-}
-perread = min(0.9, pow(er, 1.5) * 0.4 * (1 + p_dose * dosek));
+perread = min(0.9, pow(er, 1.5) * 0.9);
 tapea = 1 - exp(-2 * pi * 2200 / samplerate);
 wetl = 0;
 wetr = 0;
@@ -269,7 +289,12 @@ for (v = 0; v < maxv; v += 1) {
 			vph = peek(vs, v, 2);
 			vlen = peek(vs, v, 3);
 			wlen = peek(vs, v, 14);
-			vidx = peek(vs, v, 4) + vph;
+			vst = peek(vs, v, 4);
+			// wear pass: one buffer sample per sample in the grain's direction (integer index)
+			vidx = vst + vph * peek(vs, v, 20);
+			if (vidx < 0) {
+				vidx = vidx + blen;
+			}
 			if (vidx >= blen) {
 				vidx = vidx - blen;
 			}
@@ -286,7 +311,23 @@ for (v = 0; v < maxv; v += 1) {
 					win = 0.5 - 0.5 * cos(pi * (1 - tt) * 4);
 				}
 				vg = peek(vs, v, 5) * win;
-				mono = (xl + xr) * 0.5 * vg;
+				// audible read at the grain's speed (pitch) and direction, linear interpolation
+				grp = vst + vph * peek(vs, v, 19);
+				if (grp < 0) {
+					grp = grp + blen;
+				}
+				if (grp >= blen) {
+					grp = grp - blen;
+				}
+				gri = floor(grp);
+				grf = grp - gri;
+				gri2 = gri + 1;
+				if (gri2 >= blen) {
+					gri2 = 0;
+				}
+				gal = peek(worn, gri, 0) + (peek(worn, gri2, 0) - peek(worn, gri, 0)) * grf;
+				gar = peek(worn, gri, 1) + (peek(worn, gri2, 1) - peek(worn, gri, 1)) * grf;
+				mono = (gal + gar) * 0.5 * vg;
 				wetl = wetl + mono * peek(vs, v, 6);
 				wetr = wetr + mono * peek(vs, v, 7);
 				nact = nact + 1;

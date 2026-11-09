@@ -28,7 +28,7 @@ function transpile(src, sr) {
     const code = `
         var samplerate = ${sr}, pi = Math.PI;
         function clamp(x, a, b) { return x < a ? a : (x > b ? b : x); }
-        var floor = Math.floor, exp = Math.exp, cos = Math.cos, sin = Math.sin, tanh = Math.tanh,
+        var floor = Math.floor, ceil = Math.ceil, exp = Math.exp, cos = Math.cos, sin = Math.sin, tanh = Math.tanh,
             sqrt = Math.sqrt, pow = Math.pow, abs = Math.abs, max = Math.max, min = Math.min;
         function sign(x) { return x > 0 ? 1 : (x < 0 ? -1 : 0); }
         function noise() { return Math.random() * 2 - 1; }

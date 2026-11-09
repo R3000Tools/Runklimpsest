@@ -1,4 +1,4 @@
-# Runklimpsest – 0.2.9 (Max for Live)
+# Runklimpsest – 0.3.0 (Max for Live)
 
 Granular Particle Memory: Teilchen fallen in der Chamber, jeder Aufprall spielt ein Grain aus den letzten 2 Takten. Jedes Abspielen nutzt die gespielte Stelle ab (Palimpsest).
 Latenz: 0 Samples.
@@ -30,39 +30,37 @@ Latenz: 0 Samples.
 | CHAMBER | Teilchen fallen, Aufprall = Grain (Blitz am Boden + Ring). X-Position = Stelle im Puffer, Teilstriche = Schläge/16tel |
 | SYNC + Division | An: Teilchen warten (hohler Ring) bis zum nächsten Rasterschritt (1/4 … 1/32, Song-Tempo). Leiste oben = 16 Schritte |
 | LARGE VIEW | öffnet die Large View (schließen: Fenster-X) |
-| MEMORY | Wellenform des Puffers (2 Takte im Song-Tempo): cyan = Audio, dünne Kontur = frische Aufnahme, orange/schraffiert = abgenutzt; Streifen unten = Abnutzung je Stelle, weiße Linien = gerade gelesen, cyan Linie = Schreibkopf |
+| MEMORY | Wellenform des Puffers (2 Takte im Song-Tempo): cyan = Audio, dünne Kontur = frische Aufnahme, orange/schraffiert = abgenutzt; Streifen unten = Abnutzung je Stelle, weiße Linien = gerade gelesen (magenta „REV“ = rückwärts), cyan Linie = Schreibkopf |
 | FREEZE | Schreibkopf stoppt, der Puffer wird nur noch abgenutzt |
 | GRAVITY, BOUNCE, SWARM | Physik: Fallgeschwindigkeit, Elastizität, Teilchenzahl |
-| EROSION | wie stark ein Aufprall die Stelle abnutzt |
-| DOSE (Ring) | steigt bei Signal, sinkt in Stille. **Klick auf den Ring = Reset** |
+| SIZE | Grain-Länge 5–500 ms (Standard 30 ms): kurz = Körnung/Klicks (Drums), lang = Fetzen/Flächen (Pads, Gesang) |
+| PITCH | Tonhöhe jedes Grains −12…+12 Halbtöne (rastet), höher = kürzer |
+| REVERSE | Anteil rückwärts gespielter Grains (0–100 %) |
+| EROSION | wie stark ein Aufprall die Stelle abnutzt (am deutlichsten mit FREEZE) |
 | MIX | Original ↔ Grains (gleiche Leistung), Standard 50 % |
-| GRAIN (Large View) | Grain-Länge 5–500 ms (Standard 30 ms): kurz = Körnung/Klicks, lang = Fetzen/Flächen |
-| EROSION / WEAR TYPE | wie stark und wie jedes Abspielen die Stelle abnutzt: SAT (Sättigung), TAPE (dumpf, Rauschen), BIT (körnig) |
+| PITCH MODE (Large View) | FIXED = alle Grains gleich, RANDOM = zufällig bis ±PITCH, IMPACT = harte Aufpralle voller PITCH, Nachsprünge weniger |
+| WEAR TYPE (Large View) | wie die Abnutzung klingt: SAT (Sättigung), TAPE (dumpf, Rauschen), BIT (körnig) |
 | HEAL (Large View) | wie schnell sich der Puffer erholt |
-| STEREO / MONO (Large View) | Grains nach X-Position verteilt (±70 %) oder mittig |
+| OUTPUT, STEREO / MONO (Large View) | Ausgangspegel; Grains nach X-Position verteilt (±70 %) oder mittig |
 
-**Large View:** CHAMBER und MEMORY nebeneinander (mit IN/OUT-Metern), darunter vier Karten nach Funktion – PHYSICS, MEMORY, DOSE, OUTPUT (inkl. STEREO | MONO). Ein cyan Punkt am Namen heißt: gibt es auch im Gerät. Alle Parameter sind automatisierbar.
+**Large View:** CHAMBER und MEMORY nebeneinander (mit IN/OUT-Metern), darunter vier Karten nach Funktion – PHYSICS, GRAIN, MEMORY, OUTPUT. Ein cyan Punkt am Namen heißt: gibt es auch im Gerät. Alle 16 Parameter sind automatisierbar.
 
 Knobs (Gerät und Large View): ziehen = ändern, Shift = fein, Doppelklick = Standardwert. Notenwert im Gerät: Klick öffnet die Liste, Klick auf einen Eintrag wählt ihn.
-Automation: alle 16 Parameter über die Automationsauswahl der Spur; Regler-Bewegungen bei Aufnahme werden aufgezeichnet. Push/Controller mit Geräte-Steuerung: Bänke „Main“, „Detail“ und „Reset“. MIDI-Map per Klick auf die Regler (Strg+M) ist bei dieser Oberfläche nicht möglich.
-Magenta-Schimmer oben in CHAMBER/MEMORY = Dosis, dort wo sie wirkt (TARGET). DOSE ist kein Regler, sondern eine Anzeige: steigt nur bei laufendem Audio-Signal (Geschwindigkeit über RATE), fällt in Stille (RECOVER), Klick auf den Ring = Reset auf 0 % (Ring blinkt kurz).
+Automation: alle 16 Parameter über die Automationsauswahl der Spur; Regler-Bewegungen bei Aufnahme werden aufgezeichnet. Push/Controller mit Geräte-Steuerung: Bank „Main“ = die 8 Regler des Geräts, Bank „Detail“ = der Rest. MIDI-Map per Klick auf die Regler (Strg+M) ist bei dieser Oberfläche nicht möglich.
 
 ## Bitte testen (Feedback-Format: *Bereich / Element / Wert / Problem*)
 
-1. Lädt das Gerät, laufen Teilchen und Pufferanzeige?
-2. Abspielen: steigt DOSE, zeigt MEMORY die **echte Wellenform** (Kicks/Snares erkennbar)? Bei FREEZE: werden gelesene Stellen orange?
-3. Klick auf den DOSE-Ring: springt er auf 0 %?
-4. SYNC an/aus und Division bei laufendem Transport: feuern die Grains im Raster?
-5. Large View öffnen, Regler dort bewegen: bewegt sich der Regler im Gerät mit (und umgekehrt)?
-6. Automation: Gibt es pro Funktion genau **eine** Spur (16 Parameter, keine doppelten)?
-7. Projekt speichern, neu laden: sind alle Werte wieder da?
-8. CPU-Anzeige von Live mit offener Large View (MEMORY zeichnet jetzt deutlich mehr).
-9. MEMORY: baut sich die Wellenform am Schreibkopf flüssig auf? Glüht jeder Aufprall orange nach (auch bei SWARM 1)?
-10. CHAMBER: Gehen die Würfe jetzt in die obere Hälfte? Klingt der Rhythmus mit SYNC wie vorher?
-11. GRAVITY schnell von 1 auf 0: schießen die Teilchen hoch, Strich an der Oberkante, fallen sie wieder ein?
-12. Neue Instanz: GRAIN steht auf 30 ms. Bass und Drums: besser als mit 5 ms?
-13. FREEZE an, dann Eingang stoppen (Clip aus): bleibt der eingefrorene Loop gleich laut? (0.2.8: ca. 20 dB leiser)
-14. Abnutzung (EROSION 65 %, FREEZE, 30 s): jetzt hörbar? SAT rauer, TAPE dumpfer, BIT körniger?
+1. Lädt das Gerät (jetzt 634 px breit), laufen Teilchen und Pufferanzeige?
+2. Regler im Gerät: oben GRAVITY · BOUNCE · SWARM · SIZE, unten PITCH · REVERSE · EROSION · MIX – alle bedienbar (Ziehen, Shift fein, Doppelklick = Standard)?
+3. PITCH: rastet auf ganze Halbtöne, Bogen von der Mitte? +12 / −12 auf Bass und Gesang: klingt es eine Oktave höher/tiefer?
+4. PITCH MODE in der Large View: RANDOM (Vocals) und IMPACT (Drums mit SYNC) – musikalisch brauchbar?
+5. REVERSE 25 % / 100 %: rückwärts gespielte Grains hörbar, magenta „REV“ in MEMORY? Klicks?
+6. EROSION 65 % mit FREEZE, 30 s: Abnutzung hörbar (gleiche Stärke wie 0.2.9)?
+7. FREEZE an, Eingang stoppen: bleibt der Loop gleich laut?
+8. Automation: 16 Parameter, keine DOSE-Parameter mehr; Size statt Grain?
+9. Projekt speichern, neu laden: sind alle Werte wieder da?
+10. Push (falls vorhanden): Bank 1 = die 8 Regler des Geräts?
+11. CPU mit offener Large View, 2–3 Instanzen.
 
 ## Bekannte Grenzen (Prototyp)
 
