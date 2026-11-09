@@ -2,6 +2,7 @@
 
 Max-for-Live-Audio-Effekt „Granular Particle Memory“ (Hersteller R3000). Stand: 0.3.0 (DOSE entfernt, PITCH/REVERSE neu), Klangverarbeitung (gen~-Codebox, Latenz 0), echte Puffer-Anzeige.
 Der Nutzer testet in Ableton Live 12 (aktuelle Version, mitgeliefertes Max) unter Windows und spricht Deutsch. Antworten und Doku für ihn auf Deutsch, Code, Commits und GUI-Texte auf Englisch.
+Englische Texte für Nutzer (GUI, Info-Tipps, Anleitungen, Datenblätter) in britischer Schreibweise: colour, centre, behaviour, -ise (Nutzerentscheidung, einheitlich für alle R3000-Produkte).
 Antwortstil: direkt, strukturiert, Listen, kein Smalltalk, keine Emojis, Schwächen/Risiken nennen; bei konzeptionellen Aufgaben am Ende Abschnitt „Optimierung“.
 
 ## Grundsatz
