@@ -37,10 +37,10 @@
 ## 0.3.0 – vorgemerkt (Nutzerentscheidung, noch nicht umsetzen)
 - [ ] DOSE entfällt komplett (RATE, RECOVER, TARGET, RESET, Ring, Schimmer, Engine-Teil); CHANGELOG-Hinweis: Automation dieser Parameter geht in alten Sets verloren
 - [ ] Neue Parameter: PITCH −12…+12 st (Standard 0, Bogen von der Mitte), REVERSE 0–100 % (Standard 0 %), PITCH MODE FIXED / RANDOM / IMPACT → 16 Parameter
-- [ ] Gerät (GUI-Iteration 16): oben GRAVITY · BOUNCE · SWARM, unten GRAIN · EROSION · MIX (+ SYNC/Teilung, FREEZE, LARGE VIEW) – offen: Variante 4 × 2 mit PITCH und REVERSE (Frage des Nutzers, siehe Antwort)
+- [ ] Gerät 634 × 169 (Nutzerentscheidung, GUI-Iteration 17): CONTROLS 4 × 2 – oben GRAVITY · BOUNCE · SWARM · GRAIN, unten PITCH · REVERSE · EROSION · MIX (+ SYNC/Teilung, FREEZE, LARGE VIEW); Chamber und MEMORY unverändert; offen: Farbe nach Karte (A) oder nach Reihe (B)
 - [ ] Large View: Karten PHYSICS (GRAVITY, BOUNCE, SWARM, SYNC/Teilung) · GRAIN (GRAIN, PITCH, REVERSE, MODE) · MEMORY (EROSION, HEAL, FREEZE, SAT/TAPE/BIT) · OUTPUT (MIX, OUTPUT, STEREO/MONO); Farben: PHYSICS cyan, GRAIN magenta, MEMORY orange, OUTPUT cyan
 - [ ] MEMORY: rückwärts gelesene Grains als magenta Lesekopf „REV“
-- [ ] Push-Bank „Main“ = Regler des Geräts
+- [ ] Push: Bank 1 = 8 Regler des Geräts; Bank 2 = SYNC, Teilung, FREEZE, HEAL, Abnutzungstyp, PITCH MODE, OUTPUT, STEREO (16 Parameter = 2 volle Bänke)
 - [ ] Regel: Ist EROSION nach Hörtest 0.2.9 trotz FREEZE zu schwach → im Gerät gegen PITCH tauschen oder OVERWRITE ergänzen
 
 ## Konzept 0.3 – offen (Nutzer nach 0.2.8: „simpler, das Gute fett machen“)
