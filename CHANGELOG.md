@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.9
+Nach Live-Test 0.2.8 (Drum-Loop, Aufnahmen des Nutzers; Simulation trifft Live: Pegel ±0,8 dB).
+- **Fix: eingefrorener Loop wurde nach Stopp des Eingangs ca. 20 dB leiser.** Der Eingangs-Mittelwert der Pegelregelung folgt nur noch bei Signal, die Regelung arbeitet nur bei aktivem Eingang (Spitze > −60 dB, 0,2 s). Simulation (Drums, FREEZE, MIX 100 %, Takte nach dem Stopp): −31…−44 dB statt −52…−59 dB; beim Wiedereinsetzen kein Pegelsprung (Spitzen −2…−16 dBFS).
+- **Stärkere EROSION-Kurve:** Abnutzung pro Lesen EROSION^1,5 × 0,4 statt EROSION² × 0,25 (bei 30 % ×3, 65 % ×2, 100 % ×1,6). Messung Fläche, FREEZE, 20 s (30/55/80 %): SAT 0,20/0,51/0,86 (vorher 0,07/0,23/0,50), TAPE 0,15/0,33/0,51 (0,05/0,17/0,33), BIT 0,13/0,28/0,49 (0,05/0,14/0,28). Drum-Loop des Nutzers, FREEZE ab Takt 3, 16 Takte: SAT 65 % 0,32 (0,14), TAPE 0,27 (0,14), BIT 0,23 (0,13), SAT 100 %/HEAL 60 s 0,52 (0,36). Pegel und Spitzen unverändert (Effektanteil −30 dB, Spitzen ≤ −1,5 dBFS).
+- Parameter, Bereiche und Standardwerte unverändert (EROSION 65 % klingt jetzt kräftiger).
+
 ## 0.2.8
 Nach Nutzertest 0.2.7 (echte Wellenform in Live bestätigt). Info-Tipps folgen in einer späteren Version.
 - **MEMORY flüssig:** Die Spalte am Schreibkopf wird aus dem Eingang live mitgeschrieben, abgenutzte Spalten werden beim Lesen sofort nachgeführt (der Hintergrund-Durchlauf bestätigt später); die jsui liest jedes 2. Bild (vorher jedes 8.) und blendet die Werte weich über, der Schreibkopf läuft stufenlos. Messung (Drums, 2 Takte bei 120 BPM): aufgenommene Spalten sofort richtig angezeigt (100 %), vorher 0–94 % mit bis zu 1 s Verzögerung.

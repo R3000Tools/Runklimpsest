@@ -48,6 +48,7 @@ History dcxl(0);
 History dcyl(0);
 History dcxr(0);
 History dcyr(0);
+History inpk(0);
 History ovpos(0);
 History ocol(0);
 History afp(0);
@@ -245,14 +246,16 @@ if (head != lasthead) {
 }
 
 // ---------------------------------------------------------------- voices
-// erosion per read pass: EROSION^2 * 0.25, DOSE adds up to +150 % (TARGET ALL / WEAR).
-// 0.2.2: 0.2.1 (EROSION^2 * 0.18, level-dependent targets) was inaudible on pads (user test)
+// erosion per read pass: EROSION^1.5 * 0.4, DOSE adds up to +150 % (TARGET ALL / WEAR).
+// 0.2.2: 0.2.1 (EROSION^2 * 0.18, level-dependent targets) was inaudible on pads (user test);
+// 0.2.9: EROSION^2 * 0.25 was barely audible on drums (live test 0.2.8) -> about 2x at 65 %,
+// 3x at 30 %, 1.6x at 100 %
 er = p_erosion * 0.01;
 dosek = 0;
 if (p_target != 1) {
 	dosek = 1.5;
 }
-perread = min(0.9, er * er * 0.25 * (1 + p_dose * dosek));
+perread = min(0.9, pow(er, 1.5) * 0.4 * (1 + p_dose * dosek));
 tapea = 1 - exp(-2 * pi * 2200 / samplerate);
 wetl = 0;
 wetr = 0;
@@ -386,15 +389,23 @@ wetr = wetr * wnorm;
 // (0.2.6: the wet level is measured only while grains sound - sparse short grains are
 // matched as "each grain as loud as the input", pauses stay pauses; time-averaging left
 // 5 ms grains 10 dB too quiet),
-// to -12 .. +12 dB and smoothed (~0.3 s). Held only while the input is silent, so a frozen
-// loop keeps its level after the input stops (0.2.2: no longer held during FREEZE itself -
-// TAPE wear made frozen loops 5 dB quieter).
+// to -12 .. +12 dB and smoothed (~0.3 s). Held while the input is silent, so a frozen loop
+// keeps its level after the input stops (0.2.2: no longer held during FREEZE itself - TAPE
+// wear made frozen loops 5 dB quieter).
+// 0.2.9: the input mean square follows only while there is signal, and the regulation runs
+// only while the input is active (peak > -60 dB, 0.2 s release). Before, the input mean fell
+// in the silence and pulled the gain to its floor before the hold started: a frozen loop
+// dropped ~20 dB after the input stopped (live test 0.2.8, reproduced in the simulation).
 msc = 1 - exp(-1 / (0.4 * samplerate));
-dryms = dryms + ((in1 * in1 + in2 * in2) * 0.5 - dryms) * msc;
+inms = (in1 * in1 + in2 * in2) * 0.5;
+if (inms > 0.000001) {
+	dryms = dryms + (inms - dryms) * msc;
+}
+inpk = max(max(abs(in1), abs(in2)), inpk * (1 - 1 / (0.2 * samplerate)));
 if (nact > 0) {
 	wetms = wetms + ((wetl * wetl + wetr * wetr) * 0.5 - wetms) * msc;
 }
-if (dryms > 0.000001 && wetms > 0.0000001) {
+if (inpk > 0.001 && dryms > 0.000001 && wetms > 0.0000001) {
 	agct = clamp(sqrt(dryms / wetms), 0.25, 4);
 	agc = agc + (agct - agc) * (1 - exp(-1 / (0.3 * samplerate)));
 }

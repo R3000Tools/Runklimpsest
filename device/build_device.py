@@ -16,7 +16,7 @@ import json
 import struct
 from pathlib import Path
 
-VERSION = "0.2.8"
+VERSION = "0.2.9"
 HERE = Path(__file__).resolve().parent
 JS = "runklimpsest_ui.js"
 DSP = "runklimpsest_dsp.genexpr"   # gen~ codebox source (also rendered by tests/audio_sim.js)

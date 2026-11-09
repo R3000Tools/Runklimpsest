@@ -1,4 +1,4 @@
-# Runklimpsest – 0.2.8 (Max for Live)
+# Runklimpsest – 0.2.9 (Max for Live)
 
 Granular Particle Memory: Teilchen fallen in der Chamber, jeder Aufprall spielt ein Grain aus den letzten 2 Takten. Jedes Abspielen nutzt die gespielte Stelle ab (Palimpsest).
 Latenz: 0 Samples.
@@ -61,6 +61,8 @@ Magenta-Schimmer oben in CHAMBER/MEMORY = Dosis, dort wo sie wirkt (TARGET). DOS
 10. CHAMBER: Gehen die Würfe jetzt in die obere Hälfte? Klingt der Rhythmus mit SYNC wie vorher?
 11. GRAVITY schnell von 1 auf 0: schießen die Teilchen hoch, Strich an der Oberkante, fallen sie wieder ein?
 12. Neue Instanz: GRAIN steht auf 30 ms. Bass und Drums: besser als mit 5 ms?
+13. FREEZE an, dann Eingang stoppen (Clip aus): bleibt der eingefrorene Loop gleich laut? (0.2.8: ca. 20 dB leiser)
+14. Abnutzung (EROSION 65 %, FREEZE, 30 s): jetzt hörbar? SAT rauer, TAPE dumpfer, BIT körniger?
 
 ## Bekannte Grenzen (Prototyp)
 

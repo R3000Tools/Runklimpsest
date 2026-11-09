@@ -54,7 +54,7 @@ Jede Funktion genau einmal als `live.*`-Parameter im Gerät. Die Large View zeic
 - Aufprall → Ereignis (Position, Stärke, Panorama, Zeitversatz) → Stimme. Lesen aus „worn“, Rückschreiben einer abgenutzten Fassung (Palimpsest); HEAL zieht „worn“ zu „fresh“.
 - Effektanteil: Mono-Summe je Grain, Pan aus X (±70 %, −3 dB) oder mittig; Dichte-Normalisierung, Pegelangleich an den Eingang, Begrenzer mit Vorlauf, DC-Filter; MIX mit gleicher Leistung; OUTPUT; Schutzbegrenzer.
 - Rhythmus (0.2.2): Teilchen werfen auf dem DIVISION-Raster, der Hauptschlag landet ein ganzzahliges Vielfaches später (samplegenau vorgemerkt), Nachsprünge frei; SYNC rastet zusätzlich alle Aufpralle ein.
-- Abnutzung (0.2.2): relativ zur Grain-Hüllkurve; SAT → Fuzz, TAPE → dunkel + Rauschen, BIT → grob; EROSION² × 0,25 pro Lesedurchgang, HEAL 30 s.
+- Abnutzung (0.2.2): relativ zur Grain-Hüllkurve; SAT → Fuzz, TAPE → dunkel + Rauschen, BIT → grob; EROSION² × 0,25 pro Lesedurchgang (seit 0.2.9: EROSION^1,5 × 0,4, etwa doppelt so stark), HEAL 30 s (seit 0.2.6: 40 s).
 - Physik (0.2.4): Schwerkraft so skaliert, dass der längste Wurf ~80 % der Kammer erreicht (GRAVITY = Flugzeit); BOUNCE = Elastizität 0,3–0,9 mit Schwellen relativ zur Wurfgeschwindigkeit; DOSE vervielfacht SWARM bis ×2 (TARGET ALL/SWARM).
 - Physik (0.2.8): Schwerkraft pro Wurf, jeder Hauptwurf erreicht 55–90 % der Kammer; GRAVITY bestimmt weiter die Flugzeit, Änderungen während des Flugs wirken sofort (schnell herunterdrehen = Teilchen schießen hoch, gewollt).
 - Abnutzungs-Fußabdruck (0.2.6): mindestens 80 ms pro Aufprall, unabhängig von GRAIN; Pegelabgleich misst nur, während Grains klingen.
